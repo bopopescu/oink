@@ -1,0 +1,116 @@
+*************************
+***P.O.R.K. Change Log***
+*************************
+
+27.03.2015
+
+v01
+
+1. Started using the Server Edition 
+
+
+02.03.2015
+
+v0.6
+
+Changes
+I. PORK
+1. Improved the code. Added the efficiency calculator into PORK.
+2. Users can modify the host ID now, if required.
+3. Removed debugging print messages.
+4. Users can modify entries. They cannot change the FSN/writerID/Date but they can change all else.
+5. Removed the priority combo box and the remove FSN button.
+6. The tabular column now prints values in order.
+
+
+20.02.2015
+v0.5
+Changes
+1. Merged the OINKModules into OINKMethods.
+2. Removed the class definitions from the PORK File.
+3. Renamed PORK.pyw to OINK.pyw.
+4. Copied over the VINDALOO class definitions into OINK.pyw.
+
+16.02.2015
+v0.5
+Changes
+1. Changed the display efficiency module.
+2. Fixed bugs.
+3. Improved 
+
+08.02.2015
+v0.5
+Changes
+MOSES Integration. The module allows for communication with the MySQL server 
+through MySQLPython.
+**Date: 06.02.2015
+**Version: 0.5
+**Changes:
+Migrated all data from CSVs to MySQL Server.
+Created the MOSES Module.
+**Date : 15.01.2015
+**Version:0.3
+**Changes:
+	(1) Added placeholders for several tools, trackers and other essentials.
+	(2) Updated the Category Tree and Target sheet to reflect 
+		the latest method.
+	(3) (IMPORTANT) Update the code to adjust itself based on the 
+		category tree. Do this over the holidays.
+**Date : 01-04.01.2015
+**Version: 0.2d
+**Changes
+**Modularized several functions.
+**Date : 26-29.12.2014
+**Version: 0.2c
+**Changes
+**Added the latest file check module, Added a log file.
+**Date : 24.12.2014
+**Version: 0.2a
+**Changes
+**Added a confirmation when a user tries to modify the piggy bank for dates other than the current day.
+**Running live trials.
+**Date : 23.12.2014
+**Version: 0.2
+**Changes
+**Added local duplicate detection, changed the way it adds, used Dictreader 
+**and DictWriter. Prevented multiple submits. Added RPD Variants and RPD.
+**Added a method to prevent multiple instances.
+**Added better brotherEye with xml style tags.
+**
+**
+**Date : 21.12.2014
+**Version: 0.2
+**Changes:
+**The add/modify FSN dialog has been incorporated into the mainwindow itself.
+**Test if this is easier on the writers. They will still need to enter 
+**1 by 1, but perhaps this will let them copy values from the previous entries.
+**Made several other changes to the way this works.
+**Incorporate a validation system for all the line edits. 
+**Change the WC lineedit into a QDoubleSpinBox, that way, there 
+**is much more control over the WC.
+
+**Date : 18.12.2014
+** Added a close confirmation dialog.
+
+**Date : 16.12.2014
+**Version: v0.1g: Added an Article Type next to the FSN. This will get entered in the last column.
+**Version: v0.1f: Added a time stamp to brotherEyeOpen() and brotherEyeClose.
+
+**Date : 07.12.2014 to 11.12.2014
+**Version: v0.1e: Changed the main class from a QDialog to a QMainwindow. 
+**This has minimizing options and more.
+**Also added brotherEye.
+**Date : 06.12.2014 & 07.12.2014
+**Version v0.1d: Changed the save/read method to use the csv module. This fixes the bug with read/write and eliminates chances of losing data. Also included a verification popup on clicking "Remove FSN".
+**Added features: When the user adds a new FSN to a date which already has at least 1 FSN, the modifier dialog will load the last used Super-Category, Category, Sub-Category, Brand and Vertical.
+
+**Date : 04.12.2014
+**Version v0.1c: Tried to make it live. People used it and reported various bugs. Some others complained that it is too tedious and doesn't allow filling it data in bulk. Note to self: Check with Dominic and verify if he wants them to fill things one at a time or in bulk.
+** Bugs Spotted: The submit function is adding blank rows, which are getting deleted when the csv is loaded into the tablewidget. Data is being lost. Remedy: Use the CSV module.
+
+**Date : 01.12.2014
+**Version v0.1b: cleaned code, implemented separate class definition for the FSN dialog. Modified the events for the calendar. If there is no data for a selected data, PORK will create an empty CSV file. It will then populate the table with 0 rows. 
+
+**Date : 30.11.2014
+**Version v0.1a: Designed through code, QDialog with calendar, tableview and buttons. Added event to repopulate table with selected calendar date.
+

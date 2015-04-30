@@ -1,0 +1,78 @@
+Class,Sub-Class,Type,Definition,Severity,Rating,Value
+Customer Facing Metrics,Engaging Content,Introduction,"""An introduction dictates whether the customer remains on the page or not. Please make sure the introduction is interesting, without going overboard with adjectives. Please introduce the product within the first couple of lines.""",Non Fatal,OP,10
+Customer Facing Metrics,Engaging Content,Introduction,"""An introduction dictates whether the customer remains on the page or not. Please make sure the introduction is interesting, without going overboard with adjectives. Please introduce the product within the first couple of lines.""",Non Fatal,EE,9.625
+Customer Facing Metrics,Engaging Content,Introduction,"""An introduction dictates whether the customer remains on the page or not. Please make sure the introduction is interesting, without going overboard with adjectives. Please introduce the product within the first couple of lines.""",Non Fatal,ME,9.375
+Customer Facing Metrics,Engaging Content,Introduction,"""An introduction dictates whether the customer remains on the page or not. Please make sure the introduction is interesting, without going overboard with adjectives. Please introduce the product within the first couple of lines.""",Non Fatal,BE,8.75
+Customer Facing Metrics,Engaging Content,Introduction,"""An introduction dictates whether the customer remains on the page or not. Please make sure the introduction is interesting, without going overboard with adjectives. Please introduce the product within the first couple of lines.""",Non Fatal,EBE,0
+Customer Facing Metrics,Engaging Content,Product Theme,"""Retain the tone of the category - words used should be in line with the product. Keeping in mind category taxonomy and nomenclature""",Non Fatal,OP,10
+Customer Facing Metrics,Engaging Content,Product Theme,"""Retain the tone of the category - words used should be in line with the product. Keeping in mind category taxonomy and nomenclature""",Non Fatal,EE,9.625
+Customer Facing Metrics,Engaging Content,Product Theme,"""Retain the tone of the category - words used should be in line with the product. Keeping in mind category taxonomy and nomenclature""",Non Fatal,ME,9.375
+Customer Facing Metrics,Engaging Content,Product Theme,"""Retain the tone of the category - words used should be in line with the product. Keeping in mind category taxonomy and nomenclature""",Non Fatal,BE,8.75
+Customer Facing Metrics,Engaging Content,Product Theme,"""Retain the tone of the category - words used should be in line with the product. Keeping in mind category taxonomy and nomenclature""",Non Fatal,EBE,0
+Customer Facing Metrics,Ease of Understanding,Flow of Article,"""Ensure that the article follows a logical structure. Make sure paragraphs are not disjoined - write sub headings where necessary. Move from one point to the next by using connecting sentences. Please follow the introduction-body-conclusion structure. One thought per sentence""",Non Fatal,OP,10
+Customer Facing Metrics,Ease of Understanding,Flow of Article,"""Ensure that the article follows a logical structure. Make sure paragraphs are not disjoined - write sub headings where necessary. Move from one point to the next by using connecting sentences. Please follow the introduction-body-conclusion structure. One thought per sentence""",Non Fatal,EE,9.625
+Customer Facing Metrics,Ease of Understanding,Flow of Article,"""Ensure that the article follows a logical structure. Make sure paragraphs are not disjoined - write sub headings where necessary. Move from one point to the next by using connecting sentences. Please follow the introduction-body-conclusion structure. One thought per sentence""",Non Fatal,ME,9.375
+Customer Facing Metrics,Ease of Understanding,Flow of Article,"""Ensure that the article follows a logical structure. Make sure paragraphs are not disjoined - write sub headings where necessary. Move from one point to the next by using connecting sentences. Please follow the introduction-body-conclusion structure. One thought per sentence""",Non Fatal,BE,8.75
+Customer Facing Metrics,Ease of Understanding,Flow of Article,"""Ensure that the article follows a logical structure. Make sure paragraphs are not disjoined - write sub headings where necessary. Move from one point to the next by using connecting sentences. Please follow the introduction-body-conclusion structure. One thought per sentence""",Non Fatal,EBE,0
+Customer Facing Metrics,Ease of Understanding,Explain Features [in simple terms],"""Explain features in simple terms to help the customer understand them easily.""",Non Fatal,OP,10
+Customer Facing Metrics,Ease of Understanding,Explain Features [in simple terms],"""Explain features in simple terms to help the customer understand them easily.""",Non Fatal,EE,9.625
+Customer Facing Metrics,Ease of Understanding,Explain Features [in simple terms],"""Explain features in simple terms to help the customer understand them easily.""",Non Fatal,ME,9.375
+Customer Facing Metrics,Ease of Understanding,Explain Features [in simple terms],"""Explain features in simple terms to help the customer understand them easily.""",Non Fatal,BE,8.75
+Customer Facing Metrics,Ease of Understanding,Explain Features [in simple terms],"""Explain features in simple terms to help the customer understand them easily.""",Non Fatal,EBE,0
+Customer Facing Metrics,Ease of Understanding,Practical Application of Features,"""Uses of a feature have to be mentioned in the description, using relatable examples.
+Eg: The 2GB DDR3 Graphics card allows you to have a seamless gaming experience.""",Non Fatal,OP,10
+Customer Facing Metrics,Ease of Understanding,Practical Application of Features,"""Uses of a feature have to be mentioned in the description, using relatable examples.
+Eg: The 2GB DDR3 Graphics card allows you to have a seamless gaming experience.""",Non Fatal,EE,9.625
+Customer Facing Metrics,Ease of Understanding,Practical Application of Features,"""Uses of a feature have to be mentioned in the description, using relatable examples.
+Eg: The 2GB DDR3 Graphics card allows you to have a seamless gaming experience.""",Non Fatal,ME,9.375
+Customer Facing Metrics,Ease of Understanding,Practical Application of Features,"""Uses of a feature have to be mentioned in the description, using relatable examples.
+Eg: The 2GB DDR3 Graphics card allows you to have a seamless gaming experience.""",Non Fatal,BE,8.75
+Customer Facing Metrics,Ease of Understanding,Practical Application of Features,"""Uses of a feature have to be mentioned in the description, using relatable examples.
+Eg: The 2GB DDR3 Graphics card allows you to have a seamless gaming experience.""",Non Fatal,EBE,0
+Customer Facing Metrics,Ease of Understanding,Neutral Content,"""Avoid using marketing or promotional terms. Choose adjectives that are not superlatives, unless absolutely necessary. Refrain from using jargon. In case jargon is used, explain these words so that the customer can make an informed decision.""",Non Fatal,OP,10
+Customer Facing Metrics,Ease of Understanding,Neutral Content,"""Avoid using marketing or promotional terms. Choose adjectives that are not superlatives, unless absolutely necessary. Refrain from using jargon. In case jargon is used, explain these words so that the customer can make an informed decision.""",Non Fatal,EE,9.625
+Customer Facing Metrics,Ease of Understanding,Neutral Content,"""Avoid using marketing or promotional terms. Choose adjectives that are not superlatives, unless absolutely necessary. Refrain from using jargon. In case jargon is used, explain these words so that the customer can make an informed decision.""",Non Fatal,ME,9.375
+Customer Facing Metrics,Ease of Understanding,Neutral Content,"""Avoid using marketing or promotional terms. Choose adjectives that are not superlatives, unless absolutely necessary. Refrain from using jargon. In case jargon is used, explain these words so that the customer can make an informed decision.""",Non Fatal,BE,8.75
+Customer Facing Metrics,Ease of Understanding,Neutral Content,"""Avoid using marketing or promotional terms. Choose adjectives that are not superlatives, unless absolutely necessary. Refrain from using jargon. In case jargon is used, explain these words so that the customer can make an informed decision.""",Non Fatal,EBE,0
+Customer Facing Metrics,Product Features,USP,"""The main or distinguishing feaure has to be called out - it is imperative that this called out at the beginning of the description.""",Non Fatal,ME,10
+Customer Facing Metrics,Product Features,USP,"""The main or distinguishing feaure has to be called out - it is imperative that this called out at the beginning of the description.""",Non Fatal,BE,0
+Customer Facing Metrics,Product Features,Priority of Features,"""Prioritize and arrange features based on their importance - mentioning them in that order. Follow the order that the brand uses. If, over research, writers find the order could be better, change the order after getting approval from your reporting manager. Communicate this change to the editors.""",Non Fatal,ME,5
+Customer Facing Metrics,Product Features,Priority of Features,"""Prioritize and arrange features based on their importance - mentioning them in that order. Follow the order that the brand uses. If, over research, writers find the order could be better, change the order after getting approval from your reporting manager. Communicate this change to the editors.""",Non Fatal,BE,0
+"Grammar, Formatting & SEO",Grammar & Formatting,Sentence Construction,"""Sentence Construction is the way a sentence is arranged, grammatically. The sentence structure of your writing includes where the noun and verb fall within an individual sentence. Sentence structure depends on the language in which you're writing or speaking.""",Non Fatal,0,5
+"Grammar, Formatting & SEO",Grammar & Formatting,Sentence Construction,"""Sentence Construction is the way a sentence is arranged, grammatically. The sentence structure of your writing includes where the noun and verb fall within an individual sentence. Sentence structure depends on the language in which you're writing or speaking.""",Non Fatal,1,2.5
+"Grammar, Formatting & SEO",Grammar & Formatting,Sentence Construction,"""Sentence Construction is the way a sentence is arranged, grammatically. The sentence structure of your writing includes where the noun and verb fall within an individual sentence. Sentence structure depends on the language in which you're writing or speaking.""",Non Fatal,>1,0
+"Grammar, Formatting & SEO",Grammar & Formatting,Sub-verb agreement,"""Subjects and verbs must AGREE with one another in number (singular or plural). Thus, if a subject is singular, its verb must also be singular; if a subject is plural, its verb must also be plural.""",Non Fatal,0,5
+"Grammar, Formatting & SEO",Grammar & Formatting,Sub-verb agreement,"""Subjects and verbs must AGREE with one another in number (singular or plural). Thus, if a subject is singular, its verb must also be singular; if a subject is plural, its verb must also be plural.""",Non Fatal,1,2.5
+"Grammar, Formatting & SEO",Grammar & Formatting,Sub-verb agreement,"""Subjects and verbs must AGREE with one another in number (singular or plural). Thus, if a subject is singular, its verb must also be singular; if a subject is plural, its verb must also be plural.""",Non Fatal,>1,0
+"Grammar, Formatting & SEO",Grammar & Formatting,Missing/additional/repeated words,"""NA""",Non Fatal,0,2.5
+"Grammar, Formatting & SEO",Grammar & Formatting,Missing/additional/repeated words,"""NA""",Non Fatal,1,1.25
+"Grammar, Formatting & SEO",Grammar & Formatting,Missing/additional/repeated words,"""NA""",Non Fatal,>1,0
+"Grammar, Formatting & SEO",Grammar & Formatting,Spelling/Typo,"""NA""",Non Fatal,0,2.5
+"Grammar, Formatting & SEO",Grammar & Formatting,Spelling/Typo,"""NA""",Non Fatal,1,1.25
+"Grammar, Formatting & SEO",Grammar & Formatting,Spelling/Typo,"""NA""",Non Fatal,>1,0
+"Grammar, Formatting & SEO",Grammar & Formatting,Punctuation,"""1] The marks, such as full stop, comma, and brackets, used in writing to separate sentences and their elements and to clarify meaning:
+Example: 
+[*] 'you will notice that no punctuation is used'
+[*] 'satisfactory standards of handwriting, spelling, grammar, and punctuation.'
+2] Marks of punctuation include ampersands, apostrophes, asterisks, brackets, bullets, colons, commas, dashes, diacritic marks, ellipsis, exclamation points, hyphens, paragraph breaks, parentheses, periods, question marks, quotation marks, semicolons, slashes, spacing, and strike-throughs.""",Non Fatal,0,2.5
+"Grammar, Formatting & SEO",Grammar & Formatting,Punctuation,"""1] The marks, such as full stop, comma, and brackets, used in writing to separate sentences and their elements and to clarify meaning:
+Example: 
+[*] 'you will notice that no punctuation is used'
+[*] 'satisfactory standards of handwriting, spelling, grammar, and punctuation.'
+2] Marks of punctuation include ampersands, apostrophes, asterisks, brackets, bullets, colons, commas, dashes, diacritic marks, ellipsis, exclamation points, hyphens, paragraph breaks, parentheses, periods, question marks, quotation marks, semicolons, slashes, spacing, and strike-throughs.""",Non Fatal,1,1.25
+"Grammar, Formatting & SEO",Grammar & Formatting,Punctuation,"""1] The marks, such as full stop, comma, and brackets, used in writing to separate sentences and their elements and to clarify meaning:
+Example: 
+[*] 'you will notice that no punctuation is used'
+[*] 'satisfactory standards of handwriting, spelling, grammar, and punctuation.'
+2] Marks of punctuation include ampersands, apostrophes, asterisks, brackets, bullets, colons, commas, dashes, diacritic marks, ellipsis, exclamation points, hyphens, paragraph breaks, parentheses, periods, question marks, quotation marks, semicolons, slashes, spacing, and strike-throughs.""",Non Fatal,>1,0
+"Grammar, Formatting & SEO",Grammar & Formatting,Formatting Errors,"""Bolding, Italics, Spacing""",Non Fatal,0,2.5
+"Grammar, Formatting & SEO",Grammar & Formatting,Formatting Errors,"""Bolding, Italics, Spacing""",Non Fatal,1,1.25
+"Grammar, Formatting & SEO",Grammar & Formatting,Formatting Errors,"""Bolding, Italics, Spacing""",Non Fatal,>1,0
+"Grammar, Formatting & SEO",SEO,Keyword Variation,"""Variations in Keywords (eg: smartphone, android phone, mobile)""",Non Fatal,ME,5
+"Grammar, Formatting & SEO",SEO,Keyword Variation,"""Variations in Keywords (eg: smartphone, android phone, mobile)""",Non Fatal,BE,0
+Process Compliance,Fatals,Keyword Density,"""Use Google adwords to frame sentences that will help generate more traffic and that we are within the expected threshold""",Fatal,ME,0
+Process Compliance,Fatals,Keyword Density,"""Use Google adwords to frame sentences that will help generate more traffic and that we are within the expected threshold""",Fatal,BE,0
+Process Compliance,Fatals,Plagiarism,"""Copying sentences directly from other and internal web pages - Must Have Original Content""",Fatal,ME,0
+Process Compliance,Fatals,Plagiarism,"""Copying sentences directly from other and internal web pages - Must Have Original Content""",Fatal,BE,0
+Process Compliance,Fatals,Mismatch in Specs,"""Mismatch of Specs with Flipkart & Brand Site""",Fatal,ME,0
+Process Compliance,Fatals,Mismatch in Specs,"""Mismatch of Specs with Flipkart & Brand Site""",Fatal,BE,0

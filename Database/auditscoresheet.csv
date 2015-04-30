@@ -1,0 +1,19 @@
+Revision Date,Parameter Class,Parameter Class Index,Column Description,Maximum Score,Weightage,Rating Type,Rating Levels
+2015-01-01,CFM,1,Introduction,10,0.133333333,Subjective,5
+2015-01-01,CFM,2,Product Theme,10,0.133333333,Subjective,5
+2015-01-01,CFM,3,Flow of Article,10,0.133333333,Subjective,5
+2015-01-01,CFM,4,Explain Features [in simple terms],10,0.133333333,Subjective,5
+2015-01-01,CFM,5,Practical Application of Features,10,0.133333333,Subjective,5
+2015-01-01,CFM,6,Neutral Content,10,0.133333333,Subjective,5
+2015-01-01,CFM,7,USP,10,0.133333333,Subjective,2
+2015-01-01,CFM,8,Priority of Features,5,0.066666667,Subjective,2
+2015-01-01,GSEO,1,Sentence Construction,5,0.2,Quantified,3
+2015-01-01,GSEO,2,Sub-verb agreement,5,0.2,Quantified,3
+2015-01-01,GSEO,3,Missing/ additional/ repeated words,2.5,0.1,Quantified,3
+2015-01-01,GSEO,4,Spelling/ Typo,2.5,0.1,Quantified,3
+2015-01-01,GSEO,5,Punctuation,2.5,0.1,Quantified,3
+2015-01-01,GSEO,6,Formatting Errors,2.5,0.1,Quantified,3
+2015-01-01,GSEO,7,Keyword Variation,5,0.2,Quantified,3
+2015-01-01,FAT,1,Keyword Density,0,0,Mandatory,2
+2015-01-01,FAT,2,Plagiarism,0,0,Mandatory,2
+2015-01-01,FAT,3,Mismatch in Specs,0,0,Mandatory,2

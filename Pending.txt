@@ -1,0 +1,22 @@
+1. Need to add filters to Vindaloo. Have to define a FilterBox Widget that can return a list of chosen items.
+	Sort of done. Need to link this to the compiledata method.
+2. Need to theme OINK. Hide the title bar.
+3. Need to push all fetch commands to another thread and provide loading screens.
+4. Need to modify the Repeat Instance case for repeats.
+5. Need to write a UI for all server data administration tasks. (Napoleon)
+6. Need to integrate SWINE into PORK so it pulls brand. Need to show spec table and existing description in PORK for regular descriptions.
+7. Create a table in OINK that checks login and logout time for dates. It should check for open/closed connections. This method can replace the dual instance problem.
+8. Error logging system.
+9. Feature usage counter/monitor.
+
+
+
+
+
+
+
+
+
+VINDALOO
+
+1. Threading.
