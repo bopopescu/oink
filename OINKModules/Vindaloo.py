@@ -1,8 +1,10 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 import itertools
-from PyQt4 import QtGui, QtCore
 import math
+import datetime
+from PyQt4 import QtGui, QtCore
+import numpy
 
 from PassResetDialog import PassResetDialog
 from EfficiencyCalculator import EfficiencyCalculator
@@ -33,7 +35,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.createActions()
         self.addMenus()
         self.createEvents()
-    
+
     def generateUI(self):
         """Vindaloo UI Initializer"""
         self.mainWidget = QtGui.QWidget()
@@ -154,7 +156,6 @@ class Vindaloo(QtGui.QMainWindow):
         self.form_values_thread.gotSubCValues.connect(self.SubC_filter.addItems)
         self.form_values_thread.gotVertValues.connect(self.Vert_filter.addItems)
         self.form_values_thread.gotBrandValues.connect(self.Brand_filter.addItems)
-#        self.form_values_thread.gotProgress.connect(self.updateProgressBar)
         self.pork_kent.gotSummary.connect(self.displayPiggyBankSummary)
         self.pork_kent.processingSummary.connect(self.displayProgress)
 

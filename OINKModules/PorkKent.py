@@ -1,5 +1,6 @@
-from PyQt4 import QtCore
+import time
 import datetime
+from PyQt4 import QtCore
 
 import MOSES
 
@@ -64,30 +65,29 @@ class PorkKent(QtCore.QThread):
         total = len(self.writers)
         self.break_loop = False
         for writer in self.writers:
-            writer_id = writer["Employee ID"]
-            writer_name = writer["Name"]
-            writer_email = writer["Email ID"]
-            writer_summary = {
-                    "Report Date": self.end_date,
-                    "Writer ID": writer_id,
-                    "Writer Name": writer_name,
-                    "Writer Email ID": writer_email,
-                    "Efficiency": MOSES.getEfficiencyFor(self.user_id, self.password, self.end_date, writer_id),
-                    "Average Efficiency": MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, writer_id),
-                    "Weekly Efficiency": MOSES.getEfficiencyForWeek(self.user_id, self.password, self.end_date, writer_id),
-                    "Monthly Efficiency": MOSES.getEfficiencyForMonth(self.user_id, self.password, self.end_date, writer_id),
-                    "Quarterly Efficiency": MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.end_date, writer_id),
-                    "CFM": MOSES.getCFMFor(self.user_id, self.password, self.end_date, writer_id),
-                    "Average CFM": MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, writer_id),
-                    "Weekly CFM": MOSES.getCFMForWeek(self.user_id, self.password, self.end_date, writer_id),
-                    "Monthly CFM": MOSES.getCFMForMonth(self.user_id, self.password, self.end_date, writer_id),
-                    "Quarterly CFM": MOSES.getCFMForQuarter(self.user_id, self.password, self.end_date, writer_id),
-                    "GSEO": MOSES.getGSEOFor(self.user_id, self.password, self.end_date, writer_id),
-                    "Average GSEO": MOSES.getGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, writer_id),
-                    "Weekly GSEO": MOSES.getGSEOForWeek(self.user_id, self.password, self.end_date, writer_id),
-                    "Monthly GSEO": MOSES.getGSEOForMonth(self.user_id, self.password, self.end_date, writer_id),
-                    "Quarterly GSEO": MOSES.getGSEOForQuarter(self.user_id, self.password, self.end_date, writer_id),
-                }
+            self.writer_id = writer["Employee ID"]
+            self.writer_name = writer["Name"]
+            self.writer_email = writer["Email ID"]
+            try:
+                writer_summary = self.fetchWriterSummary()
+            except Exception, err:
+                print "********\nEncountered an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                time.sleep(5)
+                try:
+                    writer_summary = self.fetchWriterSummary(1)
+                except Exception, err:
+                    print "Encounter********\ned an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                    time.sleep(5)
+                    try:
+                        writer_summary = self.fetchWriterSummary(2)
+                    except Exception, err:
+                        print "Encounter********\ned an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                        time.sleep(5)
+                        try:
+                            writer_summary = self.fetchWriterSummary(3)
+                        except Exception, err:
+                            print "Encountered********\n an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                            raise
             self.summary_data.append(writer_summary)
             done = len(self.summary_data)
             self.processingSummary.emit(done,total)
@@ -100,3 +100,29 @@ class PorkKent(QtCore.QThread):
         self.end_date = end_date
         self.break_loop = True
         #print "Successfully changed the dates."
+    def fetchWriterSummary(self, retry=None):
+        if retry is not None:
+            print "Retrying to fetch the data. (trial#%d)" %retry 
+        writer_summary = {
+            "Report Date": self.end_date,
+            "Writer ID": self.writer_id,
+            "Writer Name": self.writer_name,
+            "Writer Email ID": self.writer_email,
+            "Efficiency": MOSES.getEfficiencyFor(self.user_id, self.password, self.end_date, self.writer_id),
+            "Average Efficiency": MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
+            "Weekly Efficiency": MOSES.getEfficiencyForWeek(self.user_id, self.password, self.end_date, self.writer_id),
+            "Monthly Efficiency": MOSES.getEfficiencyForMonth(self.user_id, self.password, self.end_date, self.writer_id),
+            "Quarterly Efficiency": MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
+            "CFM": MOSES.getCFMFor(self.user_id, self.password, self.end_date, self.writer_id),
+            "Average CFM": MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
+            "Weekly CFM": MOSES.getCFMForWeek(self.user_id, self.password, self.end_date, self.writer_id),
+            "Monthly CFM": MOSES.getCFMForMonth(self.user_id, self.password, self.end_date, self.writer_id),
+            "Quarterly CFM": MOSES.getCFMForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
+            "GSEO": MOSES.getGSEOFor(self.user_id, self.password, self.end_date, self.writer_id),
+            "Average GSEO": MOSES.getGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
+            "Weekly GSEO": MOSES.getGSEOForWeek(self.user_id, self.password, self.end_date, self.writer_id),
+            "Monthly GSEO": MOSES.getGSEOForMonth(self.user_id, self.password, self.end_date, self.writer_id),
+            "Quarterly GSEO": MOSES.getGSEOForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
+        }
+        return writer_summary
+

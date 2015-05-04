@@ -42,50 +42,40 @@ class Former(QtCore.QThread):
 
 	def getAll(self, BU=None, SupC=None, Cat=None, SubC=None, Vert=None, Brand=None):
 		#I don't know why I'll need to push brand here. I'll plan something later.
-		self.gotProgress.emit(0,"Retrieving Form Data.")
-		time.sleep(0.5)
-		self.gotProgress.emit(1,"Retrieving Form Data.")
 		self.getBUValues()
-		self.gotProgress.emit(17,"Retrieving Super-Category Data")
 		self.getSupCValues(BU)
-		self.gotProgress.emit(34,"Retrieving Category Data")
 		self.getCatValues(SupC)
-		self.gotProgress.emit(51,"Retrieving Sub-Category Data")
 		self.getSubCValues(Cat)
-		self.gotProgress.emit(64,"Retrieving Vertical Data")
 		self.getVertValues(SubC)
-		self.gotProgress.emit(81,"Retrieving Brand Data")
 		self.getBrandValues()
-		self.gotProgress.emit(100,"Completed populating filters")
 
 	def getBUValues(self):
 		BU_values = MOSES.getBUValues(self.userID, self.password)
-		print "BU: ", len(BU_values)
+		#print "BU: ", len(BU_values)
 		self.gotBUValues.emit(BU_values)
 	
 	def getSupCValues(self, BU=None):
 		SupC_values = MOSES.getSuperCategoryValues(self.userID, self.password)
-		print "Super-Category: ", len(SupC_values)
+		#print "Super-Category: ", len(SupC_values)
 		self.gotSupCValues.emit(SupC_values)
 
 	def getCatValues(self, SupC = None):
 		Cat_values = MOSES.getCategoryValues(self.userID, self.password)
-		print "Category: ", len(Cat_values)
+		#print "Category: ", len(Cat_values)
 		self.gotCatValues.emit(Cat_values)
 	
 	def getSubCValues(self, Cat = None):
 		SubC_values = MOSES.getSubCategoryValues(self.userID, self.password)
-		print "Sub-Category: ", len(SubC_values)
+		#print "Sub-Category: ", len(SubC_values)
 		self.gotSubCValues.emit(SubC_values)
 
 	def getVertValues(self, SubC = None):
 		Vert_values = MOSES.getVerticalValues(self.userID, self.password)
-		print "Verticals: ", len(Vert_values)
+		#print "Verticals: ", len(Vert_values)
 		self.gotVertValues.emit(Vert_values)
 	
 	def getBrandValues(self, Vert = None):
 		Brand_values = MOSES.getBrandValues(self.userID, self.password)
-		print "Brand: ", len(Brand_values)
+		#print "Brand: ", len(Brand_values)
 		self.gotBrandValues.emit(Brand_values)
-	def getProgress(self):
-		"""Do I need this?"""
+	
