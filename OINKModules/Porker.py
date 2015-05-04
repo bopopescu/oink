@@ -132,24 +132,95 @@ class Porker(QtCore.QThread):
         current_week = OINKM.getWeekNum(last_working_date)
         current_month = OINKM.getMonth(last_working_date)
         current_quarter = OINKM.getQuarter(last_working_date)
+        
+        lwd_efficiency = MOSES.getEfficiencyFor(self.userID, self.password, last_working_date)
+        if lwd_efficiency is None:
+            lwd_efficiency = "-"
+        else:
+            lwd_efficiency *= 100.00
+        lwd_gseo = MOSES.getGSEOFor(self.userID, self.password, last_working_date)
+        if lwd_gseo is None:
+            lwd_gseo = "-"
+        else:
+            lwd_gseo *= 100.00
+
+        lwd_cfm = MOSES.getCFMFor(self.userID, self.password, last_working_date)
+        if lwd_cfm is None:
+            lwd_cfm = "-"
+        else:
+            lwd_cfm *= 100.00
+
+        cw_efficiency = MOSES.getEfficiencyForWeek(self.userID, self.password, last_working_date)
+        if cw_efficiency is None:
+            cw_efficiency = "-"
+        else:
+            cw_efficiency *= 100.00
+        
+        cw_gseo = MOSES.getGSEOForWeek(self.userID, self.password, last_working_date)
+        if cw_gseo is None:
+            cw_gseo = "-"
+        else:
+            cw_gseo *= 100.00
+        
+        cw_cfm = MOSES.getCFMForWeek(self.userID, self.password, last_working_date)
+        if cw_cfm is None:
+            cw_cfm = "-"
+        else:
+            cw_cfm *= 100.00
+
+        cm_efficiency = MOSES.getEfficiencyForMonth(self.userID, self.password, last_working_date)
+        if cm_efficiency is None:
+            cm_efficiency = "-"
+        else:
+            cm_efficiency *= 100.00
+
+        cm_gseo = MOSES.getGSEOForMonth(self.userID, self.password, last_working_date)
+        if cm_gseo is None:
+            cm_gseo = "-"
+        else:
+            cm_gseo *= 100.00
+
+        cm_cfm = MOSES.getCFMForMonth(self.userID, self.password, last_working_date)
+        if cm_cfm is None:
+            cm_cfm = "-"
+        else:
+            cm_cfm *= 100.00
+
+        cq_efficiency = MOSES.getEfficiencyForQuarter(self.userID, self.password, last_working_date)
+        if cq_efficiency is None:
+            cq_efficiency = "-"
+        else:
+            cq_efficiency *= 100.00
+
+        cq_gseo = MOSES.getGSEOForQuarter(self.userID, self.password, last_working_date)
+        if cq_gseo is None:
+            cq_gseo = "-"
+        else:
+            cq_gseo *= 100.00
+
+        cq_cfm = MOSES.getCFMForQuarter(self.userID, self.password, last_working_date)
+        if cq_cfm is None:
+            cq_cfm = "-"
+        else:
+            cq_cfm *= 100.00
+
         stats_data = {
         "LWD": last_working_date,
         "Current Week": current_week,
         "Current Month": current_month,
         "Current Quarter": current_quarter,
-        "LWD Efficiency": 100.00*MOSES.getEfficiencyFor(self.userID, self.password, 
-                        last_working_date),
-        "LWD GSEO": 100.00*MOSES.getGSEOFor(self.userID, self.password, last_working_date),
-        "LWD CFM": 100.00*MOSES.getCFMFor(self.userID, self.password, last_working_date),
-        "CW Efficiency": 100.00*MOSES.getEfficiencyForWeek(self.userID, self.password, last_working_date),
-        "CW GSEO": 100.00*MOSES.getGSEOForWeek(self.userID, self.password, last_working_date),
-        "CW CFM": 100.00*MOSES.getCFMForWeek(self.userID, self.password, last_working_date),
-        "CM Efficiency": 100.00*MOSES.getEfficiencyForMonth(self.userID, self.password, last_working_date),
-        "CM GSEO": 100.00*MOSES.getGSEOForMonth(self.userID, self.password, last_working_date),
-        "CM CFM": 100.00*MOSES.getCFMForMonth(self.userID, self.password, last_working_date),
-        "CQ Efficiency": 100.00*MOSES.getEfficiencyForQuarter(self.userID, self.password, last_working_date),
-        "CQ GSEO": 100.00*MOSES.getGSEOForQuarter(self.userID, self.password, last_working_date),
-        "CQ CFM": 100.00*MOSES.getCFMForQuarter(self.userID, self.password, last_working_date)
+        "LWD Efficiency": lwd_efficiency,
+        "LWD GSEO": lwd_gseo,
+        "LWD CFM": lwd_cfm,
+        "CW Efficiency": cw_efficiency,
+        "CW GSEO": cw_gseo,
+        "CW CFM": cw_cfm,
+        "CM Efficiency": cm_efficiency,
+        "CM GSEO": cm_gseo,
+        "CM CFM": cm_cfm,
+        "CQ Efficiency": cq_efficiency,
+        "CQ GSEO": cq_gseo,
+        "CQ CFM": cq_cfm
         }
         self.sendStatsData.emit(stats_data)
 

@@ -571,31 +571,31 @@ class Pork(QtGui.QMainWindow):
         self.stats_table.setColumnCount(4)
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
         self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
-        lwd_efficiency_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.lwd_efficiency))
+        lwd_efficiency_item = QtGui.QTableWidgetItem(str("%s%%" %self.lwd_efficiency))
         lwd_eff_bg_color = QtGui.QColor(255,0,0) if self.lwd_efficiency < 100.00 else QtGui.QColor(255,255,255)
         lwd_efficiency_item.setBackgroundColor(lwd_eff_bg_color)
         
-        lwd_CFM_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.lwd_CFM))
-        lwd_GSEO_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.lwd_GSEO))
+        lwd_CFM_item = QtGui.QTableWidgetItem(str("%s%%" %self.lwd_CFM))
+        lwd_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.lwd_GSEO))
 
-        cw_efficiency_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cw_efficiency))
+        cw_efficiency_item = QtGui.QTableWidgetItem(str("%s%%" %self.cw_efficiency))
         cw_eff_bg_color = QtGui.QColor(255,0,0) if self.cw_efficiency < 100.00 else QtGui.QColor(255,255,255)
         cw_efficiency_item.setBackgroundColor(cw_eff_bg_color)
 
-        cw_CFM_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cw_CFM))
-        cw_GSEO_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cw_GSEO))
+        cw_CFM_item = QtGui.QTableWidgetItem(str("%s%%" %self.cw_CFM))
+        cw_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.cw_GSEO))
         
-        cm_efficiency_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cm_efficiency))
+        cm_efficiency_item = QtGui.QTableWidgetItem(str("%s%%" %self.cm_efficiency))
         cm_eff_bg_color = QtGui.QColor(255,0,0) if self.cm_efficiency < 100.00 else QtGui.QColor(255,255,255)
         cm_efficiency_item.setBackgroundColor(cm_eff_bg_color)
 
-        cm_CFM_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cm_CFM))
-        cm_GSEO_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cm_GSEO))
+        cm_CFM_item = QtGui.QTableWidgetItem(str("%s%%" %self.cm_CFM))
+        cm_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.cm_GSEO))
 
-        cq_efficiency_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cq_efficiency))
+        cq_efficiency_item = QtGui.QTableWidgetItem(str("%s%%" %self.cq_efficiency))
         
-        cq_CFM_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cq_CFM))
-        cq_GSEO_item = QtGui.QTableWidgetItem(str("%.2f%%" %self.cq_GSEO))
+        cq_CFM_item = QtGui.QTableWidgetItem(str("%s%%" %self.cq_CFM))
+        cq_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.cq_GSEO))
         cq_eff_bg_color = QtGui.QColor(255,0,0) if self.cq_efficiency < 100.00 else QtGui.QColor(255,255,255)
         cq_efficiency_item.setBackgroundColor(cq_eff_bg_color)
 

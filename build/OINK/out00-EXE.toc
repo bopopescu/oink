@@ -1,0 +1,9 @@
+('C:\\Users\\vinay.keerthi\\Google Drive\\Projects\\WFM\\O.I.N.K Report Management System\\Admin\\OINK\\build\\OINK\\OINK.exe',
+ False,
+ False,
+ 'Images\\PORK_Icon.ico',
+ None,
+ [],
+ None,
+ False,
+ 1430713823L)

@@ -1100,7 +1100,6 @@ def resetOwnPassword(userID, password, newpassword):
     connectdb.close()
     return True
 
-
 def resetPassword(user_To_Reset, userID, password):
     """Resets the password of user_To_Reset to 'password'."""
     connectdb = MySQLdb.connect(host = getHostID(), user = userID, passwd = password,\
