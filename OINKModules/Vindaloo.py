@@ -429,11 +429,11 @@ class Vindaloo(QtGui.QMainWindow):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.2f%%" %(100*(writer_q_GSEO))))
-                if writer_m_GSEO < 0.95:
+                if writer_q_GSEO < 0.95:
                     writer_items_list[-1].setBackgroundColor(red)
-                elif 0.95 <= writer_m_GSEO <= 0.98:
+                elif 0.95 <= writer_q_GSEO <= 0.98:
                     writer_items_list[-1].setBackgroundColor(green)
-                elif writer_m_GSEO > 0.98:
+                elif writer_q_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
             if (writer_a_efficiency is None) or (math.isnan(writer_a_efficiency)):

@@ -6,6 +6,7 @@ import datetime
 from PyQt4 import QtGui, QtCore
 from OINKModules.Pork import Pork
 from OINKModules.Vindaloo import Vindaloo
+from OINKModules.Pork2 import Pork as Pork_2
 from OINKModules.Bacon import Bacon
 from OINKModules.Napoleon import Napoleon
 
@@ -25,7 +26,7 @@ def main():
                     password = passwordResetter(userID, password)
                 user_role = MOSES.getUserRole(userID, password)
                 userDict = {
-                    "Content Writer": Pork, "Copy Editor": Vindaloo, 
+                    "Content Writer": Pork_2, "Copy Editor": Vindaloo, 
                     "Team Lead": Vindaloo, "Big Brother": Vindaloo, 
                     "Manager": Vindaloo, "Assistant Manager": Vindaloo
                     }

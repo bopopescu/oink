@@ -615,11 +615,10 @@ def getClarifications(userID, password):
 def initWorkCalendar(userID, password):
     connectdb = MySQLdb.connect(host = getHostID(), user = userID, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
     dbcursor = connectdb.cursor()
-    start_date = datetime.date(2015, 1, 1)
-    end_date = datetime.date(2017, 1, 1)
+    start_date = datetime.date(2015, 4, 29)
+    end_date = datetime.date(2015, 5, 4)
     employeesData = getEmployeesList(userID, password)
-    employeesList = [employee["Employee ID"] for employee in employeesData]
-    
+    employeesList = [employee["Employee ID"] for employee in employeesData]    
     for employeeID in employeesList:
         for process_date in OINKM.getDatesBetween(start_date, end_date):
             if not OINKM.isWeekend(process_date):
