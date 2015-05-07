@@ -1437,9 +1437,19 @@ AND `Description Type`="%s" AND `Source`="%s";""" % \
         closestRevisionDate = getClosestDate(datesList,requestDate)
         #print "Closest revision date is %s." %closestRevisionDate #debug
         #print "Query Date is %s." %requestDate #debug
+        entry_counter = 0
         for entry in entriesList:
             if entry["Revision Date"] == closestRevisionDate:
                 result = entry["Target"]
+                entry_counter +=1
+        if entry_counter >1:
+            print "*******************************************************"
+            print "Trying to get a target for:"
+            print "VertString:", VertString
+            print "There seem to be multiple possible targets for separate dates."
+            print entriesList
+            print "*******************************************************"
+
     else:
         result = 0
 
@@ -1449,12 +1459,29 @@ AND `Description Type`="%s" AND `Source`="%s";""" % \
         except:
             retry = 0
         if retry == 0:
+            print "*****************************"
+            print "Got zero target. Trying again."
+            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            print "*****************************"
+
             result = getTargetFor(userID, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, Category=CatString, SubCategory=SubCatString, QueryDate = requestDate, Retry = 1)
         elif retry == 1:
+            print "*****************************"
+            print "Got zero target. Trying again."
+            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            print "*****************************"
             result = getTargetFor(userID, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, Category=CatString, QueryDate = requestDate, Retry = 2)
         elif retry == 2:
+            print "*****************************"
+            print "Got zero target. Trying again."
+            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            print "*****************************"
             result = getTargetFor(userID, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, QueryDate = requestDate, Retry = 3)
         else:
+            print "*****************************"
+            print "Got zero target. FAILED."
+            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            print "*****************************"
             result = 0
     #print "Target is %r" %result #debug
     #print "Leaving getTargetFor"
@@ -2544,11 +2571,46 @@ def updateEmployeesTable(user_id, password):
     connectdb.commit()
     connectdb.close()
     
-if __name__ == "__main__":
-    print "Starting Code."
+def populateStatsInWorkCalendar():
+    import MySQLdb
+    import MySQLdb.cursors
+    import datetime
+    import itertools
+    start_time = datetime.datetime.now()
     u, p = getBigbrotherCredentials()
-    rebuildRawData(u,p)
-    uploadRawData(u,p)
-    #initiateDatabase()    
-#   uploadWorkCalendar("bigbrother", "orwell")
-    print "Code completed."
+    conn = MySQLdb.connect(host = "172.17.188.139", user = u, passwd = p, db = "oink", cursorclass = MySQLdb.cursors.DictCursor)
+    sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `CFM` is Null OR `GSEO` is Null or `Efficiency` is Null;"""
+    cursor = conn.cursor()
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    counter = 1
+    passed = 0
+    total = len(data)
+    for row in data:
+        query_date = row["Date"]
+        query_id = row["Employee ID"]
+        if getUserRole(u, p, query_id) == "Content Writer":
+            try:
+                efficiency = getEfficiencyFor(u, p, query_date, query_id)
+                cfm = getCFMFor(u, p, query_date, query_id)
+                gseo = getGSEOFor(u, p, query_date, query_id)
+                sqlcmdstring = """UPDATE Workcalendar set `Efficiency`="%s", `CFM`="%s", GSEO="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(efficiency, cfm, gseo, query_id, convertToMySQLDate(query_date))
+                cursor.execute(sqlcmdstring)
+                conn.commit()
+                passed += 1
+                if counter == 1 or counter%10 == 0:
+                    print "Process started at %s, current time is %s. ETA is %s" %(start_time, datetime.datetime.now(), getETA(start_time, counter, total))
+            except Exception, e:
+                print "*"*25
+                print "Error trying to get data."
+                print repr(e)
+                print "Writer ID: %s, Date= %s" %(query_id, query_date)
+                print "*"*25
+            counter += 1
+        else:
+            print "Wrong role!"
+    conn.close()
+    
+
+if __name__ == "__main__":
+    print "Never call Moses mainly."

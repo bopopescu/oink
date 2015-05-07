@@ -6830,6 +6830,8 @@ FMCGAndOthers,HomeAndPersonalCare,PersonalCare,BodySkinCare,LipCare,Inhouse,Regu
 FMCGAndOthers,HomeAndPersonalCare,PersonalCare,BodySkinCare,BodyCare,Inhouse,Regular Description,2015-01-01,17
 FMCGAndOthers,HomeAndPersonalCare,PersonalCare,BodySkinCare,BodyAndSkinTreatment,Inhouse,Regular Description,2015-01-01,17
 FMCGAndOthers,HomeAndPersonalCare,PersonalCare,BodySkinCare,BodyAndSkinAccessory,Inhouse,Regular Description,2015-01-01,17
+FMCGAndOthers,Book,Book,Books-Fiction,Books,Inhouse,Regular Description,2015-01-01,13
+FMCGAndOthers,Book,Book,Books-Academic,Books,Inhouse,Regular Description,2015-01-01,37
 FMCGAndOthers,Book,Book,Books-Academic,Academic & Professional,Inhouse,Regular Description,2015-01-01,37
 FMCGAndOthers,Book,Book,Books-Academic,Computer Science,Inhouse,Regular Description,2015-01-01,37
 FMCGAndOthers,Book,Book,Books-Academic,Chemistry,Inhouse,Regular Description,2015-01-01,37
