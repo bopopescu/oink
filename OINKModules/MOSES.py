@@ -416,24 +416,29 @@ def initUsers(userID, password):
         #resetPassword(employee["Employee ID"], userID, password)
     return True
 
-def rebuildWorkCalendar(userID,password):
+def rebuildWorkCalendar(userID, password):
     connectdb = MySQLdb.connect(host=getHostID(), user=userID, passwd=password, \
         db=getDBName(), cursorclass=MySQLdb.cursors.DictCursor)
     dbcursor=connectdb.cursor()
     sqlcmdstring="DROP TABLE IF EXISTS `workcalendar`;"
     dbcursor.execute(sqlcmdstring)
     sqlcmdstring ="""CREATE TABLE `workcalendar` (
-`Date` DATE NOT NULL,
-`Employee ID` varchar(20) NOT NULL,
-`Status` ENUM('Working','Leave','Planned Leave','Sick Leave', 'Emergency Leave','Company Holiday') DEFAULT 'Working',
-`Relaxation` float(3,2) DEFAULT '0.00',
-`Entered By` varchar(20),
-`Comment` VARCHAR(500),
-`Approval` ENUM('Approved','Pending','Rejected'),
-`Reviewed By` VARCHAR(20),
-`Rejection Comment` VARCHAR(500),
-PRIMARY KEY (`Date`,`Employee ID`)
-);"""
+    `Date` DATE NOT NULL,
+    `Employee ID` VARCHAR(20) NOT NULL,
+    `Status` ENUM('Working','Leave','Planned Leave','Sick Leave','Emergency Leave','Company Holiday') NULL DEFAULT 'Working',
+    `Relaxation` FLOAT(3,2) NULL DEFAULT '0.00',
+    `Entered By` VARCHAR(20) NULL DEFAULT NULL,
+    `Comment` VARCHAR(500) NULL DEFAULT NULL,
+    `Approval` ENUM('Approved','Pending','Rejected') NULL DEFAULT NULL,
+    `Reviewed By` VARCHAR(20) NULL DEFAULT NULL,
+    `Rejection Comment` VARCHAR(500) NULL DEFAULT NULL,
+    `Efficiency` FLOAT NULL DEFAULT NULL,
+    `CFM` FLOAT NULL DEFAULT NULL,
+    `GSEO` FLOAT NULL DEFAULT NULL,
+    `Posting Time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `Modification Time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`Date`, `Employee ID`)
+)"""
 #    print sqlcmdstring #debug
     dbcursor.execute(sqlcmdstring)
     connectdb.commit()
@@ -524,18 +529,20 @@ def populatePiggyBankTargets(userID, password):
     sqlcmdstring = """SELECT * FROM `piggybank`;"""
     dbcursor.execute(sqlcmdstring)
     piggybank_data = dbcursor.fetchall()
-    entries = len(piggybank_data)
-    print "Entries to be processed: ", entries
-    current_entry = 1
+    total = len(piggybank_data)
+    counter = 1
+    start_time = datetime.datetime.now()
+    print "Entries to be processed: ", total
     for piggy_entry in piggybank_data:
-        print "Processing %d of %d" %(current_entry,entries)
-        current_entry += 1
+        if counter == 1 or counter%(total/10)==0:
+            print "%d//%d" % (counter,total)
+            print "ETA: %s"% getETA(start_time, counter, total)
+        counter += 1
         time.sleep(0.05)
         target = getTargetForPiggyBankRow(userID, password, piggy_entry)
         sqlcmdstring = """UPDATE `piggybank` SET `target` = "%d" WHERE `Article Date` = "%s" AND `FSN` = "%s" AND `Description Type` = "%s" AND `WriterID` = "%s";""" % \
             (target, piggy_entry["Article Date"], piggy_entry["FSN"], piggy_entry["Description Type"], piggy_entry["WriterID"])
         #print sqlcmdstring
-        print "Time spent: ", (datetime.datetime.now() - startTime)
         dbcursor.execute(sqlcmdstring)
     endTime = datetime.datetime.now()
     timeSpent = endTime - startTime
@@ -615,8 +622,8 @@ def getClarifications(userID, password):
 def initWorkCalendar(userID, password):
     connectdb = MySQLdb.connect(host = getHostID(), user = userID, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
     dbcursor = connectdb.cursor()
-    start_date = datetime.date(2015, 4, 29)
-    end_date = datetime.date(2015, 5, 4)
+    start_date = datetime.date(2015, 5, 7)
+    end_date = datetime.date(2015, 5, 7)
     employeesData = getEmployeesList(userID, password)
     employeesList = [employee["Employee ID"] for employee in employeesData]    
     for employeeID in employeesList:
@@ -1279,6 +1286,25 @@ def getArticleCount(user_id, password, query_date, query_user=None):
     data = getUserPiggyBankData(query_date, user_id, password, query_user)
     return len(data)
 
+def getAuditCount(user_id, password, query_date, query_user=None):
+    if query_user == None:
+        query_user = user_id
+    data = getRawDataForDate(user_id, password, query_date, query_user)
+    return len(data)
+
+def getRawDataForDate(user_id, password, query_date, query_user=None):
+    if query_user is None:
+        query_user = user_id
+    conn = MySQLdb.connect(host=getHostID(), user=user_id, passwd=password, db= getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
+    cursor = conn.cursor()
+    sqlcmdstring ="""SELECT * FROM RAWDATA WHERE `WriterID` = "%s" and `Audit Date`="%s";""" %(query_user, convertToMySQLDate(query_date))
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.commit()
+    conn.close()
+    return data
+
+
 def getEfficiencyForWeek(user_id, password, query_date, query_user = None):
     """Returns the average efficiency for a query_user or the caller ID for the week in
     which the request date falls.
@@ -1459,29 +1485,29 @@ AND `Description Type`="%s" AND `Source`="%s";""" % \
         except:
             retry = 0
         if retry == 0:
-            print "*****************************"
-            print "Got zero target. Trying again."
-            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            print "*****************************"
+            #print "*****************************"
+            #print "Got zero target. Trying again."
+            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            #print "*****************************"
 
             result = getTargetFor(userID, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, Category=CatString, SubCategory=SubCatString, QueryDate = requestDate, Retry = 1)
         elif retry == 1:
-            print "*****************************"
-            print "Got zero target. Trying again."
-            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            print "*****************************"
+            #print "*****************************"
+            #print "Got zero target. Trying again."
+            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            #print "*****************************"
             result = getTargetFor(userID, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, Category=CatString, QueryDate = requestDate, Retry = 2)
         elif retry == 2:
-            print "*****************************"
-            print "Got zero target. Trying again."
-            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            print "*****************************"
+            #print "*****************************"
+            #print "Got zero target. Trying again."
+            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            #print "*****************************"
             result = getTargetFor(userID, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, QueryDate = requestDate, Retry = 3)
         else:
-            print "*****************************"
-            print "Got zero target. FAILED."
-            print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            print "*****************************"
+            #print "*****************************"
+            #print "Got zero target. FAILED."
+            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
+            #print "*****************************"
             result = 0
     #print "Target is %r" %result #debug
     #print "Leaving getTargetFor"
@@ -2579,7 +2605,8 @@ def populateStatsInWorkCalendar():
     start_time = datetime.datetime.now()
     u, p = getBigbrotherCredentials()
     conn = MySQLdb.connect(host = "172.17.188.139", user = u, passwd = p, db = "oink", cursorclass = MySQLdb.cursors.DictCursor)
-    sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `CFM` is Null OR `GSEO` is Null or `Efficiency` is Null;"""
+    sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `GSEO` is Null;"""
+    #sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `Articles` is Null` or `Audits` is Null` OR `CFM` is Null OR `GSEO` is Null or `Efficiency` is Null;"""
     cursor = conn.cursor()
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
@@ -2591,10 +2618,14 @@ def populateStatsInWorkCalendar():
         query_id = row["Employee ID"]
         if getUserRole(u, p, query_id) == "Content Writer":
             try:
-                efficiency = getEfficiencyFor(u, p, query_date, query_id)
-                cfm = getCFMFor(u, p, query_date, query_id)
+                #articles = getArticleCount(u, p, query_date, query_id)
+                #audits = getAuditCount(u, p, query_date, query_id)
+                #efficiency = getEfficiencyFor(u, p, query_date, query_id)
+                #cfm = getCFMFor(u, p, query_date, query_id)
                 gseo = getGSEOFor(u, p, query_date, query_id)
-                sqlcmdstring = """UPDATE Workcalendar set `Efficiency`="%s", `CFM`="%s", GSEO="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(efficiency, cfm, gseo, query_id, convertToMySQLDate(query_date))
+                sqlcmdstring = """UPDATE Workcalendar set `GSEO`="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(gseo, query_id, convertToMySQLDate(query_date))
+                #sqlcmdstring = """UPDATE Workcalendar set `Efficiency`="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(efficiency, query_id, convertToMySQLDate(query_date))
+                #sqlcmdstring = """UPDATE Workcalendar set `Efficiency`="%s", `CFM`="%s", GSEO="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(efficiency, cfm, gseo, query_id, convertToMySQLDate(query_date))
                 cursor.execute(sqlcmdstring)
                 conn.commit()
                 passed += 1
@@ -2606,9 +2637,10 @@ def populateStatsInWorkCalendar():
                 print repr(e)
                 print "Writer ID: %s, Date= %s" %(query_id, query_date)
                 print "*"*25
+                
             counter += 1
-        else:
-            print "Wrong role!"
+    print "Passed: %d, total: %d, failed: %d" %(passed, total, total-passed)
+    print "Time taken: %s" %(datetime.datetime.now()-start_time)
     conn.close()
     
 
