@@ -26,7 +26,7 @@ def main():
                     password = passwordResetter(userID, password)
                 user_role = MOSES.getUserRole(userID, password)
                 userDict = {
-                    "Content Writer": Pork_2, "Copy Editor": Vindaloo, 
+                    "Content Writer": Pork, "Copy Editor": Vindaloo, 
                     "Team Lead": Vindaloo, "Big Brother": Vindaloo, 
                     "Manager": Vindaloo, "Assistant Manager": Vindaloo
                     }

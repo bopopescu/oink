@@ -1,9 +1,9 @@
 import MOSES
 import datetime
 
-date_ = datetime.date(2015, 04, 27)
+date_ = datetime.date(2015, 05, 8)
 
-FSNs = ["SFFEYW35YWH26CHS","SFFEYYFAEK8ZUY8H"]
+FSNs = ["HLMDCG9E4ZSGFZF9",]
 for fsn in FSNs:
 	try:
 		MOSES.addOverride(fsn, date_, "bigbrother", "orwell")

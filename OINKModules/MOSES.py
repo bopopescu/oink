@@ -622,8 +622,8 @@ def getClarifications(userID, password):
 def initWorkCalendar(userID, password):
     connectdb = MySQLdb.connect(host = getHostID(), user = userID, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
     dbcursor = connectdb.cursor()
-    start_date = datetime.date(2015, 5, 7)
-    end_date = datetime.date(2015, 5, 7)
+    start_date = datetime.date(2015, 5, 8)
+    end_date = datetime.date(2015, 5, 11)
     employeesData = getEmployeesList(userID, password)
     employeesList = [employee["Employee ID"] for employee in employeesData]    
     for employeeID in employeesList:
@@ -2642,7 +2642,7 @@ def populateStatsInWorkCalendar():
     print "Passed: %d, total: %d, failed: %d" %(passed, total, total-passed)
     print "Time taken: %s" %(datetime.datetime.now()-start_time)
     conn.close()
-    
+
 
 if __name__ == "__main__":
     print "Never call Moses mainly."
