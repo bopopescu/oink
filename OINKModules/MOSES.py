@@ -526,7 +526,7 @@ def populatePiggyBankTargets(userID, password):
     connectdb = MySQLdb.connect(host = getHostID(), user = userID, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
     startTime = datetime.datetime.now()
     dbcursor = connectdb.cursor()
-    sqlcmdstring = """SELECT * FROM `piggybank`;"""
+    sqlcmdstring = """SELECT * FROM `piggybank` WHERE `Target`='-1' OR `Target`="0";"""
     dbcursor.execute(sqlcmdstring)
     piggybank_data = dbcursor.fetchall()
     total = len(piggybank_data)
@@ -534,28 +534,36 @@ def populatePiggyBankTargets(userID, password):
     start_time = datetime.datetime.now()
     print "Entries to be processed: ", total
     for piggy_entry in piggybank_data:
-        if counter == 1 or counter%(total/10)==0:
-            print "%d//%d" % (counter,total)
+        if counter == 1 or counter%(10)==0:
+            print "%d/%d" % (counter,total)
             print "ETA: %s"% getETA(start_time, counter, total)
         counter += 1
         time.sleep(0.05)
         target = getTargetForPiggyBankRow(userID, password, piggy_entry)
+        print target
         sqlcmdstring = """UPDATE `piggybank` SET `target` = "%d" WHERE `Article Date` = "%s" AND `FSN` = "%s" AND `Description Type` = "%s" AND `WriterID` = "%s";""" % \
             (target, piggy_entry["Article Date"], piggy_entry["FSN"], piggy_entry["Description Type"], piggy_entry["WriterID"])
         #print sqlcmdstring
         dbcursor.execute(sqlcmdstring)
+        connectdb.commit()
     endTime = datetime.datetime.now()
     timeSpent = endTime - startTime
     print "Completed. Time spent: ", timeSpent
-    connectdb.commit()
     connectdb.close()
     
-def getTargetForPiggyBankRow(userID, password, piggy_row):
+def getTargetForPiggyBankRow(userID, password, query_dict):
     """Gets the target given a Piggy Bank dictionary."""
-    try:
-        target = getTargetFor(userID, password, BU = piggy_row["BU"], DescriptionType = piggy_row["Description Type"], Source = piggy_row["Source"], SuperCategory = piggy_row["Super-Category"], Category = piggy_row["Category"], SubCategory = piggy_row["Sub-Category"], Vertical = piggy_row["Vertical"], QueryDate = piggy_row["Article Date"])
-    except Exception, e:
-        target = -1
+    piggy_row = {
+    "Description Type": query_dict["Description Type"],
+    "Source": query_dict["Source"],
+    "BU": query_dict["BU"],
+    "Super-Category": query_dict["Super-Category"],
+    "Category": query_dict["Category"],
+    "Sub-Category": query_dict["Sub-Category"],
+    "Vertical": query_dict["Vertical"]
+    }
+
+    target = getTargetFor(userID, password, piggy_row, query_dict["Article Date"])
     return target
 
 def rebuildTeamCalendar(userID, password):
@@ -1376,7 +1384,7 @@ def getEfficiencyFor(userID, password, queryDate, query_user = None):
         #This doesn't account for negative relaxation, scenarios where a writer must make up. Does it need to? I don't really think so.
         for entry in requestedData:
             #pass the classification identifiers to the method.
-            target = getTargetFor(userID, password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = queryDate)
+            target = getTargetFor(userID, password, entry, queryDate)
             if target == 0.0:
                 efficiency += 0.0
             else:
@@ -1387,7 +1395,124 @@ def getEfficiencyFor(userID, password, queryDate, query_user = None):
     #print "Leaving getEfficiencyFor"
     return efficiency
 
-def getTargetFor(userID, password, **query):
+def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
+    """
+    """
+    import numpy
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    if query_date is None:
+        query_date = datetime.date.today()
+    if retry is None:
+        retry = 0
+    sqlcmdstring = """SELECT `Target`, `Revision Date` FROM `CategoryTree` WHERE %s;""" % getOneToOneStringFromDict(query_dict)
+    #print sqlcmdstring
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    #Convert the set to a list.
+    entries = []
+    for entry in data:
+        entries.append(entry)
+    if len(entries) == 0:
+        retry += 1
+        if retry == 1:
+            #ignore the vertical and try again
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"],
+                "Category": query_dict["Category"],
+                "Sub-Category": query_dict["Sub-Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        elif retry == 2:
+            #ignore the sub category and vertical and try again.
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"],
+                "Category": query_dict["Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        elif retry == 3:
+            #ignore the Category, sub category and vertical and try again.
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        elif retry == 4:
+            #ignore the super-category, Category, sub category and vertical and try again.
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        else:
+            target = 0
+            #print "Failed in retrieving a target for the following query:"
+            #print query_dict
+            #print query_date
+            #print "Carrying on...."
+            #give up.
+        #call the function again, without one key-value pair.
+    elif len(entries) == 1:
+        target = entries[0]["Target"]
+    else:
+        #first check if it has multiple returns for one date.
+            #of all the entries, get the closest data
+        #Else, if it has only one date:
+            #check all the probable targets and return the one with the highest frequency?
+        target = -1
+        dates = []
+        for entry in entries:
+            dates.append(entry["Revision Date"])
+        closest_date = getClosestDate(dates, query_date)
+        possible_targets = []
+        for entry in entries:
+            if entry["Revision Date"] == closest_date:
+                possible_targets.append(entry["Target"])
+            try:
+                target = numpy.bincount(possible_targets).argmax() 
+            except:
+                print closest_date
+                print entries
+                print query_dict
+                target = -1
+                pass
+    conn.commit()
+    conn.close()
+    return target
+
+def getOINKConnector(user_id, password):
+    import MySQLdb
+    import MySQLdb.cursors
+    conn = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
+    return conn
+
+def getEventsForDate(user_id, password, query_date=None, query_dict=None):
+    """Reads the eventcalendar and pulls up all events."""
+    if query_date is None:
+        query_date = datetime.date.today()
+
+def addEvent(user_id, password, event_details):
+    """Adds a new event to the event_calendar."""
+
+def addUsersToEvent(user_id, password, event_details, query_users=None):
+    """Add users to an event."""
+
+def calculateRelaxationForEvent(user_id, password, event_details):
+    """Given an event's details, this function calculates the reduction in efficiency."""
+
+
+
+def getOldTargetFor(userID, password, **query):
     """Returns target for a combination of queries.
     If, for a combination of BUxTypexSourcexSupCatxCatxSubCatxVert, no target is defined,
     then, this method will keep eliminating one parameter after another to get a target.
@@ -2189,7 +2314,7 @@ def getOneToOneStringFromDict(queryDict, joiner = None):
     for key in keys_list:
         if len(result_string) != 0:
             result_string = result_string + "%s" % joiner
-        result_string = result_string + "`" + key + "`" + " = " + "'" + queryDict[key] + "'"
+        result_string = result_string + "`" + key + "`" + " = " + '"' + queryDict[key] + '"'
     return result_string
 
 def checkAuditStatus(userID, password, articleDict):
