@@ -1005,6 +1005,16 @@ def addEmployee(employeeDict,userid,password):
     employeesdb.close()
     return True
 
+def getCurrentEmployeesList(user_id, password, query_date):
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    date_string = convertToMySQLDate(query_date)
+    sqlcmdstring = """SELECT * from `employees` WHERE `DOJ`<="{0}" AND (`DOL` IS NULL OR `DOL` >= "{0}");""".format(date_string)
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return data
+    
 def getEmployeeIDsList(userid,password):
     """Returns a list of all the employees IDs currently in the table.
     Returns a list of dictionaries of IDs and the roles."""
