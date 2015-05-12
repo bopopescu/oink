@@ -304,7 +304,7 @@ class Vindaloo(QtGui.QMainWindow):
             green = QtGui.QColor(49,255, 102)
             blue = QtGui.QColor(86, 89, 232)
 
-            if (writer_efficiency is None) or (math.isnan(writer_efficiency)):
+            if (writer_efficiency is None) or (math.isnan(writer_efficiency)) or (writer_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.2f%%" %(100*(writer_efficiency))))
@@ -337,7 +337,7 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
-            if (writer_w_efficiency is None) or (math.isnan(writer_w_efficiency)):
+            if (writer_w_efficiency is None) or (math.isnan(writer_w_efficiency)) or (writer_w_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.2f%%" %(100*(writer_w_efficiency))))
@@ -370,7 +370,7 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_w_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
-            if (writer_m_efficiency is None) or (math.isnan(writer_m_efficiency)):
+            if (writer_m_efficiency is None) or (math.isnan(writer_m_efficiency)) or (writer_m_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.2f%%" %(100*(writer_m_efficiency))))
@@ -403,7 +403,7 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_m_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
-            if (writer_q_efficiency is None) or (math.isnan(writer_q_efficiency)):
+            if (writer_q_efficiency is None) or (math.isnan(writer_q_efficiency)) or (writer_q_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.2f%%" %(100*(writer_q_efficiency))))
@@ -436,7 +436,7 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_q_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
-            if (writer_a_efficiency is None) or (math.isnan(writer_a_efficiency)):
+            if (writer_a_efficiency is None) or (math.isnan(writer_a_efficiency)) or (writer_a_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.2f%%" %(100*(writer_a_efficiency))))

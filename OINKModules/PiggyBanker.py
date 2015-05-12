@@ -6,18 +6,18 @@ from PyQt4 import QtCore
 class PiggyBanker(QtCore.QThread):
     piggybankChanged = QtCore.pyqtSignal(list, list)
 
-    def __init__(self, userID, password, start_date, end_date = None, query_dict = None, parent = None):
+    def __init__(self, user_id, password, start_date, end_date = None, query_dict = None, parent = None):
         super(PiggyBanker, self).__init__(parent)
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
 
-        self.userID = userID
+        self.user_id = user_id
         self.password = password
         self.sleeper = 10
         self.start_date = start_date
         if query_dict is None:
             #get all data for a writer between dates if only dates are given.
-            self.query_dict = {"WriterID": self.userID}
+            self.query_dict = {"WriterID": self.user_id}
         else:
             #If some query dictionary is supplied, get all data corresponding to that.
             self.query_dict = query_dict
@@ -56,23 +56,23 @@ class PiggyBanker(QtCore.QThread):
         self.past_data = []
         while True:
             try:
-                data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.userID, self.password)
+                data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
             except:
                 try:
                     time.sleep(self.sleeper)
-                    data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.userID, self.password)
+                    data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
                 except:
                     try:
                         time.sleep(self.sleeper)
-                        data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.userID, self.password)
+                        data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
                     except:
                         try:
                             time.sleep(self.sleeper)
-                            data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.userID, self.password)
+                            data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
                         except:
                             try:
                                 time.sleep(self.sleeper)
-                                data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.userID, self.password)
+                                data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
                             except:
                                 raise
 
@@ -83,26 +83,17 @@ class PiggyBanker(QtCore.QThread):
                 #print "Sending %d articles." %len(cleaned_data)
                 targets_data = []
                 for entry in cleaned_data:
-                    try:
-                        target = MOSES.getTargetFor(self.userID, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
-                    except:
-                        try:
-                            time.sleep(self.sleeper)
-                            target = MOSES.getTargetFor(self.userID, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
-                        except:
-                            try:
-                                time.sleep(self.sleeper)
-                                target = MOSES.getTargetFor(self.userID, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
-                            except:
-                                try:
-                                    time.sleep(self.sleeper)
-                                    target = MOSES.getTargetFor(self.userID, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
-                                except:
-                                    try:
-                                        time.sleep(self.sleeper)
-                                        target = MOSES.getTargetFor(self.userID, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
-                                    except:
-                                        raise
+                    piggy_row = {
+                        "Description Type": entry["Description Type"],
+                        "Source": entry["Source"],
+                        "BU": entry["BU"],
+                        "Super-Category": entry["Super-Category"],
+                        "Category": entry["Category"],
+                        "Sub-Category": entry["Sub-Category"],
+                        "Vertical": entry["Vertical"]
+                    }
+                    article_date = entry["Article Date"]
+                    target = MOSES.getTargetFor(self.user_id, self.password, piggy_row, article_date)
                     targets_data.append(target)
                 self.piggybankChanged.emit(cleaned_data, targets_data)
             self.past_data = cleaned_data
@@ -112,12 +103,12 @@ class PiggyBanker(QtCore.QThread):
     def getPiggyBank(self):
         #self.sleeper = sleeper
         print "In get getPiggyBank."
-        data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.userID, self.password)
+        data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
         cleaned_data = list(itertools.chain(*data))
         targets_data = []
         
         for entry in cleaned_data:
-            target = MOSES.getTargetFor(self.userID, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
+            target = MOSES.getTargetFor(self.user_id, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
             targets_data.append(target)
         
         self.piggybankChanged.emit(cleaned_data, targets_data)

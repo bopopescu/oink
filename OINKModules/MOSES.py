@@ -554,13 +554,13 @@ def populatePiggyBankTargets(userID, password):
 def getTargetForPiggyBankRow(userID, password, query_dict):
     """Gets the target given a Piggy Bank dictionary."""
     piggy_row = {
-    "Description Type": query_dict["Description Type"],
-    "Source": query_dict["Source"],
-    "BU": query_dict["BU"],
-    "Super-Category": query_dict["Super-Category"],
-    "Category": query_dict["Category"],
-    "Sub-Category": query_dict["Sub-Category"],
-    "Vertical": query_dict["Vertical"]
+        "Description Type": query_dict["Description Type"],
+        "Source": query_dict["Source"],
+        "BU": query_dict["BU"],
+        "Super-Category": query_dict["Super-Category"],
+        "Category": query_dict["Category"],
+        "Sub-Category": query_dict["Sub-Category"],
+        "Vertical": query_dict["Vertical"]
     }
 
     target = getTargetFor(userID, password, piggy_row, query_dict["Article Date"])
@@ -630,8 +630,8 @@ def getClarifications(userID, password):
 def initWorkCalendar(userID, password):
     connectdb = MySQLdb.connect(host = getHostID(), user = userID, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
     dbcursor = connectdb.cursor()
-    start_date = datetime.date(2015, 5, 8)
-    end_date = datetime.date(2015, 5, 11)
+    start_date = datetime.date(2015, 5, 11)
+    end_date = datetime.date(2015, 5, 12)
     employeesData = getEmployeesList(userID, password)
     employeesList = [employee["Employee ID"] for employee in employeesData]    
     for employeeID in employeesList:
@@ -1384,7 +1384,16 @@ def getEfficiencyFor(userID, password, queryDate, query_user = None):
         #This doesn't account for negative relaxation, scenarios where a writer must make up. Does it need to? I don't really think so.
         for entry in requestedData:
             #pass the classification identifiers to the method.
-            target = getTargetFor(userID, password, entry, queryDate)
+            piggy_row = {
+                "Description Type": entry["Description Type"],
+                "Source": entry["Source"],
+                "BU": entry["BU"],
+                "Super-Category": entry["Super-Category"],
+                "Category": entry["Category"],
+                "Sub-Category": entry["Sub-Category"],
+                "Vertical": entry["Vertical"]
+            }
+            target = getTargetFor(userID, password, piggy_row, queryDate)
             if target == 0.0:
                 efficiency += 0.0
             else:
@@ -1509,7 +1518,6 @@ def addUsersToEvent(user_id, password, event_details, query_users=None):
 
 def calculateRelaxationForEvent(user_id, password, event_details):
     """Given an event's details, this function calculates the reduction in efficiency."""
-
 
 
 def getOldTargetFor(userID, password, **query):
@@ -1680,8 +1688,12 @@ def getCFMFor(user_id, password, query_date, query_user=None):
     #print "Found %d audited articles." % audits
     CFM_score_total = 0
     counter = 0
+    fat_key_list = ["FAT01","FAT02","FAT03"]
     for each_entry in data:
         CFM_score = numpy.sum(list(each_entry[CFM_Key] for CFM_Key in CFM_Key_list)) / float(75.0)
+        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
+        if "Yes" in fatals:
+            CFM_score = 0.0
         counter += 1
         #print "Score for audit #%d = %f" %(counter, CFM_score) 
         #print "Recorded CFM Score = %f" %each_entry["CFM Quality"]
@@ -1771,9 +1783,13 @@ def getGSEOFor(user_id, password, query_date, query_user=None):
     #print "Found %d audited articles." % audits
     GSEO_score_total = 0
     counter = 0
+    fat_key_list = ["FAT01","FAT02","FAT03"]
     for each_entry in data:
         GSEO_score = numpy.sum(list(each_entry[GSEO_Key] for GSEO_Key in GSEO_Key_list)) / float(25)
         counter += 1
+        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
+        if "Yes" in fatals:
+            GSEO_score = 0.0
         #print "FSN or SEO Topic: ", each_entry["FSN"]
         #print "Score for audit #%d = %f" %(counter, GSEO_score) 
         #print "Recorded GSEO Score = %f" %each_entry["GSEO Quality"]
@@ -2294,14 +2310,15 @@ def pendingmethods():
     """Pending methods."""
     print "Pending methods."
 
-def getOneToOneStringFromDict(queryDict, joiner = None):
+def getOneToOneStringFromDict(query_dict, joiner = None):
     """Takes a dictionary and returns a string where each key is mapped to its value. Example:
     a = {"Name" : "Vinay", "Age" : "27"}
     returns 
     "'Name' = 'Vinay', 'Age' = '27'"
     The joiner is either None, AND or OR.
     """
-    keys_list = queryDict.keys()
+    keys_list = query_dict.keys()
+
     result_string = ""
     if joiner == None:
         joiner = " AND "
@@ -2314,7 +2331,7 @@ def getOneToOneStringFromDict(queryDict, joiner = None):
     for key in keys_list:
         if len(result_string) != 0:
             result_string = result_string + "%s" % joiner
-        result_string = result_string + "`" + key + "`" + " = " + '"' + queryDict[key] + '"'
+        result_string = result_string + "`" + key + "`" + " = " + '"' + query_dict[key] + '"'
     return result_string
 
 def checkAuditStatus(userID, password, articleDict):
