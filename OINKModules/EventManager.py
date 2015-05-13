@@ -1,3 +1,4 @@
+from __future__ import division
 import datetime
 import numpy
 import sys
@@ -84,9 +85,9 @@ class EventManager(QtGui.QWidget):
         #Creating widgets for row 4
         self.participants_list = QtGui.QListWidget()
         self.participants_list.setToolTip("Select the participants by holding\nthe SHIFT key or the CTRL key.")
-        employees_data = MOSES.getCurrentEmployeesList(self.user_id, self.password, datetime.date.today())
+        self.employees_data = MOSES.getCurrentEmployeesList(self.user_id, self.password, datetime.date.today())
         employees = []
-        for employee in employees_data:
+        for employee in self.employees_data:
             employees.append(employee["Name"])
         employees.sort()
         self.participants_list.addItems(employees)
@@ -268,15 +269,51 @@ class EventManager(QtGui.QWidget):
         col_index = 0
         self.spinboxes_dict = {}
         for participant in relaxed_participants:
+            #Insert a new row and add a spinbox corresponding to a participant's name.
             self.calc_efficiency_relax_table.insertRow(row_index)
             self.spinboxes_dict.update({participant: QtGui.QDoubleSpinBox()})
-            self.spinboxes_dict[participant].setSingleStep(0.005)
-            self.spinboxes_dict[participant].setDecimals(3)
+            self.spinboxes_dict[participant].setSingleStep(0.05)
+            self.spinboxes_dict[participant].setDecimals(2)
+            self.spinboxes_dict[participant].setSuffix("%")
+            #Get the participant's employee ID and find out how much time he's been spending in events for a given day.
+            participant_id = self.getEmployeeID(participant)
+            participant_duration = self.getTotalDurationFor(participant_id)
+            current_duration = self.getDuration()
+            total_duration = participant_duration + current_duration
+            shrinkage = 8*3600*0.125
+            if total_duration <= shrinkage:
+                relaxation = 0.0
+            else:
+                if participant_duration < shrinkage:
+                    difference = shrinkage - participant_duration
+                    valid_duration = current_duration - difference
+                else:
+                    valid_duration = current_duration
+                #The relaxation is awarded for minutes of this event provided the 
+                relaxation = (valid_duration)/(8*3600)
+                print "Valid Duration : %d, Relaxation: %s." %(valid_duration,relaxation)
+
+            self.spinboxes_dict[participant].setValue((relaxation*100))
             self.calc_efficiency_relax_table.setItem(row_index, 0, QtGui.QTableWidgetItem(str(participant)))
             self.calc_efficiency_relax_table.setCellWidget(row_index, 1, self.spinboxes_dict[participant])
             row_index+=1
         self.calc_efficiency_relax_table.resizeColumnsToContents()
         #self.calc_efficiency_relax_table.resizeRowsToContents()
+
+    def getEmployeeID(self, employee_name):
+        return [employee["Employee ID"] for employee in self.employees_data if employee["Name"] == employee_name][0]
+
+    def getDuration(self):
+        self.start_time = self.event_start_time.dateTime().toPyDateTime()
+        self.end_time = self.event_end_time.dateTime().toPyDateTime()
+        duration_seconds = (self.end_time - self.start_time).total_seconds()
+        return duration_seconds
+    
+    def getTotalDurationFor(self, employee_id):
+        from random import randint
+        total_duration = randint(0,3600)
+        #print "Generated random duration of %d" %total_duration
+        return total_duration
 
     def showDuration(self, duration_seconds):
         h, remainder = divmod(duration_seconds, 3600)

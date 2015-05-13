@@ -627,11 +627,9 @@ def getClarifications(userID, password):
     clarList = [clar["Code"] for clar in clarTuple]
     return clarList
 
-def initWorkCalendar(userID, password):
+def initWorkCalendar(userID, password, start_date, end_date):
     connectdb = MySQLdb.connect(host = getHostID(), user = userID, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
     dbcursor = connectdb.cursor()
-    start_date = datetime.date(2015, 5, 11)
-    end_date = datetime.date(2015, 5, 12)
     employeesData = getEmployeesList(userID, password)
     employeesList = [employee["Employee ID"] for employee in employeesData]    
     for employeeID in employeesList:
@@ -1246,9 +1244,7 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     else:
         #print "Total efficiency: %f for %d days." % ((efficiency / days), days)
         return efficiency / days
-def vinayRelaxation():
-    sqlcmdstring = """UPDATE workcalendar SET `Relaxation`="0.4", `Approval`="Approved" WHERE `Employee ID`="62487" and `Status`="Working" and `Date` > '2015-03-24';
-    """
+
 def buildWritersDataFile():
     u, p = getBigbrotherCredentials()
     start_date = datetime.date(2015,1,1)
@@ -1304,11 +1300,100 @@ def getArticleCount(user_id, password, query_date, query_user=None):
     data = getUserPiggyBankData(query_date, user_id, password, query_user)
     return len(data)
 
+def getArticleCountBetween(user_id, password, start_date, end_date, query_user = None):
+    if query_user == None:
+        query_user = user_id
+    article_count = 0
+    dates = OINKM.getDatesBetween(start_date, end_date)
+    for each_date in dates:
+        article_count += getArticleCount(user_id, password, each_date, query_user)
+    return article_count
+
+def getArticleCountForWeek(user_id, password, query_date, query_user=None):
+    """"""
+    if query_user is None:
+        query_user = user_id
+    current_day = query_date.isocalendar()[2]
+    #Get the date of the monday in that week. Week ends on Sunday.
+    subtractor = current_day - 1
+    first_day_of_the_week = query_date - datetime.timedelta(subtractor)
+    article_count = getArticleCountBetween(user_id, password, first_day_of_the_week, query_date, query_user)
+    return article_count
+
+def getArticleCountForMonth(user_id, password, query_date, query_user=None):
+    """"""
+    if query_user is None:
+        query_user = user_id
+    first_day_of_the_month = datetime.date(query_date.year, query_date.month, 1)
+    article_count = getArticleCountBetween(user_id, password, first_day_of_the_month, query_date, query_user)
+    return article_count
+
+def getArticleCountForQuarter(user_id, password, query_date, query_user=None):
+    """"""
+    if query_user is None:
+        query_user = user_id
+    query_month = query_date.month
+    quarter_first_month_mapped_dictionary = {
+        1: 1, 2: 1, 3: 1,
+        4: 4, 5: 4, 6: 4,
+        7: 7, 8: 7, 9: 7,
+        10: 10, 11: 10, 12: 10
+    }
+    first_month_of_the_quarter = quarter_first_month_mapped_dictionary[query_date.month]
+    first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
+    article_count = getArticleCountBetween(user_id, password, first_day_of_the_quarter, query_date, query_user)
+    return article_count
+
 def getAuditCount(user_id, password, query_date, query_user=None):
     if query_user == None:
         query_user = user_id
     data = getRawDataForDate(user_id, password, query_date, query_user)
     return len(data)
+
+def getAuditCountBetween(user_id, password, start_date, end_date, query_user = None):
+    if query_user == None:
+        query_user = user_id
+    audit_count = 0
+    dates = OINKM.getDatesBetween(start_date, end_date)
+    for each_date in dates:
+        audit_count += getAuditCount(user_id, password, each_date, query_user)
+    return audit_count
+
+def getAuditCountForWeek(user_id, password, query_date, query_user = None):
+    """"""
+    if query_user is None:
+        query_user = user_id
+    current_day = query_date.isocalendar()[2]
+    #Get the date of the monday in that week. Week ends on Sunday.
+    subtractor = current_day - 1
+    first_day_of_the_week = query_date - datetime.timedelta(subtractor)
+    audit_count = getAuditCountBetween(user_id, password, first_day_of_the_week, query_date, query_user)
+    return audit_count
+
+def getAuditCountForMonth(user_id, password, query_date, query_user=None):
+    """"""
+    if query_user is None:
+        query_user = user_id
+    first_day_of_the_month = datetime.date(query_date.year, query_date.month, 1)
+    audit_count = getAuditCountBetween(user_id, password, first_day_of_the_month, query_date, query_user)
+    return audit_count
+
+def getAuditCountForQuarter(user_id, password, query_date, query_user=None):
+    """"""
+    """"""
+    if query_user is None:
+        query_user = user_id
+    query_month = query_date.month
+    quarter_first_month_mapped_dictionary = {
+        1: 1, 2: 1, 3: 1,
+        4: 4, 5: 4, 6: 4,
+        7: 7, 8: 7, 9: 7,
+        10: 10, 11: 10, 12: 10
+    }
+    first_month_of_the_quarter = quarter_first_month_mapped_dictionary[query_date.month]
+    first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
+    audit_count = getAuditCountBetween(user_id, password, first_day_of_the_quarter, query_date, query_user)
+    return audit_count
 
 def getRawDataForDate(user_id, password, query_date, query_user=None):
     if query_user is None:

@@ -264,9 +264,9 @@ class Vindaloo(QtGui.QMainWindow):
         """Vindaloo: Methods to display the efficiency and quality."""
         #print "Running displayPiggyBankSummary."
         self.team_report.setRowCount(len(summary))
-        keys = ["Report Date", "Writer ID", "Writer Email ID", "Writer Name", "Efficiency", "CFM", "GSEO", "Weekly Efficiency", "Weekly CFM", 
-            "Weekly GSEO", "Monthly Efficiency", "Monthly CFM", "Monthly GSEO", "Quarterly Efficiency", 
-            "Quarterly CFM", "Quarterly GSEO", "Average Efficiency", "Average CFM", "Average GSEO"]
+        keys = ["Report Date", "Writer ID", "Writer Email ID", "Writer Name", "Article Count", "Efficiency", "Audit Count", "CFM", "GSEO", "Weekly Article Count", "Weekly Efficiency", "Weekly Audit Count","Weekly CFM", 
+            "Weekly GSEO", "Monthly Article Count", "Monthly Efficiency", "Monthly Audit Count", "Monthly CFM", "Monthly GSEO", "Quarterly Article Count", "Quarterly Efficiency", "Quarterly Audit Count",
+            "Quarterly CFM", "Quarterly GSEO", "Average Article Count", "Average Efficiency", "Average Audit Count", "Average CFM", "Average GSEO"]
         self.team_report.setColumnCount(len(keys))
         row_index = 0
         for writer_data in summary:
@@ -275,6 +275,16 @@ class Vindaloo(QtGui.QMainWindow):
             writer_id = writer_data["Writer ID"]
             writer_email = writer_data["Writer Email ID"]
             writer_name = writer_data["Writer Name"]
+            writer_article_count = writer_data["Article Count"]
+            writer_audit_count = writer_data["Audit Count"]
+            writer_a_article_count = writer_data["Average Article Count"]
+            writer_a_audit_count = writer_data["Average Audit Count"]
+            writer_w_article_count = writer_data["Weekly Article Count"]
+            writer_w_audit_count = writer_data["Weekly Audit Count"]
+            writer_m_article_count = writer_data["Monthly Article Count"]
+            writer_m_audit_count = writer_data["Monthly Audit Count"]
+            writer_q_article_count = writer_data["Quarterly Article Count"]
+            writer_q_audit_count = writer_data["Quarterly Audit Count"]
             writer_efficiency = writer_data["Efficiency"]
             writer_CFM = writer_data["CFM"]
             writer_GSEO = writer_data["GSEO"]
@@ -296,13 +306,15 @@ class Vindaloo(QtGui.QMainWindow):
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_id)))
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_email)))
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_name)))
-            
+
             #red = QtGui.QColor(204, 50, 20)
             #green = QtGui.QColor(119, 178, 18)
             #blue = QtGui.QColor(25, 94, 255)
             red = QtGui.QColor(255, 12, 7)
             green = QtGui.QColor(49,255, 102)
             blue = QtGui.QColor(86, 89, 232)
+            
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_article_count)))
 
             if (writer_efficiency is None) or (math.isnan(writer_efficiency)) or (writer_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
@@ -314,6 +326,8 @@ class Vindaloo(QtGui.QMainWindow):
                     writer_items_list[-1].setBackgroundColor(green)
                 elif writer_efficiency > 1.05:
                     writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_audit_count)))
 
             if (writer_CFM is None) or (math.isnan(writer_CFM)):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
@@ -337,6 +351,8 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_w_article_count)))
+
             if (writer_w_efficiency is None) or (math.isnan(writer_w_efficiency)) or (writer_w_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
@@ -347,6 +363,8 @@ class Vindaloo(QtGui.QMainWindow):
                     writer_items_list[-1].setBackgroundColor(green)
                 elif writer_w_efficiency > 1.05:
                     writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_w_audit_count)))
 
             if (writer_w_CFM is None) or (math.isnan(writer_w_CFM)):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
@@ -370,6 +388,8 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_w_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_m_article_count)))
+
             if (writer_m_efficiency is None) or (math.isnan(writer_m_efficiency)) or (writer_m_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
@@ -380,6 +400,8 @@ class Vindaloo(QtGui.QMainWindow):
                     writer_items_list[-1].setBackgroundColor(green)
                 elif writer_m_efficiency > 1.05:
                     writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_m_audit_count)))
 
             if (writer_m_CFM is None) or (math.isnan(writer_m_CFM)):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
@@ -403,6 +425,8 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_m_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_q_article_count)))
+
             if (writer_q_efficiency is None) or (math.isnan(writer_q_efficiency)) or (writer_q_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
@@ -413,6 +437,8 @@ class Vindaloo(QtGui.QMainWindow):
                     writer_items_list[-1].setBackgroundColor(green)
                 elif writer_q_efficiency > 1.05:
                     writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_q_audit_count)))
 
             if (writer_q_CFM is None) or (math.isnan(writer_q_CFM)):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
@@ -436,6 +462,8 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_q_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_a_article_count)))
+
             if (writer_a_efficiency is None) or (math.isnan(writer_a_efficiency)) or (writer_a_efficiency == 0.0):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))
             else:
@@ -446,6 +474,8 @@ class Vindaloo(QtGui.QMainWindow):
                     writer_items_list[-1].setBackgroundColor(green)
                 elif writer_a_efficiency > 1.05:
                     writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_a_audit_count)))
 
             if (writer_a_CFM is None) or (math.isnan(writer_a_CFM)):
                 writer_items_list.append(QtGui.QTableWidgetItem("-"))

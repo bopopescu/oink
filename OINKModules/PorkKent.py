@@ -64,6 +64,7 @@ class PorkKent(QtCore.QThread):
         done = 0
         total = len(self.writers)
         self.break_loop = False
+        finished_all_writers = False
         for writer in self.writers:
             self.writer_id = writer["Employee ID"]
             self.writer_name = writer["Name"]
@@ -95,11 +96,16 @@ class PorkKent(QtCore.QThread):
             if self.break_loop:
                 self.break_loop = False
                 break
+            else:
+                finished_all_writers = True
+        #After looping, once the writers' data is done, emit the team summary data.
+
     def getSummary(self, start_date, end_date):
         self.start_date = start_date
         self.end_date = end_date
         self.break_loop = True
         #print "Successfully changed the dates."
+
     def fetchWriterSummary(self, retry=None):
         if retry is not None:
             print "Retrying to fetch the data. (trial#%d)" %retry 
@@ -108,11 +114,21 @@ class PorkKent(QtCore.QThread):
             "Writer ID": self.writer_id,
             "Writer Name": self.writer_name,
             "Writer Email ID": self.writer_email,
+            "Article Count": MOSES.getArticleCount(self.user_id, self.password, self.end_date, self.writer_id),
+            "Weekly Article Count": MOSES.getArticleCountForWeek(self.user_id, self.password, self.end_date, self.writer_id),
+            "Monthly Article Count": MOSES.getArticleCountForMonth(self.user_id, self.password, self.end_date, self.writer_id),
+            "Quarterly Article Count": MOSES.getArticleCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
+            "Average Article Count": MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
             "Efficiency": MOSES.getEfficiencyFor(self.user_id, self.password, self.end_date, self.writer_id),
             "Average Efficiency": MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
             "Weekly Efficiency": MOSES.getEfficiencyForWeek(self.user_id, self.password, self.end_date, self.writer_id),
             "Monthly Efficiency": MOSES.getEfficiencyForMonth(self.user_id, self.password, self.end_date, self.writer_id),
             "Quarterly Efficiency": MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
+            "Audit Count": MOSES.getAuditCount(self.user_id, self.password, self.end_date, self.writer_id),
+            "Weekly Audit Count": MOSES.getAuditCountForWeek(self.user_id, self.password, self.end_date, self.writer_id),
+            "Monthly Audit Count": MOSES.getAuditCountForMonth(self.user_id, self.password, self.end_date, self.writer_id),
+            "Quarterly Audit Count": MOSES.getAuditCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
+            "Average Audit Count": MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
             "CFM": MOSES.getCFMFor(self.user_id, self.password, self.end_date, self.writer_id),
             "Average CFM": MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
             "Weekly CFM": MOSES.getCFMForWeek(self.user_id, self.password, self.end_date, self.writer_id),

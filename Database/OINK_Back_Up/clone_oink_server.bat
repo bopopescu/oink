@@ -1,0 +1,1 @@
+mysqldump -h 172.17.188.139 -u bigbrother -porwell oink | mysql -u root -pvinay87 --host=localhost -C oink
