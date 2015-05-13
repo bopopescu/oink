@@ -71,7 +71,10 @@ class Vindaloo(QtGui.QMainWindow):
         self.Vert_filter = FilterBox("Vertical:")
         self.Brand_filter = FilterBox("Brand:")
        
-        self.team_report = QtGui.QTableWidget(0, 0)
+        self.writers_report = QtGui.QTableWidget(0, 0)
+        self.writers_report.setStyleSheet("gridline-color: rgb(0, 0, 0)")
+
+        self.team_report = QtGui.QTableWidget(0,0)
         self.team_report.setStyleSheet("gridline-color: rgb(0, 0, 0)")
         
         self.and_logic = QtGui.QCheckBox("AND")
@@ -104,7 +107,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.filters_widget.setLayout(self.filters_layout)
         self.filters_widget.setVisible(False)
 
-        #self.team_report = QtGui.QTextEdit()
+        #self.writers_report = QtGui.QTextEdit()
         self.tools_layout = QtGui.QVBoxLayout()
         self.tools_layout.addWidget(self.dates_picker, 1)
         self.tools_layout.addWidget(self.pullDataButton, 1)
@@ -115,7 +118,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.tools_layout.addStretch(3)
         self.statusLog = QtGui.QTextEdit()
         self.piggybank = PiggyBank()
-        self.team_report_graphs = QtGui.QWidget()
+        self.writers_report_graphs = QtGui.QWidget()
         self.rawdata = QtGui.QWidget()
         self.summary_progress = QtGui.QProgressBar()
         progress_bar_style = """
@@ -128,8 +131,9 @@ class Vindaloo(QtGui.QMainWindow):
         """Vindaloo."""
 
         self.stats_tabs = QtGui.QTabWidget()
+        self.stats_tabs.addTab(self.writers_report, "Writers' Report")
         self.stats_tabs.addTab(self.team_report, "Team Report")
-        self.stats_tabs.addTab(self.team_report_graphs, "Graphs")
+        self.stats_tabs.addTab(self.writers_report_graphs, "Graphs")
         self.stats_tabs.addTab(self.piggybank, "Piggy Bank")
         self.stats_tabs.addTab(self.rawdata, "Quality Raw Data")
         self.stats_tabs.addTab(self.statusLog, "Log")
@@ -263,11 +267,11 @@ class Vindaloo(QtGui.QMainWindow):
     def displayPiggyBankSummary(self, summary):
         """Vindaloo: Methods to display the efficiency and quality."""
         #print "Running displayPiggyBankSummary."
-        self.team_report.setRowCount(len(summary))
-        keys = ["Report Date", "Writer ID", "Writer Email ID", "Writer Name", "Article Count", "Efficiency", "Audit Count", "CFM", "GSEO", "Weekly Article Count", "Weekly Efficiency", "Weekly Audit Count","Weekly CFM", 
-            "Weekly GSEO", "Monthly Article Count", "Monthly Efficiency", "Monthly Audit Count", "Monthly CFM", "Monthly GSEO", "Quarterly Article Count", "Quarterly Efficiency", "Quarterly Audit Count",
-            "Quarterly CFM", "Quarterly GSEO", "Average Article Count", "Average Efficiency", "Average Audit Count", "Average CFM", "Average GSEO"]
-        self.team_report.setColumnCount(len(keys))
+        self.writers_report.setRowCount(len(summary))
+        keys = ["Report Date", "Writer ID", "Writer Email ID", "Writer Name", "Article Count", "Efficiency", "Audit Count", "CFM", "GSEO", "Stack Rank Index", "Weekly Article Count", "Weekly Efficiency", "Weekly Audit Count","Weekly CFM", 
+            "Weekly GSEO", "Weekly Stack Rank Index", "Monthly Article Count", "Monthly Efficiency", "Monthly Audit Count", "Monthly CFM", "Monthly GSEO", "Monthly Stack Rank Index", "Quarterly Article Count", "Quarterly Efficiency", "Quarterly Audit Count",
+            "Quarterly CFM", "Quarterly GSEO", "Quarterly Stack Rank Index", "Average Article Count", "Average Efficiency", "Average Audit Count", "Average CFM", "Average GSEO", "Average Stack Rank Index"]
+        self.writers_report.setColumnCount(len(keys))
         row_index = 0
         for writer_data in summary:
             #print writer_data
@@ -300,12 +304,19 @@ class Vindaloo(QtGui.QMainWindow):
             writer_a_efficiency = writer_data["Average Efficiency"]
             writer_a_CFM = writer_data["Average CFM"]
             writer_a_GSEO = writer_data["Average GSEO"]
+            writer_SRI = writer_data["Stack Rank Index"]
+            writer_w_SRI = writer_data["Weekly Stack Rank Index"]
+            writer_m_SRI = writer_data["Monthly Stack Rank Index"]
+            writer_q_SRI = writer_data["Quarterly Stack Rank Index"]
+            writer_a_SRI = writer_data["Average Stack Rank Index"]
+
             #QWidgetItem Conversion
             writer_items_list = []
             writer_items_list.append(QtGui.QTableWidgetItem(str(report_date)))
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_id)))
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_email)))
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_name)))
+
 
             #red = QtGui.QColor(204, 50, 20)
             #green = QtGui.QColor(119, 178, 18)
@@ -351,6 +362,8 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_SRI)))
+
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_w_article_count)))
 
             if (writer_w_efficiency is None) or (math.isnan(writer_w_efficiency)) or (writer_w_efficiency == 0.0):
@@ -387,6 +400,8 @@ class Vindaloo(QtGui.QMainWindow):
                     writer_items_list[-1].setBackgroundColor(green)
                 elif writer_w_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_w_SRI)))
 
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_m_article_count)))
 
@@ -425,6 +440,8 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_m_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_m_SRI)))
+
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_q_article_count)))
 
             if (writer_q_efficiency is None) or (math.isnan(writer_q_efficiency)) or (writer_q_efficiency == 0.0):
@@ -461,6 +478,8 @@ class Vindaloo(QtGui.QMainWindow):
                     writer_items_list[-1].setBackgroundColor(green)
                 elif writer_q_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_q_SRI)))
 
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_a_article_count)))
 
@@ -499,19 +518,21 @@ class Vindaloo(QtGui.QMainWindow):
                 elif writer_a_GSEO > 0.98:
                     writer_items_list[-1].setBackgroundColor(blue)
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_a_SRI)))
+
 
             column_index = 0
-            self.team_report.setSortingEnabled(False)
+            self.writers_report.setSortingEnabled(False)
             for widget_item in writer_items_list:
                 widget_item.setTextAlignment(QtCore.Qt.AlignCenter)
-                self.team_report.setItem(row_index, column_index, widget_item)
+                self.writers_report.setItem(row_index, column_index, widget_item)
                 column_index += 1
-            self.team_report.setSortingEnabled(True)
-            self.team_report.sortItems(1)
-            self.team_report.resizeColumnsToContents()
-            self.team_report.resizeRowsToContents()
+            self.writers_report.setSortingEnabled(True)
+            self.writers_report.sortItems(1)
+            self.writers_report.resizeColumnsToContents()
+            self.writers_report.resizeRowsToContents()
             row_index += 1
-        self.team_report.setHorizontalHeaderLabels(keys)
+        self.writers_report.setHorizontalHeaderLabels(keys)
 
     def displaypiggybank(self, piggy_data, targets_date):
         """Vindaloo: Pulls all data for a start and end date"""
@@ -542,7 +563,7 @@ class Vindaloo(QtGui.QMainWindow):
                 current_tab = self.stats_tabs.currentIndex()
                 print "Currently displaying tab #%d",current_tab
                 if current_tab == 0:
-                    table_to_copy = self.team_report
+                    table_to_copy = self.writers_report
                 elif current_tab == 2:
                     table_to_copy = self.piggybank
                 selected = table_to_copy.selectedRanges()

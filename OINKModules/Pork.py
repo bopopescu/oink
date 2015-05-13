@@ -1218,7 +1218,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
         if self.valid:
             writer_name = MOSES.getEmpName(self.userID)
             writer_email = MOSES.getEmpEmailID(self.userID)
-            target = MOSES.getTargetFor(self.userID, self.password, BU = self.bu, DescriptionType = self.type, Source = self.source, SuperCategory = self.supercategory, Category = self.category, SubCategory = self.subcategory, Vertical = self.vertical, QueryDate = self.getActiveDate())
             active_date = self.getActiveDate()
             self.fsnDataList = {
                 "Article Date": active_date,
@@ -1239,10 +1238,20 @@ the existing data in the form with the data in the cell and modify that cell?"""
                 "Reference Link": self.referencelink, 
                 "Rewrite Ticket": 0,
                 "End Time": datetime.datetime.now(),
-                "Target" : target,
                 "PC User Name": getpass.getuser(),
                 "Job Ticket": self.getJobTicket(active_date, self.userID, self.fsn)
             }
+            query_dict = {
+                "Source":self.source,
+                "Description Type":self.type,
+                "BU":self.bu,
+                "Super-Category":self.supercategory,
+                "Category": self.category,
+                "Sub-Category": self.subcategory,
+                "Vertical": self.vertical
+            }
+            target = MOSES.getTargetFor(self.userID, self.password, query_dict, self.getActiveDate())
+            self.fsnDataList.update({"Target": target})
         return self.fsnDataList
 
     def getJobTicket(self, given_date, given_id, given_fsn):

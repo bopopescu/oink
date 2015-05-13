@@ -1,5 +1,7 @@
+from __future__ import division
 import time
 import datetime
+import math
 from PyQt4 import QtCore
 
 import MOSES
@@ -73,6 +75,7 @@ class PorkKent(QtCore.QThread):
                 writer_summary = self.fetchWriterSummary()
             except Exception, err:
                 print "********\nEncountered an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                raise
                 time.sleep(5)
                 try:
                     writer_summary = self.fetchWriterSummary(1)
@@ -109,36 +112,114 @@ class PorkKent(QtCore.QThread):
     def fetchWriterSummary(self, retry=None):
         if retry is not None:
             print "Retrying to fetch the data. (trial#%d)" %retry 
+        article_count = MOSES.getArticleCount(self.user_id, self.password, self.end_date, self.writer_id)
+        w_article_count = MOSES.getArticleCountForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        m_article_count = MOSES.getArticleCountForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        q_article_count = MOSES.getArticleCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        a_article_count = MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, self.end_date, self.writer_id)
+        a_efficiency = MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        w_efficiency = MOSES.getEfficiencyForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        m_efficiency = MOSES.getEfficiencyForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        q_efficiency = MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        audit_count = MOSES.getAuditCount(self.user_id, self.password, self.end_date, self.writer_id)
+        w_audit_count = MOSES.getAuditCountForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        m_audit_count = MOSES.getAuditCountForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        q_audit_count = MOSES.getAuditCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        a_audit_count = MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        cfm = MOSES.getCFMFor(self.user_id, self.password, self.end_date, self.writer_id)
+        a_cfm = MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        w_cfm = MOSES.getCFMForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        m_cfm = MOSES.getCFMForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        q_cfm = MOSES.getCFMForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        gseo = MOSES.getGSEOFor(self.user_id, self.password, self.end_date, self.writer_id)
+        a_gseo = MOSES.getGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        w_gseo = MOSES.getGSEOForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        m_gseo = MOSES.getGSEOForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        q_gseo = MOSES.getGSEOForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        stack_rank_index = self.getStackRankIndex(efficiency, cfm, gseo)
+        w_stack_rank_index = self.getStackRankIndex(w_efficiency, w_cfm, w_gseo)
+        m_stack_rank_index = self.getStackRankIndex(m_efficiency, m_cfm, m_gseo)
+        q_stack_rank_index = self.getStackRankIndex(q_efficiency, q_cfm, q_gseo)
+        a_stack_rank_index = self.getStackRankIndex(a_efficiency, a_cfm, a_gseo)
+
         writer_summary = {
             "Report Date": self.end_date,
             "Writer ID": self.writer_id,
             "Writer Name": self.writer_name,
             "Writer Email ID": self.writer_email,
-            "Article Count": MOSES.getArticleCount(self.user_id, self.password, self.end_date, self.writer_id),
-            "Weekly Article Count": MOSES.getArticleCountForWeek(self.user_id, self.password, self.end_date, self.writer_id),
-            "Monthly Article Count": MOSES.getArticleCountForMonth(self.user_id, self.password, self.end_date, self.writer_id),
-            "Quarterly Article Count": MOSES.getArticleCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
-            "Average Article Count": MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
-            "Efficiency": MOSES.getEfficiencyFor(self.user_id, self.password, self.end_date, self.writer_id),
-            "Average Efficiency": MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
-            "Weekly Efficiency": MOSES.getEfficiencyForWeek(self.user_id, self.password, self.end_date, self.writer_id),
-            "Monthly Efficiency": MOSES.getEfficiencyForMonth(self.user_id, self.password, self.end_date, self.writer_id),
-            "Quarterly Efficiency": MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
-            "Audit Count": MOSES.getAuditCount(self.user_id, self.password, self.end_date, self.writer_id),
-            "Weekly Audit Count": MOSES.getAuditCountForWeek(self.user_id, self.password, self.end_date, self.writer_id),
-            "Monthly Audit Count": MOSES.getAuditCountForMonth(self.user_id, self.password, self.end_date, self.writer_id),
-            "Quarterly Audit Count": MOSES.getAuditCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
-            "Average Audit Count": MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
-            "CFM": MOSES.getCFMFor(self.user_id, self.password, self.end_date, self.writer_id),
-            "Average CFM": MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
-            "Weekly CFM": MOSES.getCFMForWeek(self.user_id, self.password, self.end_date, self.writer_id),
-            "Monthly CFM": MOSES.getCFMForMonth(self.user_id, self.password, self.end_date, self.writer_id),
-            "Quarterly CFM": MOSES.getCFMForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
-            "GSEO": MOSES.getGSEOFor(self.user_id, self.password, self.end_date, self.writer_id),
-            "Average GSEO": MOSES.getGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id),
-            "Weekly GSEO": MOSES.getGSEOForWeek(self.user_id, self.password, self.end_date, self.writer_id),
-            "Monthly GSEO": MOSES.getGSEOForMonth(self.user_id, self.password, self.end_date, self.writer_id),
-            "Quarterly GSEO": MOSES.getGSEOForQuarter(self.user_id, self.password, self.end_date, self.writer_id),
+            "Article Count": article_count,
+            "Weekly Article Count": w_article_count,
+            "Monthly Article Count": m_article_count,
+            "Quarterly Article Count": q_article_count,
+            "Average Article Count": a_article_count,
+            "Efficiency": efficiency,
+            "Weekly Efficiency": w_efficiency,
+            "Monthly Efficiency": m_efficiency,
+            "Quarterly Efficiency": q_efficiency,
+            "Average Efficiency": a_efficiency,
+            "Audit Count": audit_count,
+            "Weekly Audit Count": w_audit_count,
+            "Monthly Audit Count": m_audit_count,
+            "Quarterly Audit Count": q_audit_count,
+            "Average Audit Count": a_audit_count,
+            "CFM": cfm,
+            "Weekly CFM": w_cfm,
+            "Monthly CFM": m_cfm,
+            "Quarterly CFM": q_cfm,
+            "Average CFM": a_cfm,
+            "GSEO": gseo,
+            "Weekly GSEO": w_gseo,
+            "Monthly GSEO": m_gseo,
+            "Quarterly GSEO": q_gseo,
+            "Average GSEO": a_gseo,
+            "Stack Rank Index": stack_rank_index,
+            "Weekly Stack Rank Index": w_stack_rank_index,
+            "Monthly Stack Rank Index": m_stack_rank_index,
+            "Quarterly Stack Rank Index": q_stack_rank_index,
+            "Average Stack Rank Index": a_stack_rank_index
         }
         return writer_summary
+
+    def getStackRankIndex(self, eff, cfm, gseo):
+        parameters_are_not_valid = eff is None or cfm is None or gseo is None
+        if parameters_are_not_valid:
+            stack_rank_index = "NA"
+        elif not(math.isnan(eff) or math.isnan(cfm) or math.isnan(gseo)):
+            stack_rank_index = (self.getEffKRA(eff)+self.getQKRA(cfm)+self.getQKRA(gseo))/3
+        else:
+            print (eff, cfm, gseo)
+            stack_rank_index = "NA"
+        if stack_rank_index is None:
+            print "Error?"
+            print (eff, cfm, gseo)
+            stack_rank_index = "NA"
+        return stack_rank_index
+
+    def getEffKRA(self, eff):
+        if eff < 0.95:
+            kra = 1
+        elif 0.95 <= eff < 1.0:
+            kra = 2
+        elif 1.0 <= eff < 1.05:
+            kra = 3
+        elif 1.05 <= eff < 1.1:
+            kra = 4
+        elif eff >= 1.1:
+            kra = 5
+        return kra
+
+    def getQKRA(self, q):
+        if q < 0.9:
+            kra = 1
+        elif 0.9 <= q < 0.95:
+            kra = 2
+        elif 0.95 <= q <= 0.97:
+            kra = 3
+        elif 0.97 < q <= 0.99:
+            kra = 4
+        elif q > 0.99:
+            kra = 5
+        return kra
+
 

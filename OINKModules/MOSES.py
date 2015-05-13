@@ -1585,9 +1585,9 @@ def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
             try:
                 target = numpy.bincount(possible_targets).argmax() 
             except:
-                print closest_date
-                print entries
-                print query_dict
+                #print closest_date
+                #print entries
+                #print query_dict
                 target = -1
                 pass
     conn.commit()
@@ -2879,7 +2879,6 @@ def populateStatsInWorkCalendar():
     print "Passed: %d, total: %d, failed: %d" %(passed, total, total-passed)
     print "Time taken: %s" %(datetime.datetime.now()-start_time)
     conn.close()
-
 
 if __name__ == "__main__":
     print "Never call Moses mainly."
