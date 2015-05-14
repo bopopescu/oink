@@ -1772,47 +1772,46 @@ def getCFMFor(user_id, password, query_date, query_user=None):
     import numpy
     if query_user is None:
         query_user = user_id
-    raw_data_table, CFM_Key_list, GSEO_list = getRawDataTableAndAuditParameters()
-    connectdb = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` = '%s';""" %(raw_data_table, query_user, convertToMySQLDate(query_date))
-    #print sqlcmdstring
-    dbcursor.execute(sqlcmdstring)
-    data = dbcursor.fetchall()
-    audits = len(data)
-    #print "Found %d audited articles." % audits
-    CFM_score_total = 0
-    counter = 0
-    fat_key_list = ["FAT01","FAT02","FAT03"]
-    for each_entry in data:
-        CFM_score = numpy.sum(list(each_entry[CFM_Key] for CFM_Key in CFM_Key_list)) / float(75.0)
-        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
-        if "Yes" in fatals:
-            CFM_score = 0.0
-        counter += 1
-        #print "Score for audit #%d = %f" %(counter, CFM_score) 
-        #print "Recorded CFM Score = %f" %each_entry["CFM Quality"]
-        CFM_score_total += CFM_score
-    if audits > 0:
-        CFM_score_average = CFM_score_total / audits
-    else:
-        CFM_score_average = None
-    connectdb.commit()
-    connectdb.close()
-    return CFM_score_average
+    return getCFMBetweenDates(user_id, password, query_date, query_date, query_user)
 
 def getCFMBetweenDates(user_id, password, start_date, end_date, query_user=None):
     import numpy
     if query_user is None:
         query_user = user_id
-    dates = OINKM.getDatesBetween(start_date, end_date)
-    #print dates
+    raw_data_table, CFM_key_list, GSEO__key_list = getRawDataTableAndAuditParameters()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    audits = len(data)
+    #print "Found %d audited articles." % audits
+    counter = 0
+    fat_key_list = ["FAT01","FAT02","FAT03"]
     CFM_scores = []
-    for query_date in dates:
-        CFM = getCFMFor(user_id, password, query_date, query_user)
-        if CFM is not None:
-            CFM_scores.append(CFM)
-    CFM_score_average = numpy.mean(CFM_scores)
+    for each_entry in data:
+        CFM_score = numpy.sum(list(each_entry[CFM_key] for CFM_key in CFM_key_list)) / float(75.0)
+        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
+        if "Yes" in fatals:
+            CFM_score = 0.0
+        counter += 1
+        recorded_cfm = each_entry["CFM Quality"]
+        CFM_score = numpy.around(CFM_score, decimals=3)
+        #if CFM_score < recorded_cfm:
+        #    sign = "<"
+        #elif CFM_score > recorded_cfm:
+        #    sign = ">"
+        #else:
+        #    sign = "=="
+        #print "%f %s %f. Difference = %s" %(CFM_score, sign, recorded_cfm, CFM_score - recorded_cfm)
+        CFM_scores.append(CFM_score) 
+    if audits > 0:
+        CFM_score_average = numpy.mean(CFM_scores)
+        CFM_score_average = numpy.around(CFM_score_average, decimals=6)
+    else:
+        CFM_score_average = None
+    #print CFM_scores
     return CFM_score_average
 
 def getCFMForWeek(user_id, password, query_date, query_user=None):
@@ -1836,7 +1835,6 @@ def getCFMForMonth(user_id, password, query_date, query_user=None):
     
     if query_user is None:
         query_user = user_id
-
     first_day_of_the_month = datetime.date(query_date.year, query_date.month, 1)
     CFM = getCFMBetweenDates(user_id, password, first_day_of_the_month, query_date, query_user)
     return CFM
@@ -1868,52 +1866,46 @@ def getGSEOFor(user_id, password, query_date, query_user=None):
     import numpy
     if query_user is None:
         query_user = user_id
-    raw_data_table, CFM_Key_list, GSEO_Key_list = getRawDataTableAndAuditParameters()
-    connectdb = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` = '%s';""" %(raw_data_table, query_user, convertToMySQLDate(query_date))
-    #print sqlcmdstring
-    dbcursor.execute(sqlcmdstring)
-    data = dbcursor.fetchall()
-    #print "Found %d audited articles." % audits
-    GSEO_score_total = 0
-    counter = 0
-    fat_key_list = ["FAT01","FAT02","FAT03"]
-    for each_entry in data:
-        GSEO_score = numpy.sum(list(each_entry[GSEO_Key] for GSEO_Key in GSEO_Key_list)) / float(25)
-        counter += 1
-        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
-        if "Yes" in fatals:
-            GSEO_score = 0.0
-        #print "FSN or SEO Topic: ", each_entry["FSN"]
-        #print "Score for audit #%d = %f" %(counter, GSEO_score) 
-        #print "Recorded GSEO Score = %f" %each_entry["GSEO Quality"]
-        GSEO_score_total += GSEO_score
-    
-    audits = len(data)
-    if audits != 0:
-        #print "Found %d audits for %s on %s." %(audits, query_user, query_date)
-        GSEO_score_average = GSEO_score_total / audits
-    else:
-        #print data
-        GSEO_score_average = None    
-    connectdb.commit()
-    connectdb.close()
-    return GSEO_score_average
+    return getGSEOBetweenDates(user_id, password, query_date, query_date, query_user)
 
 def getGSEOBetweenDates(user_id, password, start_date, end_date, query_user=None):
     import numpy
     if query_user is None:
         query_user = user_id
-    dates = OINKM.getDatesBetween(start_date, end_date)
-    #print dates
+    raw_data_table, CFM_key_list, GSEO_key_list = getRawDataTableAndAuditParameters()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    audits = len(data)
+    #print "Found %d audited articles." % audits
+    counter = 0
+    fat_key_list = ["FAT01","FAT02","FAT03"]
     GSEO_scores = []
-    for query_date in dates:
-        GSEO = getGSEOFor(user_id, password, query_date, query_user)
-        if GSEO is not None:
-            GSEO_scores.append(GSEO)
+    for each_entry in data:
+        GSEO_score = numpy.sum(list(each_entry[GSEO_key] for GSEO_key in GSEO_key_list)) / float(25.0)
+        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
+        if "Yes" in fatals:
+            GSEO_score = 0.0
+        counter += 1
+        recorded_GSEO = each_entry["GSEO Quality"]
+        GSEO_score = numpy.around(GSEO_score, decimals=4)
+        #if GSEO_score < recorded_GSEO:
+        #    sign = "<"
+        #elif GSEO_score > recorded_GSEO:
+        #    sign = ">"
+        #else:
+        #    sign = "=="
+        #print "%f %s %f. Difference = %s" %(GSEO_score, sign, recorded_GSEO, GSEO_score - recorded_GSEO)
+        GSEO_scores.append(GSEO_score)
+    if audits > 0:
+        GSEO_score_average = numpy.mean(GSEO_scores)
+        GSEO_score_average = numpy.around(GSEO_score_average, decimals=6)
+    else:
+        GSEO_score_average = None
     #print GSEO_scores
-    GSEO_score_average = numpy.mean(GSEO_scores)
     return GSEO_score_average
 
 def getGSEOForWeek(user_id, password, query_date, query_user=None):
@@ -2879,6 +2871,13 @@ def populateStatsInWorkCalendar():
     print "Passed: %d, total: %d, failed: %d" %(passed, total, total-passed)
     print "Time taken: %s" %(datetime.datetime.now()-start_time)
     conn.close()
+
+def qualityCheck():
+    """Method to check the quality"""
+    query_date = datetime.date.today() - datetime.timedelta(1)
+    writer_id = "75028"
+    u, p = MOSES.getBigbrotherCredentials()
+    
 
 if __name__ == "__main__":
     print "Never call Moses mainly."

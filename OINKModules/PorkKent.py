@@ -12,6 +12,8 @@ class PorkKent(QtCore.QThread):
 """
     gotSummary = QtCore.pyqtSignal(list)
     processingSummary = QtCore.pyqtSignal(int, int)
+    gotTeamReport = QtCore.pyqtSignal(list)
+
     def __init__(self, user_id, password, start_date, end_date=None):
         super(PorkKent, self).__init__()
         self.mutex = QtCore.QMutex()
@@ -75,22 +77,24 @@ class PorkKent(QtCore.QThread):
                 writer_summary = self.fetchWriterSummary()
             except Exception, err:
                 print "********\nEncountered an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
-                raise
+                pass
                 time.sleep(5)
                 try:
                     writer_summary = self.fetchWriterSummary(1)
                 except Exception, err:
-                    print "Encounter********\ned an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                    print "********\nEncountered an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                    pass
                     time.sleep(5)
                     try:
                         writer_summary = self.fetchWriterSummary(2)
                     except Exception, err:
-                        print "Encounter********\ned an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                        print "********\nEncountered an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                        pass
                         time.sleep(5)
                         try:
                             writer_summary = self.fetchWriterSummary(3)
                         except Exception, err:
-                            print "Encountered********\n an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
+                            print "********\nEncountered an error while trying to fetch data for the summary sheet in PorkKent.\nPrinting the error:\n%s\n********" % repr(err)
                             raise
             self.summary_data.append(writer_summary)
             done = len(self.summary_data)
@@ -102,6 +106,13 @@ class PorkKent(QtCore.QThread):
             else:
                 finished_all_writers = True
         #After looping, once the writers' data is done, emit the team summary data.
+        #if finished_all_writers:
+        #    team_report = self.getTeamReport(self.summary_data)
+
+    def getTeamReport(self, summary_data):
+        """Build team report."""
+        teams = ["Amrita", "Sherin", "RPD", "Overall"]
+
 
     def getSummary(self, start_date, end_date):
         self.start_date = start_date
@@ -188,11 +199,11 @@ class PorkKent(QtCore.QThread):
         elif not(math.isnan(eff) or math.isnan(cfm) or math.isnan(gseo)):
             stack_rank_index = (self.getEffKRA(eff)+self.getQKRA(cfm)+self.getQKRA(gseo))/3
         else:
-            print (eff, cfm, gseo)
+            #print (eff, cfm, gseo)
             stack_rank_index = "NA"
         if stack_rank_index is None:
-            print "Error?"
-            print (eff, cfm, gseo)
+            #print "Error?"
+            #print (eff, cfm, gseo)
             stack_rank_index = "NA"
         return stack_rank_index
 
