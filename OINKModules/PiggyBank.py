@@ -12,7 +12,7 @@ class PiggyBank(QtGui.QTableWidget):
         self.targets_data = targets_data
 
     def displayData(self):
-        print "Displaying data!"
+        #print "Displaying piggybank data!"
         self.setSortingEnabled(False)
         self.setRowCount(0)
         row_index = 0

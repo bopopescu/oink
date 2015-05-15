@@ -13,12 +13,11 @@ class PorkKent(QtCore.QThread):
     gotSummary = QtCore.pyqtSignal(list)
     processingSummary = QtCore.pyqtSignal(int, int)
     gotTeamReport = QtCore.pyqtSignal(list)
-
+    processingStep = QtCore.pyqtSignal(str)
     def __init__(self, user_id, password, start_date, end_date=None):
         super(PorkKent, self).__init__()
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
-
         self.user_id = user_id
         self.password = password
         self.start_date = start_date
@@ -102,9 +101,10 @@ class PorkKent(QtCore.QThread):
             self.gotSummary.emit(self.summary_data)
             if self.break_loop:
                 self.break_loop = False
+                self.processingStep.emit("Breaking the loop!")
                 break
-            else:
-                finished_all_writers = True
+        self.processingStep.emit("Finished processing data for all writers between %s and %s" % (self.start_date, self.end_date))
+        finished_all_writers = True
         #After looping, once the writers' data is done, emit the team summary data.
         #if finished_all_writers:
         #    team_report = self.getTeamReport(self.summary_data)
@@ -122,37 +122,64 @@ class PorkKent(QtCore.QThread):
 
     def fetchWriterSummary(self, retry=None):
         if retry is not None:
-            print "Retrying to fetch the data. (trial#%d)" %retry 
+            print "Retrying to fetch the data. (trial#%d)" %retry
+        self.processingStep.emit("Getting article count for %s for %s." % (self.writer_name, self.end_date))
         article_count = MOSES.getArticleCount(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting weekly article count for %s for %s." % (self.writer_name, self.end_date))
         w_article_count = MOSES.getArticleCountForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting monthly article count for %s for %s." % (self.writer_name, self.end_date))
         m_article_count = MOSES.getArticleCountForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly article count for %s for %s." % (self.writer_name, self.end_date))
         q_article_count = MOSES.getArticleCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting average article count for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
         a_article_count = MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting efficiency for %s for %s." % (self.writer_name, self.end_date))
         efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting average efficiency for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
         a_efficiency = MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting weekly efficiency for %s for %s." % (self.writer_name, self.end_date))
         w_efficiency = MOSES.getEfficiencyForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting monthly efficiency for %s for %s." % (self.writer_name, self.end_date))
         m_efficiency = MOSES.getEfficiencyForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly efficiency for %s for %s." % (self.writer_name, self.end_date))
         q_efficiency = MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting audit count for %s for %s." % (self.writer_name, self.end_date))
         audit_count = MOSES.getAuditCount(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting weekly audit count for %s for %s." % (self.writer_name, self.end_date))
         w_audit_count = MOSES.getAuditCountForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting monthly audit count for %s for %s." % (self.writer_name, self.end_date))
         m_audit_count = MOSES.getAuditCountForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly audit count for %s for %s." % (self.writer_name, self.end_date))
         q_audit_count = MOSES.getAuditCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting average audit count for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
         a_audit_count = MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting CFM for %s for %s." % (self.writer_name, self.end_date))
         cfm = MOSES.getCFMFor(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting average CFM for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
         a_cfm = MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting weekly CFM for %s for %s." % (self.writer_name, self.end_date))
         w_cfm = MOSES.getCFMForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting monthly CFM for %s for %s." % (self.writer_name, self.end_date))
         m_cfm = MOSES.getCFMForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly CFM for %s for %s." % (self.writer_name, self.end_date))
         q_cfm = MOSES.getCFMForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting GSEO for %s for %s." % (self.writer_name, self.end_date))
         gseo = MOSES.getGSEOFor(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting GSEO for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
         a_gseo = MOSES.getGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting weekly GSEO for %s for %s." % (self.writer_name, self.end_date))
         w_gseo = MOSES.getGSEOForWeek(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting average GSEO for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
         m_gseo = MOSES.getGSEOForMonth(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly GSEO for %s for %s." % (self.writer_name, self.end_date))
         q_gseo = MOSES.getGSEOForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting Stack Rank Indices for %s for %s." % (self.writer_name, self.end_date))
         stack_rank_index = self.getStackRankIndex(efficiency, cfm, gseo)
         w_stack_rank_index = self.getStackRankIndex(w_efficiency, w_cfm, w_gseo)
         m_stack_rank_index = self.getStackRankIndex(m_efficiency, m_cfm, m_gseo)
         q_stack_rank_index = self.getStackRankIndex(q_efficiency, q_cfm, q_gseo)
         a_stack_rank_index = self.getStackRankIndex(a_efficiency, a_cfm, a_gseo)
+        self.processingStep.emit("Building final writer stats data for %s for %s." % (self.writer_name, self.end_date))
 
         writer_summary = {
             "Report Date": self.end_date,

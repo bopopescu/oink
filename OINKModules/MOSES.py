@@ -800,7 +800,6 @@ def readFromPorkChops(queryDict,userid,password):
 def readFromPiggyBank(queryDict, userid, password):
     """Method to read data from Piggy Bank and return all data for
     a query."""
-
     piggybankdb = MySQLdb.connect(host=getHostID(), user=userid, passwd=password, db=getDBName(), cursorclass=MySQLdb.cursors.DictCursor)
     piggycursor = piggybankdb.cursor()
     numberOfConditions = len(queryDict)
@@ -1229,6 +1228,7 @@ def getWorkingDatesBetween(user_id, password, start_date, end_date, query_user =
 def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_user=None):
     """Returns the efficiency for an emplyoee for all dates between two dates."""
     #print "In getEfficiencyForDateRange"
+    #Great, I need to rewrite this too?! Wth.
     if query_user is None:
         query_user = userID
     datesList = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
@@ -1408,6 +1408,48 @@ def getRawDataForDate(user_id, password, query_date, query_user=None):
     return data
 
 
+
+def getEfficiencyFor(userID, password, queryDate, query_user = None):
+    """Returns the total efficiency for a user for a particular date.
+    NOTE: If calculating efficiency between a range of dates, do not consider
+    dates on which a writer is given a leave.
+    """
+    #print "In getEfficiencyFor"
+    if query_user == None:
+        query_user = userID
+    requestedData = getUserPiggyBankData(queryDate, userID, password, query_user)
+    #print "Received a %s of %d length." %(type(requestedData),len(requestedData))
+    efficiency = 0.0
+    status, relaxation, approval = checkWorkStatus(userID, password, queryDate, query_user)
+    if (status == "Working") or (approval != "Approved"):
+        #Calculate only for working days
+        if relaxation > 0.0:
+            efficiencyDivisor = (1.0-relaxation)
+        else:
+            efficiencyDivisor = 1.0
+        #This doesn't account for negative relaxation, scenarios where a writer must make up. Does it need to? I don't really think so.
+        for entry in requestedData:
+            #pass the classification identifiers to the method.
+            piggy_row = {
+                "Description Type": entry["Description Type"],
+                "Source": entry["Source"],
+                "BU": entry["BU"],
+                "Super-Category": entry["Super-Category"],
+                "Category": entry["Category"],
+                "Sub-Category": entry["Sub-Category"],
+                "Vertical": entry["Vertical"]
+            }
+            target = getTargetFor(userID, password, piggy_row, queryDate)
+            if target == 0.0:
+                efficiency += 0.0
+            else:
+                efficiency += 1.0/(target*efficiencyDivisor)
+    #elif status == "Leave" or status == "Company Holiday":
+        #efficiency = 1.0
+    #print efficiency
+    #print "Leaving getEfficiencyFor"
+    return efficiency
+
 def getEfficiencyForWeek(user_id, password, query_date, query_user = None):
     """Returns the average efficiency for a query_user or the caller ID for the week in
     which the request date falls.
@@ -1456,47 +1498,6 @@ def getEfficiencyForQuarter(user_id, password, query_date, query_user=None):
     first_month_of_the_quarter = quarter_first_month_mapped_dictionary[query_date.month]
     first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
     efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_quarter, query_date, query_user)
-    return efficiency
-
-def getEfficiencyFor(userID, password, queryDate, query_user = None):
-    """Returns the total efficiency for a user for a particular date.
-    NOTE: If calculating efficiency between a range of dates, do not consider
-    dates on which a writer is given a leave.
-    """
-    #print "In getEfficiencyFor"
-    if query_user == None:
-        query_user = userID
-    requestedData = getUserPiggyBankData(queryDate, userID, password, query_user)
-    #print "Received a %s of %d length." %(type(requestedData),len(requestedData))
-    efficiency = 0.0
-    status, relaxation, approval = checkWorkStatus(userID, password, queryDate, query_user)
-    if (status == "Working") or (approval != "Approved"):
-        #Calculate only for working days
-        if relaxation > 0.0:
-            efficiencyDivisor = (1.0-relaxation)
-        else:
-            efficiencyDivisor = 1.0
-        #This doesn't account for negative relaxation, scenarios where a writer must make up. Does it need to? I don't really think so.
-        for entry in requestedData:
-            #pass the classification identifiers to the method.
-            piggy_row = {
-                "Description Type": entry["Description Type"],
-                "Source": entry["Source"],
-                "BU": entry["BU"],
-                "Super-Category": entry["Super-Category"],
-                "Category": entry["Category"],
-                "Sub-Category": entry["Sub-Category"],
-                "Vertical": entry["Vertical"]
-            }
-            target = getTargetFor(userID, password, piggy_row, queryDate)
-            if target == 0.0:
-                efficiency += 0.0
-            else:
-                efficiency += 1.0/(target*efficiencyDivisor)
-    #elif status == "Leave" or status == "Company Holiday":
-        #efficiency = 1.0
-    #print efficiency
-    #print "Leaving getEfficiencyFor"
     return efficiency
 
 def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
@@ -1616,6 +1617,7 @@ def calculateRelaxationForEvent(user_id, password, event_details):
 
 
 def getOldTargetFor(userID, password, **query):
+    #OLD METHOD. DO NOT USE.
     """Returns target for a combination of queries.
     If, for a combination of BUxTypexSourcexSupCatxCatxSubCatxVert, no target is defined,
     then, this method will keep eliminating one parameter after another to get a target.
@@ -1703,7 +1705,6 @@ AND `Description Type`="%s" AND `Source`="%s";""" % \
             print "There seem to be multiple possible targets for separate dates."
             print entriesList
             print "*******************************************************"
-
     else:
         result = 0
 

@@ -162,6 +162,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.form_values_thread.gotBrandValues.connect(self.Brand_filter.addItems)
         self.pork_kent.gotSummary.connect(self.displayPiggyBankSummary)
         self.pork_kent.processingSummary.connect(self.displayProgress)
+        self.pork_kent.processingStep.connect(self.displayStatus)
 
     def displayProgress(self, done, total):
         progress = float(done)/float(total)
@@ -593,6 +594,7 @@ class Vindaloo(QtGui.QMainWindow):
 
     def displayStatus(self,message):
         """Vindaloo."""
+        message = "%s: %s" %(datetime.datetime.now(), message)
         self.statusBar().showMessage(message)
 
     def setVisuals(self):
