@@ -14,6 +14,12 @@ import MySQLdb
 import MySQLdb.cursors
 import OINKMethods as OINKM
 
+def getOINKConnector(user_id, password):
+    import MySQLdb
+    import MySQLdb.cursors
+    conn = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
+    return conn
+
 #########################################################################
 #Set up methods. These methods help set up the server for the first time.
 #Be very careful while using these since they will delete all existing data.
@@ -1501,8 +1507,102 @@ def getEfficiencyForQuarter(user_id, password, query_date, query_user=None):
     return efficiency
 
 def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
-    """
-    """
+    """A new method to get the target for a particular query_dict.
+    An example query is:
+    SELECT `target`, MAX(`Revision Date`) FROM `categorytree` WHERE `BU`=%s AND ... AND `Revision Date`<='%(date)'
+"""
+    import numpy
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    if query_date is None:
+        query_date = datetime.date.today()
+    if retry is None:
+        retry = 0
+    sqlcmdstring = """SELECT `Target`, `Revision Date` FROM `CategoryTree` WHERE %s AND `Revision Date` <= "%s";""" % (getOneToOneStringFromDict(query_dict), convertToMySQLDate(query_date))
+    #print sqlcmdstring
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    #Convert the set to a list.
+    entries = []
+    for entry in data:
+        entries.append(entry)
+    if len(entries) == 0:
+        retry += 1
+        if retry == 1:
+            #ignore the vertical and try again
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"],
+                "Category": query_dict["Category"],
+                "Sub-Category": query_dict["Sub-Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        elif retry == 2:
+            #ignore the sub category and vertical and try again.
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"],
+                "Category": query_dict["Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        elif retry == 3:
+            #ignore the Category, sub category and vertical and try again.
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        elif retry == 4:
+            #ignore the super-category, Category, sub category and vertical and try again.
+            new_query = {
+                "Description Type": query_dict["Description Type"],
+                "Source": query_dict["Source"],
+                "BU": query_dict["BU"],
+                "Super-Category": query_dict["Super-Category"]
+            }
+            target = getTargetFor(user_id, password, new_query, query_date, retry)
+        else:
+            target = 0
+            #print "Failed in retrieving a target for the following query:"
+            #print query_dict
+            #print query_date
+            #print "Carrying on...."
+            #give up.
+        #call the function again, without one key-value pair.
+    elif len(entries) == 1:
+        target = entries[0]["Target"]
+    else:
+        #first check if it has multiple returns for one date.
+            #of all the entries, get the closest data
+        #Else, if it has only one date:
+            #check all the probable targets and return the one with the highest frequency?
+        target = -1
+        possible_targets = []
+        for entry in entries:
+            possible_targets.append(entry["Target"])
+            try:
+                target = numpy.bincount(possible_targets).argmax() 
+            except:
+                #print closest_date
+                #print entries
+                #print query_dict
+                target = -1
+                pass
+    conn.commit()
+    conn.close()
+    return target
+
+def get_TargetFor(user_id, password, query_dict, query_date=None, retry=None):
+    """A new method to get the target for a particular query_dict.
+    An example query is:
+    SELECT `target`, MAX(`Revision Date`) FROM `categorytree` WHERE `BU`=%s AND ... AND `Revision Date`<='%(date)'
+"""
     import numpy
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
@@ -1595,11 +1695,6 @@ def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
     conn.close()
     return target
 
-def getOINKConnector(user_id, password):
-    import MySQLdb
-    import MySQLdb.cursors
-    conn = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
-    return conn
 
 def getEventsForDate(user_id, password, query_date=None, query_dict=None):
     """Reads the eventcalendar and pulls up all events."""
@@ -1743,7 +1838,6 @@ AND `Description Type`="%s" AND `Source`="%s";""" % \
     return int(result)
 
 def getClosestDate(datesList, testDate):
-
     closestDate = None
     for oneDate in datesList:
         if oneDate == testDate:
@@ -1757,7 +1851,13 @@ def getClosestDate(datesList, testDate):
     return closestDate
 
 def getMaxScoreForParameter(user_id, password, parameter, query_date=None):
-    MaxScores = {"CFM01": 10.0, "CFM02": 10.0, "CFM03": 10.0, "CFM04": 10.0, "CFM05": 10.0, "CFM06": 10, "CFM07": 10.0, "CFM08":  5.0, "GSEO01": 5.0, "GSEO02": 5.0, "GSEO03": 2.5, "GSEO04": 2.5, "GSEO05": 2.5, "GSEO06": 2.5, "GSEO07": 5.0}
+    MaxScores = {
+            "CFM01": 10.0, "CFM02": 10.0, "CFM03": 10.0, 
+            "CFM04": 10.0, "CFM05": 10.0, "CFM06": 10.0, 
+            "CFM07": 10.0, "CFM08":  5.0, "GSEO01": 5.0, 
+            "GSEO02": 5.0, "GSEO03": 2.5, "GSEO04": 2.5, 
+            "GSEO05": 2.5, "GSEO06": 2.5, "GSEO07": 5.0
+            }
     return float(MaxScores[parameter])
 
 def getWeightageForParameter(user_id, password, parameter, query_date=None):
@@ -1927,10 +2027,8 @@ def getGSEOForMonth(user_id, password, query_date, query_user=None):
     """Returns the average GSEO for a query_user or the caller ID for the month in
     which the request date falls.
     It only considers those dates in the range which occur prior to the queryDate."""
-    
     if query_user is None:
         query_user = user_id
-
     first_day_of_the_month = datetime.date(query_date.year, query_date.month, 1)
     GSEO = getGSEOBetweenDates(user_id, password, first_day_of_the_month, query_date, query_user)
     return GSEO
@@ -1943,10 +2041,8 @@ def getGSEOForQuarter(user_id, password, query_date, query_user=None):
     if query_user is None:
         query_user = user_id
     query_month = query_date.month
-
     #Create a dictionary which contains a 1:1 mapping for the first months of a quarter for any given month. 
     #If asked for the first month of JAS, it should return 7, i.e. July.
-
     quarter_first_month_mapped_dictionary = {
         1: 1, 2: 1, 3: 1,
         4: 4, 5: 4, 6: 4,
