@@ -12,8 +12,9 @@ class PorkKent(QtCore.QThread):
 """
     gotSummary = QtCore.pyqtSignal(list)
     processingSummary = QtCore.pyqtSignal(int, int)
-    gotTeamReport = QtCore.pyqtSignal(list)
     processingStep = QtCore.pyqtSignal(str)
+    completedSummary = QtCore.pyqtSignal(bool)
+    readyForTeamReport = QtCore.pyqtSignal(list)
     def __init__(self, user_id, password, start_date, end_date=None):
         super(PorkKent, self).__init__()
         self.mutex = QtCore.QMutex()
@@ -99,12 +100,18 @@ class PorkKent(QtCore.QThread):
             done = len(self.summary_data)
             self.processingSummary.emit(done,total)
             self.gotSummary.emit(self.summary_data)
+            self.completedSummary.emit(False)
+
             if self.break_loop:
-                self.break_loop = False
                 self.processingStep.emit("Breaking the loop!")
                 break
-        self.processingStep.emit("Finished processing data for all writers between %s and %s" % (self.start_date, self.end_date))
-        finished_all_writers = True
+        if not self.break_loop:
+            self.completedSummary.emit(True)
+            self.readyForTeamReport.emit(self.summary_data)
+            finished_all_writers = True
+            self.processingStep.emit("Finished processing data for all writers between %s and %s" % (self.start_date, self.end_date))
+        else:
+            self.break_loop = False
         #After looping, once the writers' data is done, emit the team summary data.
         #if finished_all_writers:
         #    team_report = self.getTeamReport(self.summary_data)
@@ -175,17 +182,19 @@ class PorkKent(QtCore.QThread):
         q_gseo = MOSES.getGSEOForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting Stack Rank Indices for %s for %s." % (self.writer_name, self.end_date))
         stack_rank_index = self.getStackRankIndex(efficiency, cfm, gseo)
+        self.processingStep.emit("Getting Team Leader Name for %s for %s." % (self.writer_name, self.end_date))
+        writer_tl = MOSES.getReportingManager(self.user_id, self.password, query_user=self.writer_id, query_date=self.end_date)["Reporting Manager Name"]
         w_stack_rank_index = self.getStackRankIndex(w_efficiency, w_cfm, w_gseo)
         m_stack_rank_index = self.getStackRankIndex(m_efficiency, m_cfm, m_gseo)
         q_stack_rank_index = self.getStackRankIndex(q_efficiency, q_cfm, q_gseo)
         a_stack_rank_index = self.getStackRankIndex(a_efficiency, a_cfm, a_gseo)
         self.processingStep.emit("Building final writer stats data for %s for %s." % (self.writer_name, self.end_date))
-
         writer_summary = {
             "Report Date": self.end_date,
             "Writer ID": self.writer_id,
             "Writer Name": self.writer_name,
             "Writer Email ID": self.writer_email,
+            "Reporting Manager": writer_tl,
             "Article Count": article_count,
             "Weekly Article Count": w_article_count,
             "Monthly Article Count": m_article_count,
@@ -224,7 +233,8 @@ class PorkKent(QtCore.QThread):
         if parameters_are_not_valid:
             stack_rank_index = "NA"
         elif not(math.isnan(eff) or math.isnan(cfm) or math.isnan(gseo)):
-            stack_rank_index = (self.getEffKRA(eff)+self.getQKRA(cfm)+self.getQKRA(gseo))/3
+            quality_average = (self.getQKRA(cfm)*3 + self.getQKRA(gseo))/4
+            stack_rank_index = (self.getEffKRA(eff) + quality_average*2)/3
         else:
             #print (eff, cfm, gseo)
             stack_rank_index = "NA"

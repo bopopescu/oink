@@ -106,11 +106,19 @@ class PiggyBanker(QtCore.QThread):
         data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
         cleaned_data = list(itertools.chain(*data))
         targets_data = []
-        
         for entry in cleaned_data:
-            target = MOSES.getTargetFor(self.user_id, self.password, BU = entry["BU"], DescriptionType = entry["Description Type"], Source = entry["Source"], SuperCategory = entry["Super-Category"], Category = entry["Category"], SubCategory = entry["Sub-Category"], Vertical = entry["Vertical"], QueryDate = entry["Article Date"])
+            piggy_row = {
+                        "Description Type": entry["Description Type"],
+                        "Source": entry["Source"],
+                        "BU": entry["BU"],
+                        "Super-Category": entry["Super-Category"],
+                        "Category": entry["Category"],
+                        "Sub-Category": entry["Sub-Category"],
+                        "Vertical": entry["Vertical"]
+                    }
+            target = MOSES.getTargetFor(self.user_id, self.password, piggy_row, entry["Article Date"])
             targets_data.append(target)
         
         self.piggybankChanged.emit(cleaned_data, targets_data)
         
-
+                

@@ -83,7 +83,7 @@ class DateSelectorWidget(QtGui.QWidget):
         self.reveal_end_date_button.hide()
         self.end_date_label.show()
         self.end_date_picker.show()
-    
+
     def limitEndDate(self):
         """Leave Planner: Method to limit the end date's minimum value to the start date."""
         self.end_date_picker.setMinimumDate(self.start_date_picker.date())
