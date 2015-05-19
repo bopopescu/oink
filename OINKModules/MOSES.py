@@ -51,7 +51,19 @@ def addToRawData(user_id, password, process_dict):
     return status
 
 def getRawDataKeys():
-    keys = ["WriterID", "Writer Email ID", "Writer Name", "Editor ID", "Editor Email ID", "Editor Name", "Category", "Sub-Category", "Audit Date", "WS Name", "WC", "FSN", "CFM01", "CFM02", "CFM03", "CFM04", "CFM05", "CFM06", "CFM07", "CFM08", "GSEO01", "GSEO02", "GSEO03", "GSEO04", "GSEO05", "GSEO06", "GSEO07", "FAT01", "FAT02", "FAT03", "CFM Quality", "GSEO Quality", "Overall Quality", "Fatals Count", "Non Fatals Count", "CFM01C", "CFM02C", "CFM03C", "CFM04C", "CFM05C", "CFM06C", "CFM07C", "CFM08C", "GSEO01C", "GSEO02C",  "GSEO03C",  "GSEO04C",  "GSEO05C", "GSEO06C", "GSEO07C", "FAT01C", "FAT02C", "FAT03C"]
+    keys = [
+        "WriterID", "Writer Email ID", "Writer Name",
+        "Editor ID", "Editor Email ID", "Editor Name",
+        "Category", "Sub-Category", "Audit Date", "WS Name",
+        "WC", "FSN", "CFM01", "CFM02", "CFM03", "CFM04", "CFM05",
+        "CFM06", "CFM07", "CFM08", "GSEO01", "GSEO02", "GSEO03",
+        "GSEO04", "GSEO05", "GSEO06", "GSEO07", "FAT01", "FAT02",
+        "FAT03", "CFM Quality", "GSEO Quality", "Overall Quality",
+        "Fatals Count", "Non Fatals Count", "CFM01C", "CFM02C", "CFM03C",
+        "CFM04C", "CFM05C", "CFM06C", "CFM07C", "CFM08C", "GSEO01C",
+        "GSEO02C",  "GSEO03C",  "GSEO04C",  "GSEO05C", "GSEO06C",
+        "GSEO07C", "FAT01C", "FAT02C", "FAT03C"
+        ]
     return keys
 
 def recursiveUploadRawDataFile(user_id, password):
@@ -59,7 +71,7 @@ def recursiveUploadRawDataFile(user_id, password):
         print "No Input file found!"
     else:
         start_time = datetime.datetime.now()
-        
+
         print "Rebuilding Raw Data Table"
         rebuildRawData(user_id, password)
         print "Uploading Raw data entries."
@@ -71,7 +83,6 @@ def recursiveUploadRawDataFile(user_id, password):
         duplicates = csv.DictWriter(duplicates_file, getRawDataKeys())
         counter = 0
         success = 0
-        duplicates = 0
         failure = 0
         for rawdata_row in rawdata:
             counter+=1
@@ -90,7 +101,6 @@ def recursiveUploadRawDataFile(user_id, password):
         rawdata_file.close()
         duplicates_file.close()
         failed_file.close()
-       
 
 def rebuildRawData(user_id, password):
     """This method deletes the current raw data and redefines it."""
@@ -2752,7 +2762,7 @@ def isIdle(time_to_wait=None):
     return state_1 == state_2
 
 def updateEmployeesTable(user_id, password):
-    """Eventually, this method is going to be used to send a dictionary related to the employee table. 
+    """Eventually, this method is going to be used to send a dictionary related to the employee table.
     For now, it's to update the DOL for certain employees."""
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
@@ -2771,7 +2781,7 @@ def updateEmployeesTable(user_id, password):
         dbcursor.execute(sqlcmdstring)
     connectdb.commit()
     connectdb.close()
-    
+
 def populateStatsInWorkCalendar():
     import MySQLdb
     import MySQLdb.cursors
@@ -2812,7 +2822,7 @@ def populateStatsInWorkCalendar():
                 print repr(e)
                 print "Writer ID: %s, Date= %s" %(query_id, query_date)
                 print "*"*25
-                
+
             counter += 1
     print "Passed: %d, total: %d, failed: %d" %(passed, total, total-passed)
     print "Time taken: %s" %(datetime.datetime.now()-start_time)

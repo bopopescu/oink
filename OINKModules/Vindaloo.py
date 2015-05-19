@@ -558,27 +558,32 @@ class Vindaloo(QtGui.QMainWindow):
 
     def displayTeamSummary(self, writer_summary):
         """"""
+        import pandas
         #start making the team report.
         reporting_managers = set(writer["Reporting Manager"] for writer in writer_summary)
         #print reporting_managers
-        team_data = dict((manager, []) for manager in reporting_managers)
-        for writer_data in writer_summary:
-            team_data[writer_data["Reporting Manager"]] = writer_data
-        print team_data
+        segregated_team_data = dict((manager, []) for manager in reporting_managers)
         summary_keys = [
             "Writers",
-            "Articles","Efficiency","Audits","CFM","GSEO", "Stack Rank Index",
-            "Weekly Articles","Weekly Efficiency","Weekly Audits","Weekly CFM","Weekly GSEO", "Weekly Stack Rank Index",
-            "Monthly Articles","Monthly Efficiency","Monthly Audits","Monthly CFM","Monthly GSEO", "Monthly Stack Rank Index",
-            "Quarterly Articles","Quarterly Efficiency","Quarterly Audits","Quarterly CFM","Quarterly GSEO", "Quarterly Stack Rank Index",
-            "Average Articles","Average Efficiency","Average Audits","Average CFM","Average GSEO", "Average Stack Rank Index",
+            "Articles","Efficiency","Audits","CFM","GSEO",
+            "Stack Rank Index",
+            "Weekly Articles","Weekly Efficiency","Weekly Audits","Weekly CFM","Weekly GSEO",
+            "Weekly Stack Rank Index",
+            "Monthly Articles","Monthly Efficiency","Monthly Audits","Monthly CFM","Monthly GSEO",
+            "Monthly Stack Rank Index",
+            "Quarterly Articles","Quarterly Efficiency","Quarterly Audits","Quarterly CFM","Quarterly GSEO",
+            "Quarterly Stack Rank Index",
+            "Average Articles","Average Efficiency","Average Audits","Average CFM","Average GSEO",
+            "Average Stack Rank Index"
             ]
+        for manager in reporting_managers:
+            segregated_team_data[manager] = pandas.DataFrame([writer_data for writer_data in writer_summary if writer_data["Reporting Manager"] == manager])
+            print segregated_team_data[manager].describe()
+
+        #team_data = dict((manager_name, dict((key,key) for key in summary_keys)) for manager_name in reporting_managers)
+        #for manager_name in reporting_managers:
+
         #Create an empty dictionary corresponding to each manager with the above keys.
-        team_lists = dict((manager, dict((key, []) for key in summary_keys)) for manager in reporting_managers)
-        print team_lists
-        for writer_data in writer_summary:
-            team_lists[writer_data["Reporting Manager"]].append(writer_data)
-        print team_lists
 
 
     def displaypiggybank(self, piggy_data, targets_date):

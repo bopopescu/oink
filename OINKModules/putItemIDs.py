@@ -21,9 +21,10 @@ def getFSNsForItemIDs(query_date=None):
 	u = "bigbrother"
 	p = "orwell"
 	if query_date is None:
-		sqlcmdstring = "SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL AND `Description Type` NOT LIKE 'SEO%';"
-	else:
-		sqlcmdstring = """SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL AND `Description Type` NOT LIKE 'SEO%'`Article Date`="%s";""" %convertToMySQLDate(query_date)
+		sqlcmdstring = "SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL;"
+#	else:
+#		sqlcmdstring = """SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL AND `Description Type` NOT LIKE 'SEO%' AND `Article Date`="%s";""" %convertToMySQLDate(query_date)
+#		sqlcmdstring = """SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL AND `Description Type` NOT LIKE 'SEO%'`Article Date`="%s";""" %convertToMySQLDate(query_date)
 	conn = getOINKConnector()
 	cursor = conn.cursor()
 	cursor.execute(sqlcmdstring)
@@ -69,7 +70,7 @@ def getETA(start_time, counter, total):
     return ETA
 
 def populatePiggyBankWithItemID(fsn, item_id):
-	sqlcmdstring = """UPDATE piggybank set `Item ID`="%s" WHERE `FSN`="%s";""" %(item_id, fsn)
+	sqlcmdstring = """UPDATE fsndump set `Item ID`="%s" WHERE `FSN`="%s";""" %(item_id, fsn)
 	conn = getOINKConnector()
 	cursor = conn.cursor()
 	cursor.execute(sqlcmdstring)
