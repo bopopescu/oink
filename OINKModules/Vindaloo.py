@@ -12,26 +12,25 @@ from FilterBox import FilterBox
 from PiggyBank import PiggyBank
 from PiggyBanker import PiggyBanker
 from Former import Former
-from Porker import Porker
 from PorkKent import PorkKent
 from OINKMethods import version
-import MOSES
+from Seeker import Seeker
 
 class Vindaloo(QtGui.QMainWindow):
     def __init__(self, userID, password):
         super(QtGui.QMainWindow,self).__init__()
         self.userID = userID
         self.password = password
-        self.clip = QtGui.QApplication.clipboard()
-        self.form_values_thread = Former(self.userID, self.password)
         self.generateUI()
-        self.startDate, self.endDate = self.dates_picker.get_dates()
-        self.pork_kent = PorkKent(self.userID, self.password, self.startDate, self.endDate)
-        self.piggybanker = PiggyBanker(self.userID, self.password, self.startDate, self.endDate, {})
         self.create_layout()
         self.setVisuals()
         self.createActions()
         self.addMenus()
+        self.clip = QtGui.QApplication.clipboard()
+        self.startDate, self.endDate = self.dates_picker.get_dates()
+        self.pork_kent = PorkKent(self.userID, self.password, self.startDate, self.endDate)
+        self.piggybanker = PiggyBanker(self.userID, self.password, self.startDate, self.endDate, {})
+        self.form_values_thread = Former(self.userID, self.password)
         self.createEvents()
 
     def generateUI(self):
@@ -49,11 +48,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.filtersButton.setAutoDefault(False)
         self.filtersButton.setMinimumWidth(300)
         self.filtersButton.setMaximumWidth(300)
-
+        self.seeker = Seeker(self.userID, self.password)
         #This consumes time, put them in a thread
-        #writers = [Writer["Name"] for Writer in MOSES.getWritersList(self.userID, self.password)]
-        #types = MOSES.getDescriptionTypes(self.userID, self.password)
-        #sources = MOSES.getSources(self.userID, self.password)
         self.writers_filter = FilterBox("Writers:")
         #self.writers_filter.addItems(writers)
         self.type_filter = FilterBox("Description Type:")
@@ -124,8 +120,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.stats_tabs.addTab(self.writers_report_graphs, "Graphs")
         self.stats_tabs.addTab(self.piggybank, "Piggy Bank")
         self.stats_tabs.addTab(self.rawdata, "Quality Raw Data")
+        self.stats_tabs.addTab(self.seeker, "Seeker")
         self.stats_tabs.addTab(self.statusLog, "Log")
-
         self.finalLayout = QtGui.QHBoxLayout()
         self.finalLayout.addLayout(self.tools_layout,1)
         self.finalLayout.addWidget(self.stats_tabs,4)
@@ -154,9 +150,12 @@ class Vindaloo(QtGui.QMainWindow):
         self.pork_kent.completedSummary.connect(self.enableSorting)
         self.pork_kent.readyForTeamReport.connect(self.displayTeamSummary)
 
-    def displayProgress(self, done, total):
+    def displayProgress(self, done, total, ETA):
         progress = float(done)/float(total)
-        self.summary_progress.setFormat("Compiling summary sheet. Finished %d of %d" %(done, total))
+        if done < total:
+            self.summary_progress.setFormat("Compiling summary sheet. Finished %d of %d. ETA: %s" %(done, total, ETA))
+        else:
+            self.summary_progress.setFormat("Completed %d of %d at %s." %(done, total, ETA))
         self.summary_progress.setValue(int(progress*100))
 
     def addMenus(self):
@@ -554,7 +553,7 @@ class Vindaloo(QtGui.QMainWindow):
 
     def enableSorting(self, trigger):
         if trigger:
-            self.writers_report.sortItems(21, 1)
+            self.writers_report.sortItems(22, 1)
 
     def displayTeamSummary(self, writer_summary):
         """"""
@@ -576,11 +575,29 @@ class Vindaloo(QtGui.QMainWindow):
             "Average Articles","Average Efficiency","Average Audits","Average CFM","Average GSEO",
             "Average Stack Rank Index"
             ]
+        team_report = dict((manager_name, dict((key,key) for key in summary_keys)) for manager_name in reporting_managers)
         for manager in reporting_managers:
+            #print manager
             segregated_team_data[manager] = pandas.DataFrame([writer_data for writer_data in writer_summary if writer_data["Reporting Manager"] == manager])
-            print segregated_team_data[manager].describe()
-
-        #team_data = dict((manager_name, dict((key,key) for key in summary_keys)) for manager_name in reporting_managers)
+            team_report[manager]["Writers"] = segregated_team_data[manager].count(axis=1)
+            team_report[manager]["Articles"] = segregated_team_data[manager]["Article Count"].sum(axis=1)
+            team_report[manager]["Efficiency"] = segregated_team_data[manager]["Efficiency"].mean(axis=1)
+            team_report[manager]["Weekly Efficiency"] = segregated_team_data[manager]["Weekly Efficiency"].mean(axis=1)
+            team_report[manager]["Monthly Efficiency"] = segregated_team_data[manager]["Monthly Efficiency"].mean(axis=1)
+            team_report[manager]["Quarterly Efficiency"] = segregated_team_data[manager]["Quarterly Efficiency"].mean(axis=1)
+            team_report[manager]["Average Efficiency"] = segregated_team_data[manager]["Average Efficiency"].mean(axis=1)
+            team_report[manager]["CFM"] = segregated_team_data[manager]["CFM"].mean(axis=1)
+            team_report[manager]["Weekly CFM"] = segregated_team_data[manager]["Weekly CFM"].mean(axis=1)
+            team_report[manager]["Monthly CFM"] = segregated_team_data[manager]["Monthly CFM"].mean(axis=1)
+            team_report[manager]["Quarterly CFM"] = segregated_team_data[manager]["Quarterly CFM"].mean(axis=1)
+            team_report[manager]["Average CFM"] = segregated_team_data[manager]["Average CFM"].mean(axis=1)
+            team_report[manager]["GSEO"] = segregated_team_data[manager]["GSEO"].mean(axis=1)
+            team_report[manager]["Weekly GSEO"] = segregated_team_data[manager]["Weekly GSEO"].mean(axis=1)
+            team_report[manager]["Monthly GSEO"] = segregated_team_data[manager]["Monthly GSEO"].mean(axis=1)
+            team_report[manager]["Quarterly GSEO"] = segregated_team_data[manager]["Quarterly GSEO"].mean(axis=1)
+            team_report[manager]["Average GSEO"] = segregated_team_data[manager]["Average GSEO"].mean(axis=1)
+            #print team_report[manager]
+        #
         #for manager_name in reporting_managers:
 
         #Create an empty dictionary corresponding to each manager with the above keys.
@@ -620,6 +637,8 @@ class Vindaloo(QtGui.QMainWindow):
                     table_to_copy = self.team_report
                 elif current_tab == 3:
                     table_to_copy = self.piggybank
+                elif current_tab == 5:
+                    table_to_copy = self.seeker.output_table
                 selected = table_to_copy.selectedRanges()
                 s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
                 s = s + '\n'

@@ -11,7 +11,7 @@ class PorkKent(QtCore.QThread):
     It emits a list of dictionaries which corresponds to the team report.
 """
     gotSummary = QtCore.pyqtSignal(list)
-    processingSummary = QtCore.pyqtSignal(int, int)
+    processingSummary = QtCore.pyqtSignal(int, int, datetime.datetime)
     processingStep = QtCore.pyqtSignal(str)
     completedSummary = QtCore.pyqtSignal(bool)
     readyForTeamReport = QtCore.pyqtSignal(list)
@@ -43,6 +43,7 @@ class PorkKent(QtCore.QThread):
             self.initial_dates = [self.start_date, self.end_date]
             if self.current_dates != self.initial_dates:
                 self.summarize()
+
                 self.current_dates = self.initial_dates
         print "I should not be here!"
         self.mutex.lock()
@@ -69,6 +70,7 @@ class PorkKent(QtCore.QThread):
         total = len(self.writers)
         self.break_loop = False
         finished_all_writers = False
+        start_time = datetime.datetime.now()
         for writer in self.writers:
             self.writer_id = writer["Employee ID"]
             self.writer_name = writer["Name"]
@@ -98,10 +100,9 @@ class PorkKent(QtCore.QThread):
                             raise
             self.summary_data.append(writer_summary)
             done = len(self.summary_data)
-            self.processingSummary.emit(done,total)
+            self.processingSummary.emit(done,total, MOSES.getETA(start_time, done, total))
             self.gotSummary.emit(self.summary_data)
             self.completedSummary.emit(False)
-
             if self.break_loop:
                 self.processingStep.emit("Breaking the loop!")
                 break
@@ -109,7 +110,7 @@ class PorkKent(QtCore.QThread):
             self.completedSummary.emit(True)
             self.readyForTeamReport.emit(self.summary_data)
             finished_all_writers = True
-            self.processingStep.emit("Finished processing data for all writers between %s and %s" % (self.start_date, self.end_date))
+            self.processingStep.emit("Finished processing data for all writers between %s and %s." % (self.start_date, self.end_date))
         else:
             self.break_loop = False
         #After looping, once the writers' data is done, emit the team summary data.

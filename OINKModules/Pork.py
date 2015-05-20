@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import getpass
 from PyQt4 import QtGui, QtCore
+import numpy
 
 from EfficiencyCalculator import EfficiencyCalculator
 from WeekCalendar import WeekCalendar
 from LeavePlanner import LeavePlanner
- 
 from OINKUIMethods import brotherEyeOpen, brotherEyeClose, brotherEyeFileModified, passwordResetter
 from AnimalFarm import AnimalFarm
 from PiggyBanker import PiggyBanker
@@ -48,7 +48,7 @@ class Pork(QtGui.QMainWindow):
         self.addMenus()
         self.setVisuals()
         #Initialize the application with required details.
-        self.populateBU()       
+        self.populateBU()
         #self.populateTable()
         self.populateClarification()
         self.initForm()
@@ -57,13 +57,13 @@ class Pork(QtGui.QMainWindow):
         self.currentFSNDataList = []
         #self.displayEfficiency()
         #Ignorance is bliss.
-        brotherEyeOpen()    
+        brotherEyeOpen()
         self.statusBar().showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
-    
+
     def focusInEvent(self, event):
         print "Pork Focus in"
-    
+
     def FocusOutEvent(self, event):
         print "Pork Focus out"
 
@@ -83,9 +83,9 @@ class Pork(QtGui.QMainWindow):
         self.stats.setLayout(self.stats_layout)
         self.tabs.addTab(self.stats, "Writer Statistics")
         self.tabs.addTab(self.piggybank, "Piggy Bank")
-        
+
         style = "font-size: 12px; font-weight: bold;"
-        
+
         self.hide_piggy_button = QtGui.QPushButton(">")
         self.hide_piggy_button.setStyleSheet(style)
         self.hide_piggy_button.setCheckable(True)
@@ -94,7 +94,7 @@ class Pork(QtGui.QMainWindow):
         self.hide_piggy_button.setMinimumWidth(30)
         self.hide_piggy_button.setMaximumWidth(30)
         self.hide_piggy_button.clicked.connect(self.hide_piggy)
-        
+
         self.hide_form_button = QtGui.QPushButton("<")
         self.hide_form_button.setStyleSheet(style)
         self.hide_form_button.setCheckable(True)
@@ -103,7 +103,7 @@ class Pork(QtGui.QMainWindow):
         self.hide_form_button.setMinimumWidth(30)
         self.hide_form_button.setMaximumWidth(30)
         self.hide_form_button.clicked.connect(self.hide_form)
-        
+
 
         self.hide_buttons = QtGui.QButtonGroup()
         self.hide_buttons.addButton(self.hide_form_button)
@@ -133,7 +133,7 @@ class Pork(QtGui.QMainWindow):
         self.buttonCopyFields.setMinimumWidth(70)
         self.buttonCopyFields.setMinimumHeight(30)
         self.buttonCopyFields.setMaximumHeight(30)
-        
+
 
         self.formModifierButtons = QtGui.QButtonGroup()
         self.formModifierButtons.addButton(self.buttonAddFSN)
@@ -238,7 +238,7 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxClarification.setMaximumWidth(50)
         self.buttonAddClarification = QtGui.QPushButton("+")
         self.buttonAddClarification.setMaximumWidth(20)
-        styler = """image: url(Images\ok.png)"""
+        #styler = """image: url(Images\ok.png)"""
         self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
                                             QtGui.QDialogButtonBox.Cancel)
         self.buttonBox.setMaximumWidth(300)
@@ -374,7 +374,7 @@ class Pork(QtGui.QMainWindow):
                 s = '\t'+"\t".join([str(self.piggybank.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
                 s = s + '\n'
                 for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
-                    s += str(r+1) + '\t' 
+                    s += str(r+1) + '\t'
                     for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
                         try:
                             s += str(self.piggybank.item(r,c).text()) + "\t"
@@ -424,15 +424,15 @@ class Pork(QtGui.QMainWindow):
         self.askForLeave = self.commMenu.addAction(self.applyLeave)
         self.askEditor = self.commMenu.addAction(self.callAskAnEditor)
         self.askTL = self.commMenu.addAction(self.callAskYourTL)
-        self.viewStyleSheet =self.toolsMenu.addAction(self.callStyleSheet)
-        self.chatmessenger = self.toolsMenu.addAction(self.callOpenChat) 
+        self.viewStyleSheet = self.toolsMenu.addAction(self.callStyleSheet)
+        self.chatmessenger = self.toolsMenu.addAction(self.callOpenChat)
 
     def createActions(self):
         """PORK Window."""
         #self.exitAction = QtGui.QAction(QIcon('exit.png'),"&Exit",self)
         #self.exitAction.setToolTip("Click to Exit.")
-        #self.exitAction.triggered.connect(self.closeEvent) 
-        #Close event doesn't close it. 
+        #self.exitAction.triggered.connect(self.closeEvent)
+        #Close event doesn't close it.
         #And qApp.exit doesn't call CloseEvent. I can't bypass closeEvent, that's how I prevent multiple instances.
         self.resetPassword_action = QtGui.QAction("Reset password", self)
         self.resetPassword_action.triggered.connect(self.reset_password)
@@ -473,10 +473,9 @@ class Pork(QtGui.QMainWindow):
         self.center()
         self.expand()
         self.show()
-        
         self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon('Images\Pork_Icon.png'),self)
         self.trayIcon.show()
-        
+
     def initForm(self):
         """PORK Window: Method to initialize the form."""
         self.buttonAddFSN.setChecked(True)
@@ -522,20 +521,20 @@ class Pork(QtGui.QMainWindow):
         if leaveapp.exec_():
             #print "Success!" #debug
             self.alertMessage('Success', "Successfully submitted the request.")
-        return True 
-    
+        return True
+
     def reset_password(self):
         """Opens a password reset method and allows the user to reset his/her password."""
         self.password = passwordResetter(self.userID, self.password)
-    
+
     def viewEscalations(self):
         """PORK Window."""
         self.featureUnavailable()
-    
+
     def openChat(self):
         """PORK Window."""
         self.featureUnavailable()
-    
+
     def showEfficiencyCalc(self):
         """PORK Window."""
         calculator = EfficiencyCalculator(self.userID, self.password)
@@ -544,7 +543,7 @@ class Pork(QtGui.QMainWindow):
 
     def updateStatsTable(self, stats_data):
         """PORK Window method that updates the writer's statistics sheet.
-        This should be triggered along with the populateTable method 
+        This should be triggered along with the populateTable method
         when the date is changed."""
         #get data for last working date (lwd)
         self.last_working_date = stats_data["LWD"]
@@ -569,12 +568,18 @@ class Pork(QtGui.QMainWindow):
 
         self.stats_table.setRowCount(4)
         self.stats_table.setColumnCount(4)
+
+        red = QtGui.QColor(255, 12, 7)
+        green = QtGui.QColor(49,255, 102)
+        blue = QtGui.QColor(86, 89, 232)
+
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
         self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
+
         lwd_efficiency_item = QtGui.QTableWidgetItem(str("%s%%" %self.lwd_efficiency))
         lwd_eff_bg_color = QtGui.QColor(255,0,0) if self.lwd_efficiency < 100.00 else QtGui.QColor(255,255,255)
         lwd_efficiency_item.setBackgroundColor(lwd_eff_bg_color)
-        
+
         lwd_CFM_item = QtGui.QTableWidgetItem(str("%s%%" %self.lwd_CFM))
         lwd_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.lwd_GSEO))
 
@@ -584,7 +589,7 @@ class Pork(QtGui.QMainWindow):
 
         cw_CFM_item = QtGui.QTableWidgetItem(str("%s%%" %self.cw_CFM))
         cw_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.cw_GSEO))
-        
+
         cm_efficiency_item = QtGui.QTableWidgetItem(str("%s%%" %self.cm_efficiency))
         cm_eff_bg_color = QtGui.QColor(255,0,0) if self.cm_efficiency < 100.00 else QtGui.QColor(255,255,255)
         cm_efficiency_item.setBackgroundColor(cm_eff_bg_color)
@@ -593,7 +598,7 @@ class Pork(QtGui.QMainWindow):
         cm_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.cm_GSEO))
 
         cq_efficiency_item = QtGui.QTableWidgetItem(str("%s%%" %self.cq_efficiency))
-        
+
         cq_CFM_item = QtGui.QTableWidgetItem(str("%s%%" %self.cq_CFM))
         cq_GSEO_item = QtGui.QTableWidgetItem(str("%s%%" %self.cq_GSEO))
         cq_eff_bg_color = QtGui.QColor(255,0,0) if self.cq_efficiency < 100.00 else QtGui.QColor(255,255,255)
@@ -620,22 +625,18 @@ class Pork(QtGui.QMainWindow):
     def openStyleSheet(self):
         """PORK Window."""
         self.featureUnavailable()
-    
+
     def AskAnEditor(self):
         """PORK Window."""
         self.featureUnavailable()
-    
+
     def askTL(self):
         """PORK Window."""
         self.featureUnavailable()
-    
+
     def featureUnavailable(self):
         """PORK Window."""
         self.notify("Feature unavailable.", "That feature is still in development. Thank you for your patience.")
-
-    def openChat(self):
-        """PORK Window."""
-        self.featureUnavailable()
 
     def changedDate(self):
         """PORK Window."""
@@ -647,8 +648,7 @@ class Pork(QtGui.QMainWindow):
         self.porker_thread.getStatsData(new_date)
         self.mapToolTips()
         self.FSNEditFinishTriggers()
-        
-    
+
     def populateTableThreaded(self, data, efficiencies):
         #print "Got %d Articles from the piggybanker_thread." %len(data)
         self.piggybank.setData(data, efficiencies)
@@ -658,20 +658,20 @@ class Pork(QtGui.QMainWindow):
         """PORK Window."""
         date = self.workCalendar.selectedDate()
         return "CSVs\\" + str(date.toString('yyyyMMdd')) + ".pork"
-    
+
     def getActiveDateString(self):
         """PORK Window."""
         date = self.workCalendar.selectedDate()
         return str(date.toString('dddd, dd MMMM yyyy'))
-    
+
     def getActiveDate(self):
         """PORK Window."""
         """Returns the python datetime for the selected date in the calendar."""
         dateAsQDate = self.workCalendar.selectedDate()
-        dateString = str(dateAsQDate.toString('dd/MM/yyyy'))    
+        dateString = str(dateAsQDate.toString('dd/MM/yyyy'))
         dateAsDateTime = OINKM.getDate(dateString)
-        return dateAsDateTime       
-    
+        return dateAsDateTime
+
     def displayEfficiencyThreaded(self, efficiency):
         """PORK Window."""
         #print "Received %f efficiency." % efficiency
@@ -719,7 +719,7 @@ class Pork(QtGui.QMainWindow):
             self.efficiencyProgress.setRange(0,100)
             self.efficiencyProgress.setStyleSheet(new_style)
         self.efficiencyProgress.setValue(efficiency)
-        
+
     def submit(self):
         """PORK Window."""
         """Method to send the FSN data to SQL."""
@@ -729,7 +729,7 @@ class Pork(QtGui.QMainWindow):
             MOSES.addToPiggyBank(data, self.userID, self.password)
         else:
             print "I got nothing!"
-        
+
     def populateBU(self):
         """PORK Window."""
         self.comboBoxBU.clear()
@@ -749,9 +749,9 @@ class Pork(QtGui.QMainWindow):
 
     def populateCategory(self):
         """PORK Window."""
-        self.comboBoxCategory.clear()   
+        self.comboBoxCategory.clear()
         self.selectedSuperCategory = str(self.comboBoxSuperCategory.currentText())
-        try: 
+        try:
             self.comboBoxCategory.addItems(MOSES.getCategoryValues(self.userID,self.password,SupC=self.selectedSuperCategory))
         except:
             self.notify("Error.","Error trying to populate Category combo Box with values for " + self.selectedSuperCategory + " super category. Check if there are predefined values.")
@@ -770,7 +770,7 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxSubCategory.clear()
         self.selectedCategory = str(self.comboBoxCategory.currentText())
         SubCatList = MOSES.getSubCategoryValues(self.userID,self.password,Cat=self.selectedCategory)
-        try: 
+        try:
             self.comboBoxSubCategory.addItems(SubCatList)
         except:
             self.notify("Error","Error trying to populate Sub-Category combo-box with values for " + self.selectedCategory + " category. Check if there are predefined values.")
@@ -783,7 +783,7 @@ class Pork(QtGui.QMainWindow):
                 self.textEditGuidelines.append("There are guidelines for at least one sub-category in %s." % self.selectedCategory)
         except:
             self.notify("Error","No category has been selected.")
-    
+
     def populateBrandVertical(self):
         """PORK Window."""
         self.comboBoxVertical.clear()
@@ -809,7 +809,7 @@ class Pork(QtGui.QMainWindow):
     def populateClarification(self):
         """PORK Window."""
         self.comboBoxClarification.addItems(MOSES.getClarifications(self.userID,self.password))
-    
+
     def addClarification(self):
         """PORK Window."""
         if self.lineEditClarification.text() == "NA":
@@ -830,7 +830,7 @@ class Pork(QtGui.QMainWindow):
         except:
             self.notify("Error", "No vertical has been selected.")
 
-    def closeEvent(self,event): 
+    def closeEvent(self,event):
         """PORK Window."""
         self.askToClose = QtGui.QMessageBox.question(self, 'Close P.O.R.K?', "Are you sure you'd like to quit?\nPlease keep this application open when you're working since it guides you through the process and helps you interact with your process suppliers and customers.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
         if self.askToClose == QtGui.QMessageBox.Yes:
@@ -864,7 +864,7 @@ class Pork(QtGui.QMainWindow):
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: yellow;}")
                 self.generateUploadLink(fsnString)
                 self.swine_herd.setFSN(fsnString)
-            elif not isDuplicate: 
+            elif not isDuplicate:
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: white;}")
                 self.generateUploadLink(fsnString)
                 self.swine_herd.setFSNs(fsnString)
@@ -872,7 +872,7 @@ class Pork(QtGui.QMainWindow):
     def generateUploadLink(self, fsnString):
         """PORK Window."""
         """if (len(str(self.lineEditUploadLink.text())) == 0) and (str(self.lineEditUploadLink.text()).count(' ') <= 0):
-                                    fsnString = str(self.lineEditFSN.text()).strip()    
+                                    fsnString = str(self.lineEditFSN.text()).strip()
                                     if (len(fsnString) == 13) or (len(fsnString) == 16):"""
         self.lineEditUploadLink.setText("http://www.flipkart.com/search?q=" + fsnString)
 
@@ -880,7 +880,7 @@ class Pork(QtGui.QMainWindow):
         """PORK Window."""
         self.listData = self.fsnData()
         self.done = 0
-        for value in listData:
+        for value in self.listData:
             if len(value) == 0:
                 self.done = self.done + 1
         if (self.done==0):
@@ -891,7 +891,8 @@ class Pork(QtGui.QMainWindow):
     def validateAndSendToPiggy(self):
         """PORK Window."""
         #FIX
-        """This method checks if the given data is complete, and then if the data is for today, it allows addition or modification."""
+        """This method checks if the given data is complete, and then if the data is for today, 
+        it allows addition or modification."""
         completion = False
         allowAddition = False
         mode = self.getMode()
@@ -921,21 +922,21 @@ class Pork(QtGui.QMainWindow):
             else:
                 MOSES.addToPiggyBank(fsnData, self.userID, self.password)
                 self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
-                
+
                 completion = True
         elif mode == "Modification":
             fsnData = self.getFSNDataDict()
-            #print "Trying to modify an entry."    
+            #print "Trying to modify an entry."
             MOSES.updatePiggyBankEntry(fsnData, self.userID, self.password, )
             self.alertMessage("Success", "Successfully modified an entry in the Piggy Bank.")
             #print "Modified!"
             completion = True
         if completion:
-            FSN = fsnData["FSN"]
+            #FSN = fsnData["FSN"]
             #clar_code = str(self.lineEditClarification.text()).strip()
             #clarification_status = MOSES.checkIfClarificationPosted(self.userID, self.password, FSN, clar_code)
+            #do I need a comment box? Not yet, maybe after I figure how to make a combocheckbox.
             #if type(clarification_status) == type(selected_date):
-                #do I need a comment box? Not yet, maybe after I figure how to make a combocheckbox.
             #    MOSES.updateClarification(self.userID, self.password, FSN, self.userID, clar_code)
             #else:
             #    MOSES.addClarification(self.userID, self.password, FSN, selected_date, clar_code)
@@ -961,14 +962,14 @@ class Pork(QtGui.QMainWindow):
     def resetForm(self):
         """PORK Window."""
         self.lineEditFSN.setText("")
-        self.spinBoxWordCount.setValue(0)      
-        self.lineEditRefLink.setText("NA")          
-        self.lineEditUploadLink.setText("")         
+        self.spinBoxWordCount.setValue(0)
+        self.lineEditRefLink.setText("NA")
+        self.lineEditUploadLink.setText("")
         self.lineEditClarification.setText("NA")
         self.buttonAddFSN.setChecked(True)
-    
+
     def cellSelected(self, row, column):
-        """Triggered when a cell is clicked. 
+        """Triggered when a cell is clicked.
         If the current mode is set to modification, it will copy the fields in the selected row to the form.
 """
         self.selected_row = row
@@ -980,59 +981,59 @@ the existing data in the form with the data in the cell and modify that cell?"""
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No) 
             if self.askToOverwrite == QtGui.QMessageBox.Yes:
                 self.fetchDataToForm(self.selected_row, self.selected_column,"All")
-    
-        #if the audit form isn't already cleared, 
+
+        #if the audit form isn't already cleared,
         #ask for a confirmation about clearing it, clear it and then call this function once again.
-    
+
     def fetchDataToForm(self, row, column, fields="Recent"):
-        """PORK Window."""       
+        """PORK Window."""
         """Fills the form with all/some of the fields."""
         columns = self.piggybank.columnCount()
-        
+
         for columnCounter in range(columns):
 
-            self.columnHeaderLabel = str(self.piggybank.horizontalHeaderItem(columnCounter).text()) 
+            self.columnHeaderLabel = str(self.piggybank.horizontalHeaderItem(columnCounter).text())
             self.cellValue = str(self.piggybank.item(row, columnCounter).text())
-            
+
             if self.columnHeaderLabel == "Description Type":
                 self.typeIndex = self.comboBoxType.findText(self.cellValue)
                 self.comboBoxType.setCurrentIndex(self.typeIndex)
-            
+
             elif self.columnHeaderLabel == "Priority":
                 self.priorityIndex = self.comboBoxPriority.findText(self.cellValue)
                 self.comboBoxPriority.setCurrentIndex(self.priorityIndex)
-            
+
             elif self.columnHeaderLabel == "Source":
                 self.sourceIndex = self.comboBoxSource.findText(self.cellValue)
                 self.comboBoxSource.setCurrentIndex(self.sourceIndex)
-            
+
             elif self.columnHeaderLabel == "BU":
                 self.BUIndex = self.comboBoxBU.findText(self.cellValue)
                 self.comboBoxBU.setCurrentIndex(self.BUIndex)
                 self.populateSuperCategory()
-            
+
             elif self.columnHeaderLabel == "Super-Category":
-                self.superIndex = self.comboBoxSuperCategory.findText(self.cellValue)   
+                self.superIndex = self.comboBoxSuperCategory.findText(self.cellValue)
                 self.comboBoxSuperCategory.setCurrentIndex(self.superIndex)
                 self.populateCategory()
-            
+
             elif self.columnHeaderLabel == "Category":
-                self.categoryIndex = self.comboBoxCategory.findText(self.cellValue) 
+                self.categoryIndex = self.comboBoxCategory.findText(self.cellValue)
                 self.comboBoxCategory.setCurrentIndex(self.categoryIndex)
-                self.populateSubCategory()  
-            
+                self.populateSubCategory()
+
             elif self.columnHeaderLabel == "Sub-Category":
-                self.subCatIndex = self.comboBoxSubCategory.findText(self.cellValue)    
+                self.subCatIndex = self.comboBoxSubCategory.findText(self.cellValue)
                 self.comboBoxSubCategory.setCurrentIndex(self.subCatIndex)
                 self.populateBrandVertical()
-            
+
             elif self.columnHeaderLabel == "Vertical":
-                self.verticalIndex = self.comboBoxVertical.findText(self.cellValue) 
+                self.verticalIndex = self.comboBoxVertical.findText(self.cellValue)
                 self.comboBoxVertical.setCurrentIndex(self.verticalIndex)
-            
+
             elif self.columnHeaderLabel == "Brand":
                 self.lineEditBrand.setText(self.cellValue)
-            
+
             elif fields == "All":
                 if self.columnHeaderLabel == "FSN":
                     self.lineEditFSN.setText(self.cellValue)
@@ -1048,23 +1049,23 @@ the existing data in the form with the data in the cell and modify that cell?"""
     def copyCommonFields(self):
         """PORK Window Method to copy common fields over to the next entry."""
         self.fetchDataToForm(self.selected_row, self.selected_column, fields = "Recent")
-  
+
     def clearAll(self):
         """PORK Window."""
         """Clears all the fields of the form."""
         self.lineEditFSN.setText("")
         self.comboBoxType.setCurrentIndex(-1)
-#        self.comboBoxPriority.setCurrentIndex(-1)           
-        self.comboBoxSource.setCurrentIndex(-1)         
+#        self.comboBoxPriority.setCurrentIndex(-1)
+        self.comboBoxSource.setCurrentIndex(-1)
         self.comboBoxBU.setCurrentIndex(-1)
         self.comboBoxSuperCategory.setCurrentIndex(-1)
         self.comboBoxCategory.setCurrentIndex(-1)
-        self.comboBoxSubCategory.setCurrentIndex(-1)            
+        self.comboBoxSubCategory.setCurrentIndex(-1)
         self.comboBoxVertical.setCurrentIndex(-1)
         self.spinBoxWordCount.setValue(0)
-        self.lineEditBrand.setText("")          
-        self.lineEditRefLink.setText("")            
-        self.lineEditUploadLink.setText("")         
+        self.lineEditBrand.setText("")
+        self.lineEditRefLink.setText("")
+        self.lineEditUploadLink.setText("")
         self.lineEditClarification.setText("")
         self.buttonAddFSN.setChecked(True)
 
@@ -1100,7 +1101,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
             if len(self.source) == 0:
                 self.valid = False
                 self.alertMessage("User Error","Please select a type.")
-                return []           
+                return []
         except:
             self.alertMessage("Runtime Error","Please select a source.")
             self.comboBoxSource.setFocus()
@@ -1131,7 +1132,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
             if len(self.category) == 0:
                 self.valid = False
                 self.alertMessage("User Error","Please select the category.")
-                return []           
+                return []
         except:
             self.alertMessage("Runtime Error","Please select the category.")
             self.comboBoxCategory.setFocus()
@@ -1225,17 +1226,17 @@ the existing data in the form with the data in the cell and modify that cell?"""
                 "Writer Name": writer_name,
                 "Writer Email ID": writer_email,
                 "FSN": self.fsn,
-                "Description Type": self.type, 
-                "Source": self.source, 
+                "Description Type": self.type,
+                "Source": self.source,
                 "BU" : self.bu,
-                "Super-Category": self.supercategory, 
-                "Category": self.category, 
-                "Sub-Category": self.subcategory, 
-                "Vertical": self.vertical, 
-                "Brand": self.brand, 
+                "Super-Category": self.supercategory,
+                "Category": self.category,
+                "Sub-Category": self.subcategory,
+                "Vertical": self.vertical,
+                "Brand": self.brand,
                 "Word Count": self.wordcount,
-                "Upload Link": self.uploadlink, 
-                "Reference Link": self.referencelink, 
+                "Upload Link": self.uploadlink,
+                "Reference Link": self.referencelink,
                 "Rewrite Ticket": 0,
                 "End Time": datetime.datetime.now(),
                 "PC User Name": getpass.getuser(),
@@ -1284,7 +1285,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
 
     def sendDatesDataToCalendar(self, dates_data):
         self.workCalendar.setDatesData(dates_data)
-        
+
     def hide_form(self):
         piggy_is_hidden = self.hide_piggy_button.isChecked()
         form_is_hidden = self.hide_form_button.isChecked()
@@ -1292,7 +1293,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
             self.form.setVisible(not form_is_hidden)
         elif form_is_hidden:
             self.form.setVisible(form_is_hidden)
-    
+
     def hide_piggy(self):
        #print "Hiding piggy!"
         piggy_is_hidden = self.hide_piggy_button.isChecked()
@@ -1302,22 +1303,22 @@ the existing data in the form with the data in the cell and modify that cell?"""
             self.piggyWidget.setVisible(not piggy_is_hidden)
         elif piggy_is_hidden:
             self.piggyWidget.setVisible(piggy_is_hidden)
-        
+
         piggy_is_hidden = self.hide_piggy_button.isChecked()
         form_is_hidden = self.hide_form_button.isChecked()
         if piggy_is_hidden or form_is_hidden:
             self.contract()
         else:
             self.expand()
-    
+
     def contract(self):
         self.resize(300, 300)
         self.quote_thread.setWidth(100)
         self.center()
-    
+
     def expand(self):
         self.resize(800, 600)
-        self.quote_thread.setWidth(300)
+        self.quote_thread.setWidth(200)
         self.center()
 
     def center(self):

@@ -66,6 +66,71 @@ def getRawDataKeys():
         ]
     return keys
 
+def seekFSN(user_id, password, fsn):
+    """"""
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * from `piggybank` WHERE fsn="%s";""" %fsn
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    article_date = "NA"
+    database_table = "NA"
+    status = "NA"
+    database_table = "NA"
+    description_type = "NA"
+    writer_id = "NA"
+    writer_name = "NA"
+    article_date = "NA"
+    bu = "NA"
+    super_category = "NA"
+    category = "NA"
+    sub_category = "NA"
+    vertical = "NA"
+    brand = "NA"
+    item_id = "NA"
+
+    if len(data) == 0:
+        sqlcmdstring = """SELECT * from `fsndump` WHERE fsn="%s";""" %fsn
+        cursor.execute(sqlcmdstring)
+        data_fsn_dump = cursor.fetchall()
+        if len(data_fsn_dump) == 0:
+            status = "Not Written Yet"
+        else:
+            status = "Written"
+            database_table = "FSN Dump"
+            description_type = data_fsn_dump[0]["Description Type"]
+    else:
+        status = "Written"
+        database_table = "Piggy Bank"
+        description_type = data[0]["Description Type"]
+        writer_id = data[0]["WriterID"]
+        writer_name = data[0]["Writer Name"]
+        article_date = data[0]["Article Date"]
+        bu = data[0]["BU"]
+        super_category = data[0]["Super-Category"]
+        category = data[0]["Category"]
+        sub_category = data[0]["Sub-Category"]
+        vertical = data[0]["Vertical"]
+        brand = data[0]["Brand"]
+        item_id = data[0]["Item ID"]
+    conn.close()
+    fsn_dict = {
+        "FSN": fsn,
+        "Status": status,
+        "Description Type": description_type,
+        "Writer ID": writer_id,
+        "Writer Name": writer_name,
+        "Article Date": article_date,
+        "Database table": database_table,
+        "BU": bu,
+        "Super-Category": super_category,
+        "Category": category,
+        "Sub-Category": sub_category,
+        "Vertical": vertical,
+        "Brand": brand,
+        "Item ID": item_id
+        }
+    return fsn_dict
 def recursiveUploadRawDataFile(user_id, password):
     if not os.path.isfile("Archive\\RawData_Archive.csv"):
         print "No Input file found!"
@@ -1132,8 +1197,9 @@ def getUserPiggyBankData(queryDate, user_id, password, queryUser = None):
                 queryDate ,queryDict ,user_id ,password)[0]
 
 
-
-def getWorkingStatus(user_id, password, querydate, lookupuser=None):
+#DONT USE THIS!
+def getWorkingStatus(user_id, password, querydate, lookupuser=None):#DONT USE THIS!
+    #DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!
     """Method to fetch the status for a writer on any particular date.
     Returns "Working" if the employee is delivering 100%.
     Returns "Leave" if the employee is on leave.
@@ -1143,7 +1209,8 @@ def getWorkingStatus(user_id, password, querydate, lookupuser=None):
     If lookupuser isn't specified, it'll just pull the status for the current user.
     """
 
-    #DONT USE THIS!
+    #DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!
+    #DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!
     status = "Working"
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
@@ -1212,6 +1279,71 @@ def getWorkingDatesBetween(user_id, password, start_date, end_date, query_user =
     return working_dates
 
 def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_user=None):
+    import numpy
+    if query_user is None:
+        query_user = user_id
+    #get all piggybank data between these dates.
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """
+    UPDATE piggybank SET piggybank.target = (
+    SELECT target
+    FROM categorytree
+    WHERE 
+    categorytree.`Revision Date` = (
+    SELECT MAX(categorytree.`Revision Date`)
+    FROM categorytree
+    WHERE
+    categorytree.`Revision Date` <= piggybank.`Article Date` AND categorytree.`Source`=piggybank.`Source` 
+    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
+    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
+    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
+    categorytree.`Description Type` = piggybank.`Description Type`
+    )  AND categorytree.`Source`=piggybank.`Source` 
+    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
+    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
+    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
+    categorytree.`Description Type` = piggybank.`Description Type`
+    ) WHERE
+    piggybank.`Article Date` BETWEEN "%s" AND "%s" AND piggybank.`WriterID` = "%s";
+    """ %(convertToMySQLDate(start_date), convertToMySQLDate(end_date), user_id)
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    sqlcmdstring = """select * from `piggybank` WHERE 
+    `WriterID`="%s" AND `Article Date` BETWEEN "%s" AND "%s";""" %(query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    piggy_bank_data = cursor.fetchall()
+    conn.close()
+    #print "Retrieved %d entries from the piggybank." %len(piggy_bank_data)
+    #get all the dates during which a write is working.
+    working_dates = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
+    #print "Found %d working dates." %len(working_dates)
+    #build a dictionary for the writers which contains information at the date level.
+    writer_dates_data = dict((date_, {"Targets":[], "Relaxation": None, "Status": None, "Approval": None}) for date_ in working_dates)
+    for date_ in working_dates:
+        status, relaxation, approval = checkWorkStatus(user_id, password, date_, query_user)
+        if query_user == "74839":
+            print date_, query_user, status, relaxation, approval
+        writer_dates_data[date_].update({"Status": status})
+        writer_dates_data[date_].update({"Relaxation": relaxation})
+        writer_dates_data[date_].update({"Approval": approval})
+    for piggy_entry in piggy_bank_data:
+        entry_date = piggy_entry["Article Date"]
+        target = piggy_entry["Target"]
+        #target = getTargetForPiggyBankRow(user_id, password, piggy_entry)
+        writer_dates_data[entry_date]["Targets"].append(target)
+    #print writer_dates_data
+    corrected_targets = []
+    for date_ in working_dates:
+        relaxation = writer_dates_data[date_]["Relaxation"]
+        target_correction = 1 - relaxation
+        for target in writer_dates_data[date_]["Targets"]:
+            corrected_targets.append(target*target_correction)
+    utilizations = [target**-1 for target in corrected_targets if target > 0]
+    efficiency = numpy.sum(utilizations)/len(working_dates)
+    return efficiency
+
+def getEfficiencyForDateRange_(user_id, password, start_date, end_date, query_user=None):
     """Returns the efficiency for an emplyoee for all dates between two dates."""
     #print "In getEfficiencyForDateRange"
     #Great, I need to rewrite this too?! Wth.
@@ -1283,17 +1415,18 @@ def getETA(start_time, counter, total):
 def getArticleCount(user_id, password, query_date, query_user=None):
     if query_user == None:
         query_user = user_id
-    data = getUserPiggyBankData(query_date, user_id, password, query_user)
-    return len(data)
+    return getArticleCountBetween(user_id, password, query_date, query_date, query_user)
 
 def getArticleCountBetween(user_id, password, start_date, end_date, query_user = None):
     if query_user == None:
         query_user = user_id
-    article_count = 0
-    dates = OINKM.getDatesBetween(start_date, end_date)
-    for each_date in dates:
-        article_count += getArticleCount(user_id, password, each_date, query_user)
-    return article_count
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT COUNT(*) from piggybank WHERE `Article Date` BETWEEN "%s" AND "%s" AND `WriterID`="%s";""" %(convertToMySQLDate(start_date), convertToMySQLDate(end_date), query_user)
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return int(data[0]["COUNT(*)"])
 
 def getArticleCountForWeek(user_id, password, query_date, query_user=None):
     """"""
@@ -1333,17 +1466,18 @@ def getArticleCountForQuarter(user_id, password, query_date, query_user=None):
 def getAuditCount(user_id, password, query_date, query_user=None):
     if query_user == None:
         query_user = user_id
-    data = getRawDataForDate(user_id, password, query_date, query_user)
-    return len(data)
+    return getAuditCountBetween(user_id, password, query_date, query_date, query_user)
 
 def getAuditCountBetween(user_id, password, start_date, end_date, query_user = None):
     if query_user == None:
         query_user = user_id
-    audit_count = 0
-    dates = OINKM.getDatesBetween(start_date, end_date)
-    for each_date in dates:
-        audit_count += getAuditCount(user_id, password, each_date, query_user)
-    return audit_count
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT COUNT(*) FROM rawdata WHERE `Audit Date` BETWEEN "%s" AND "%s" AND `WriterID`="%s";""" %(convertToMySQLDate(start_date), convertToMySQLDate(end_date), query_user)
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return data[0]["COUNT(*)"]
 
 def getAuditCountForWeek(user_id, password, query_date, query_user = None):
     """"""
