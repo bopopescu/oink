@@ -3,14 +3,8 @@ import time
 from PyQt4 import QtCore
 import MOSES
 
-class ClassName(object):
-    """docstring for ClassName"""
-    def __init__(self, arg):
-        super(ClassName, self).__init__()
-        self.arg = arg
         
 class Peeves(QtCore.QThread):
-    """WTF"""
     sendProgress = QtCore.pyqtSignal(int, int, datetime.datetime)
     sendData = QtCore.pyqtSignal(list)
 

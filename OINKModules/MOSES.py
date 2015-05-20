@@ -145,7 +145,8 @@ def recursiveUploadRawDataFile(user_id, password):
         duplicates_file = open("Archive\\RawData_Duplicates.csv", "w")
         rawdata = csv.DictReader(rawdata_file)
         failed = csv.DictWriter(failed_file, getRawDataKeys())
-        duplicates = csv.DictWriter(duplicates_file, getRawDataKeys())
+        #duplicates = csv.DictWriter(duplicates_file, getRawDataKeys())
+        #total = len(raw_data_file.read().split("\n"))
         counter = 0
         success = 0
         failure = 0
@@ -161,6 +162,7 @@ def recursiveUploadRawDataFile(user_id, password):
                 failure += 1
                 print "Failed"
                 failed.writerow(process_dict)
+            #print "%d/%d. ETA: %s" %(counter, total, getETA(start_time, counter, total))
         print "Run Complete. Summary:\n%d succeeded. %d failed. Total %d" %(success, failure, counter)
         print "Time spent: %s" % (datetime.datetime.now() - start_time)
         rawdata_file.close()
