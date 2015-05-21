@@ -2980,5 +2980,22 @@ def getReportingManager(user_id, password,  query_date=None, query_user=None):
     manager_data = cursor.fetchall()
     conn.close()
     return manager_data[0]
+
+def getCFMParameterPercentagesBetween(user_id, password, start_date, end_date, query_user=None):
+    if query_user is None:
+        query_user = user_id
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """;"""%(query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    raw_data = cursor.fetchall()
+    conn.close()
+    cfm_score_lists = []
+    for entry in raw_data:
+        cfm_scores = getCFMParameterPercentagesListForRow(entry)
+        
+    cfm_dict = {query_user: user_cfm_scores, "Team": team_cfm_scores}
+    return cfm_dict
+
 if __name__ == "__main__":
     print "Never call Moses mainly."

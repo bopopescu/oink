@@ -4,6 +4,7 @@ import itertools
 import math
 import datetime
 import numpy
+import matplotlib
 from PyQt4 import QtGui, QtCore
 from PassResetDialog import PassResetDialog
 from EfficiencyCalculator import EfficiencyCalculator
@@ -15,6 +16,7 @@ from Former import Former
 from PorkKent import PorkKent
 from OINKMethods import version
 from Seeker import Seeker
+from Graphite import Graphite
 
 class Vindaloo(QtGui.QMainWindow):
     def __init__(self, userID, password):
@@ -104,7 +106,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.tools_layout.addStretch(3)
         self.statusLog = QtGui.QTextEdit()
         self.piggybank = PiggyBank()
-        self.writers_report_graphs = QtGui.QWidget()
+        
+        self.graphite = Graphite()
         self.rawdata = QtGui.QWidget()
         self.summary_progress = QtGui.QProgressBar()
         progress_bar_style = """
@@ -117,7 +120,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.stats_tabs = QtGui.QTabWidget()
         self.stats_tabs.addTab(self.writers_report, "Writers' Report")
         self.stats_tabs.addTab(self.team_report, "Team Report")
-        self.stats_tabs.addTab(self.writers_report_graphs, "Graphs")
+        self.stats_tabs.addTab(self.graphite, "Graphs")
         self.stats_tabs.addTab(self.piggybank, "Piggy Bank")
         self.stats_tabs.addTab(self.rawdata, "Quality Raw Data")
         self.stats_tabs.addTab(self.seeker, "Seeker")

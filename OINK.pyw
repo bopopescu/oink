@@ -8,7 +8,7 @@ from OINKModules.Pork import Pork
 from OINKModules.Vindaloo import Vindaloo
 from OINKModules.Pork2 import Pork as Pork_2
 from OINKModules.Bacon import Bacon
-from OINKModules.Napoleon import Napoleon
+#from OINKModules.Napoleon import Napoleon
 
 from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, passwordResetter
 from OINKModules import MOSES

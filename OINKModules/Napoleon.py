@@ -41,7 +41,6 @@ class Napoleon(QtGui.QMainWindow):
         self.tools_layout.addWidget(self.user_management_button)
         self.tools_layout.addWidget(self.connection_monitor)
 
-
         self.tools_group = QtGui.QGroupBox("Tools")
         self.tools_group.setLayout(self.tools_layout)
 

@@ -21,7 +21,7 @@ def getFSNsForItemIDs(query_date=None):
 	u = "bigbrother"
 	p = "orwell"
 	if query_date is None:
-		sqlcmdstring = "SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL;"
+		sqlcmdstring = "SELECT `FSN` FROM `fsndump` WHERE `Item ID` IS NULL;"
 #	else:
 #		sqlcmdstring = """SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL AND `Description Type` NOT LIKE 'SEO%' AND `Article Date`="%s";""" %convertToMySQLDate(query_date)
 #		sqlcmdstring = """SELECT `FSN` FROM `PiggyBank` WHERE `Item ID` IS NULL AND `Description Type` NOT LIKE 'SEO%'`Article Date`="%s";""" %convertToMySQLDate(query_date)
