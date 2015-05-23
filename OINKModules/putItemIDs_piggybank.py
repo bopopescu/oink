@@ -80,7 +80,9 @@ def populatePiggyBankWithItemID(fsn, item_id):
 if __name__ == "__main__":
 	import datetime
 	import time
+	import random
 	fsns = getFSNsForItemIDs()
+	random.shuffle(fsns)
 	counter = 1
 	passed = 0
 	total = len(fsns)

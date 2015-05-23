@@ -4,6 +4,7 @@
 """
 Includes all the methods relevant to using MySQL-Python.
 """
+from __future__ import division
 import sys
 import datetime
 import csv
@@ -12,6 +13,7 @@ import time
 import getpass
 import MySQLdb
 import MySQLdb.cursors
+import numpy
 import OINKMethods as OINKM
 
 def getOINKConnector(user_id, password):
@@ -1324,8 +1326,6 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     writer_dates_data = dict((date_, {"Targets":[], "Relaxation": None, "Status": None, "Approval": None}) for date_ in working_dates)
     for date_ in working_dates:
         status, relaxation, approval = checkWorkStatus(user_id, password, date_, query_user)
-        if query_user == "74839":
-            print date_, query_user, status, relaxation, approval
         writer_dates_data[date_].update({"Status": status})
         writer_dates_data[date_].update({"Relaxation": relaxation})
         writer_dates_data[date_].update({"Approval": approval})
@@ -1621,6 +1621,17 @@ def getEfficiencyForQuarter(user_id, password, query_date, query_user=None):
     first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
     efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_quarter, query_date, query_user)
     return efficiency
+
+def getEfficiencyForHalfYear(user_id, password, query_date, query_user):
+    if query_user is None:
+        query_user = user_id
+    query_month = query_date.month
+    query_year = query_date.year
+    if query_month <=6:
+        half_year_start_date = datetime.date(query_year, 1, 1)
+    else:
+        half_year_start_date = datetime.date(query_year, 7, 1)
+    return getEfficiencyForDateRange(user_id, password, half_year_start_date, query_date, query_user)
 
 def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
     """A new method to get the target for a particular query_dict.
@@ -2981,21 +2992,115 @@ def getReportingManager(user_id, password,  query_date=None, query_user=None):
     conn.close()
     return manager_data[0]
 
-def getCFMParameterPercentagesBetween(user_id, password, start_date, end_date, query_user=None):
+def getRawDataParameterPercentagesBetween(user_id, password, start_date, end_date, query_user=None):
+    import numpy
     if query_user is None:
         query_user = user_id
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
-    sqlcmdstring = """;"""%(query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    if query_user=="All":
+        sqlcmdstring = """SELECT * FROM rawdata WHERE 
+            `Audit Date` BETWEEN "%s" AND "%s";"""%(convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    else:
+        sqlcmdstring = """SELECT * FROM rawdata WHERE 
+                `WriterID`="%s" 
+                AND `Audit Date` BETWEEN "%s" AND "%s";"""%(query_user, 
+                                        convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    #print sqlcmdstring
     cursor.execute(sqlcmdstring)
     raw_data = cursor.fetchall()
     conn.close()
     cfm_score_lists = []
+    gseo_score_lists = []
+    #print len(raw_data)
     for entry in raw_data:
-        cfm_scores = getCFMParameterPercentagesListForRow(entry)
-        
-    cfm_dict = {query_user: user_cfm_scores, "Team": team_cfm_scores}
-    return cfm_dict
+        cfm_scores, gseo_scores = getRawDataParameterPercentagesForRow(entry)
+        #print cfm_scores
+        #print "WTF?"
+        cfm_score_lists.append(cfm_scores)
+        gseo_score_lists.append(gseo_scores)
+
+    cfm_list = getColumnAverages(cfm_score_lists)
+    gseo_list = getColumnAverages(gseo_score_lists)
+    return cfm_list, gseo_list
+
+def getRawDataParameterPercentagesForRow(raw_data_row):
+    max_scores = {
+            "CFM01": 10,
+            "CFM02": 10,
+            "CFM03": 10,
+            "CFM04": 10,
+            "CFM05": 10,
+            "CFM06": 10,
+            "CFM07": 10,
+            "CFM08": 5,
+            "GSEO01": 5,
+            "GSEO02": 5,
+            "GSEO03": 2.5,
+            "GSEO04": 2.5,
+            "GSEO05": 2.5,
+            "GSEO06": 2.5,
+            "GSEO07": 5
+    }
+    process_dict = dict((key, raw_data_row[key]) for key in max_scores.keys())
+    if raw_data_row["FAT01"] == "Yes" and raw_data_row["FAT01"] == "Yes" or raw_data_row["FAT03"] == "Yes":
+        #print "Found fatal?"
+        cfm_percentages_list = numpy.zeros(8)
+        gseo_percentages_list = numpy.zeros(7)
+    else:
+        #print "No fatal."
+        cfm_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "CFM" in key]
+        gseo_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "GSEO" in key]
+
+    #cfm_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "CFM" in key]
+    #gseo_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "GSEO" in key]
+    return cfm_percentages_list, gseo_percentages_list
+
+def getColumnAverages(data_list):
+    import numpy
+    data_array = numpy.array(data_list)
+    #print data_array
+    #given an array, this should return the average of all columns.
+    averages_list = [numpy.mean(data_array[:,column_index]) for column_index in range(data_array.shape[1])]
+    return averages_list
+
+def plotBarGraphs():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import datetime
+    n_bins = 8
+    d1 = datetime.date(2015,1,1)
+    d2 = datetime.date.today()
+    u, p = getBigbrotherCredentials()
+    
+    writer_1_cfm, writer_1_gseo = getRawDataParameterPercentagesBetween(u, p, d1, d2, "62487")
+    team_cfm, team_gseo = getRawDataParameterPercentagesBetween(u, p, d1, d2, "All")
+
+    x = np.array([
+            writer_1_cfm,
+            team_cfm])
+
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+    
+    ax0, ax1, ax2, ax3 = axes.flat
+
+    labels = ["Writer","Team"]
+    colors = ['red', 'tan']
+    ax0.hist(x, n_bins, normed=1, histtype='bar', color=colors, label=labels)
+    ax0.legend(prop={'size': 8})
+    ax0.set_title('bars with legend')
+    plt.tight_layout()
+    plt.show()
+    ax1.hist(x, n_bins, normed=1, histtype='bar', stacked=True)
+    ax1.set_title('stacked bar')
+
+    ax2.hist(x, n_bins, histtype='step', stacked=True, fill=True)
+    ax2.set_title('stepfilled')
+
+    # Make a multiple-histogram of data-sets with different length.
+    x_multi = [np.random.randn(n) for n in [10000, 5000, 2000]]
+    ax3.hist(x_multi, n_bins, histtype='bar')
+    ax3.set_title('different sample sizes')
 
 if __name__ == "__main__":
     print "Never call Moses mainly."

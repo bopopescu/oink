@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import datetime
+import time
 
 from PyQt4 import QtGui, QtCore
 from OINKModules.Pork import Pork
@@ -31,13 +32,16 @@ def main():
                 }
             
             #print "Ok, %s mode" % user_role
-            showSplashScreen(app, user_role)
+            splash = showSplashScreen(app, user_role)
             window = userDict[user_role](userID, password)
             window.setAttribute(QtCore.Qt.WA_QuitOnClose)
+            QtGui.QApplication.processEvents()
+            splash.finish(window)
         else:
             tempWidget = QtGui.QWidget()
             tempWidget.setAttribute(QtCore.Qt.WA_QuitOnClose)
-            QtGui.QMessageBox.about(tempWidget,"Bye","Thats all, folks!")  
+            QtGui.QMessageBox.about(tempWidget,"Bye","Thats all, folks!")
+
     except Exception, e:
         error = repr(e)
         timestamp = str(datetime.datetime.now())
