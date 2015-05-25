@@ -2701,6 +2701,19 @@ def checkIfClarificationPosted(user_id, password, FSN, code):
 def version():
     return "1.3"
 
+def getAuditParameterName(query_parameter):
+    user_id, password = getBigbrotherCredentials()
+    param_class = "CFM" if "CFM" in query_parameter else "GSEO"
+    param_class_index = query_parameter[-1:]
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * FROM auditscoresheet WHERE `Parameter Class`="%s" AND `Parameter Class Index`="%s";""" %(param_class,param_class_index)
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    data = data[0]["Column Descriptions"]
+    conn.close()
+    return data
+
 def getUniqueBUsBetweenDates(oinkdb, start_date, end_date = None, description_type = None):
     import numpy
     import pandas
