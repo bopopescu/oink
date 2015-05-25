@@ -74,7 +74,7 @@ class Porker(QtCore.QThread):
         #print "In mode 0"
         self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
         if self.old_efficiency != self.current_efficiency:
-            print "Sending efficiency"
+            #print "Sending efficiency"
             self.sendEfficiency.emit(self.current_efficiency)
             self.old_efficiency = self.current_efficiency
             
@@ -132,6 +132,7 @@ class Porker(QtCore.QThread):
         current_week = OINKM.getWeekNum(last_working_date)
         current_month = OINKM.getMonth(last_working_date)
         current_quarter = OINKM.getQuarter(last_working_date)
+        current_half_year = OINKM.getHalfYear(last_working_date)
         
         lwd_efficiency = MOSES.getEfficiencyFor(self.userID, self.password, last_working_date)
         if lwd_efficiency is None:
@@ -204,11 +205,31 @@ class Porker(QtCore.QThread):
         else:
             cq_cfm *= 100.00
 
+        chy_efficiency = MOSES.getEfficiencyForHalfYear(self.userID, self.password, last_working_date)
+        if chy_efficiency is None:
+            chy_efficiency = "-"
+        else:
+            chy_efficiency *= 100.00
+
+        chy_gseo = MOSES.getGSEOForHalfYear(self.userID, self.password, last_working_date)
+        if chy_gseo is None:
+            chy_gseo = "-"
+        else:
+            chy_gseo *= 100.00
+
+        chy_cfm = MOSES.getCFMForHalfYear(self.userID, self.password, last_working_date)
+        if chy_cfm is None:
+            chy_cfm = "-"
+        else:
+            chy_cfm *= 100.00
+
+
         stats_data = {
         "LWD": last_working_date,
         "Current Week": current_week,
         "Current Month": current_month,
         "Current Quarter": current_quarter,
+        "Current Half Year": current_half_year,
         "LWD Efficiency": lwd_efficiency,
         "LWD GSEO": lwd_gseo,
         "LWD CFM": lwd_cfm,
@@ -220,7 +241,10 @@ class Porker(QtCore.QThread):
         "CM CFM": cm_cfm,
         "CQ Efficiency": cq_efficiency,
         "CQ GSEO": cq_gseo,
-        "CQ CFM": cq_cfm
+        "CQ CFM": cq_cfm,
+        "CHY Efficiency": chy_efficiency,
+        "CHY GSEO": chy_gseo,
+        "CHY CFM": chy_cfm
         }
         self.sendStatsData.emit(stats_data)
 

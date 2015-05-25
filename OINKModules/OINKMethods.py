@@ -814,3 +814,9 @@ def getMonday(query_date):
     day = query_date.isocalendar()[2]
     monday = query_date - datetime.timedelta(day - 1)
     return monday
+
+def getHalfYear(query_date):
+    if query_date.month <= 6:
+        return "Jan-June"
+    else:
+        return ("Jul-Dec")

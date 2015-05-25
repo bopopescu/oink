@@ -133,6 +133,7 @@ def seekFSN(user_id, password, fsn):
         "Item ID": item_id
         }
     return fsn_dict
+    
 def recursiveUploadRawDataFile(user_id, password):
     if not os.path.isfile("Archive\\RawData_Archive.csv"):
         print "No Input file found!"
@@ -1340,6 +1341,8 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
         relaxation = writer_dates_data[date_]["Relaxation"]
         target_correction = 1 - relaxation
         for target in writer_dates_data[date_]["Targets"]:
+            if target is None:
+                target = 0
             corrected_targets.append(target*target_correction)
     utilizations = [target**-1 for target in corrected_targets if target > 0]
     efficiency = numpy.sum(utilizations)/len(working_dates)
@@ -1622,16 +1625,25 @@ def getEfficiencyForQuarter(user_id, password, query_date, query_user=None):
     efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_quarter, query_date, query_user)
     return efficiency
 
-def getEfficiencyForHalfYear(user_id, password, query_date, query_user):
+def getEfficiencyForHalfYear(user_id, password, query_date, query_user=None):
     if query_user is None:
         query_user = user_id
+    half_year_start_date = getHalfYearStartDate(query_date)
+    return getEfficiencyForDateRange(user_id, password, half_year_start_date, query_date, query_user)
+
+def getHalfYearStartDate(query_date):
+    """Given a date, it returns the start of the half-year which contains it.
+    Jan-June is one half, July to Dec is the other."""
     query_month = query_date.month
     query_year = query_date.year
     if query_month <=6:
         half_year_start_date = datetime.date(query_year, 1, 1)
     else:
         half_year_start_date = datetime.date(query_year, 7, 1)
-    return getEfficiencyForDateRange(user_id, password, half_year_start_date, query_date, query_user)
+    return half_year_start_date
+
+def getbbc():
+    return getBigbrotherCredentials()
 
 def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
     """A new method to get the target for a particular query_dict.
@@ -1738,7 +1750,6 @@ def addUsersToEvent(user_id, password, event_details, query_users=None):
 
 def calculateRelaxationForEvent(user_id, password, event_details):
     """Given an event's details, this function calculates the reduction in efficiency."""
-
 
 def getOldTargetFor(user_id, password, **query):
     #OLD METHOD. DO NOT USE.
@@ -1991,6 +2002,12 @@ def getCFMForQuarter(user_id, password, query_date, query_user=None):
     CFM = getCFMBetweenDates(user_id, password, first_day_of_the_quarter, query_date, query_user)
     return CFM
 
+def getCFMForHalfYear(user_id, password, query_date, query_user=None):
+    if query_user is None:
+        query_user = user_id
+    half_year_start_date = getHalfYearStartDate(query_date)
+    return getCFMBetweenDates(user_id, password, half_year_start_date, query_date, query_user)
+
 def getGSEOFor(user_id, password, query_date, query_user=None):
     import numpy
     if query_user is None:
@@ -2081,6 +2098,13 @@ def getGSEOForQuarter(user_id, password, query_date, query_user=None):
     first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
     GSEO = getGSEOBetweenDates(user_id, password, first_day_of_the_quarter, query_date, query_user)
     return GSEO
+
+def getGSEOForHalfYear(user_id, password, query_date, query_user=None):
+    if query_user is None:
+        query_user = user_id
+    half_year_start_date = getHalfYearStartDate(query_date)
+    return getGSEOBetweenDates(user_id, password, half_year_start_date, query_date, query_user)
+
 
 def getDescriptionTypes(user_id, password):
     """Returns a list containing the entire list of values for Description Type."""
