@@ -64,7 +64,7 @@ class Farmer(QtGui.QWidget):
 		self.form_layout.addWidget(self.progress_label,11,0,1,4)
 		self.setLayout(self.form_layout)
 		self.show()
-		self.setWindowTitle("Farmer")
+		self.setWindowTitle("Farmer: Two legs good, four legs bad.")
 
 if __name__ == "__main__":
 	app = QtGui.QApplication([])
