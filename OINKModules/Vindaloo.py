@@ -725,7 +725,8 @@ class Vindaloo(QtGui.QMainWindow):
 
     def setVisuals(self):
         """Vindaloo."""
-        self.setWindowTitle("V.I.N.D.A.L.O.O. - A Part of the O.I.N.K. Report Management System")
+        import MOSES
+        self.setWindowTitle("VINDALOO - %s, Server: %s, User: %s (%s)" %(MOSES.version(),MOSES.getHostID(), self.userID, MOSES.getEmpName(self.userID) if self.userID != "bigbrother" else "Administrator"))
         self.resize(800, 600)
         self.move(250, 40)
         self.show()
