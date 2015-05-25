@@ -4,7 +4,7 @@
 """
 Includes all the methods relevant to using MySQL-Python.
 """
-#from __future__ import division
+from __future__ import division
 import sys
 import datetime
 import csv
@@ -1411,10 +1411,11 @@ def buildWritersDataFile():
     output_file.close()
 
 def getETA(start_time, counter, total):
+    #from __future__ import division
     now = datetime.datetime.now()
     time_spent = now - start_time
-    mean_time = time_spent/counter
-    ETA = start_time + (mean_time*total)
+    mean_time = time_spent.total_seconds()/counter
+    ETA = start_time + datetime.timedelta(seconds=(mean_time*total))
     return ETA
 
 def getArticleCount(user_id, password, query_date, query_user=None):
@@ -1468,6 +1469,13 @@ def getArticleCountForQuarter(user_id, password, query_date, query_user=None):
     article_count = getArticleCountBetween(user_id, password, first_day_of_the_quarter, query_date, query_user)
     return article_count
 
+def getArticleCountForHalfYear(user_id, password, query_date, query_user=None):
+    if query_user is None:
+        query_user = user_id
+    half_year_start_date = getHalfYearStartDate(query_date)
+
+    return getArticleCountBetween(user_id, password, half_year_start_date, query_date, query_user)
+
 def getAuditCount(user_id, password, query_date, query_user=None):
     if query_user == None:
         query_user = user_id
@@ -1519,6 +1527,13 @@ def getAuditCountForQuarter(user_id, password, query_date, query_user=None):
     first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
     audit_count = getAuditCountBetween(user_id, password, first_day_of_the_quarter, query_date, query_user)
     return audit_count
+
+def getAuditCountForHalfYear(user_id, password, query_date, query_user=None):
+    if query_user is None:
+        query_user = user_id
+    half_year_start_date = getHalfYearStartDate(query_date)
+    return getAuditCountBetween(user_id, password, half_year_start_date, query_date, query_user)
+
 
 def getRawDataForDate(user_id, password, query_date, query_user=None):
     if query_user is None:

@@ -273,6 +273,9 @@ class Vindaloo(QtGui.QMainWindow):
             "Monthly Stack Rank Index", "Quarterly Article Count",
             "Quarterly Efficiency", "Quarterly Audit Count",
             "Quarterly CFM", "Quarterly GSEO", "Quarterly Stack Rank Index",
+            "Half-Yearly Article Count",
+            "Half-Yearly Efficiency", "Half-Yearly Audit Count",
+            "Half-Yearly CFM", "Half-Yearly GSEO", "Half-Yearly Stack Rank Index",
             "Average Article Count", "Average Efficiency", "Average Audit Count",
             "Average CFM", "Average GSEO", "Average Stack Rank Index"
             ]
@@ -294,6 +297,8 @@ class Vindaloo(QtGui.QMainWindow):
             writer_m_audit_count = writer_data["Monthly Audit Count"]
             writer_q_article_count = writer_data["Quarterly Article Count"]
             writer_q_audit_count = writer_data["Quarterly Audit Count"]
+            writer_hy_article_count = writer_data["Half-Yearly Article Count"]
+            writer_hy_audit_count = writer_data["Half-Yearly Audit Count"]
             writer_efficiency = writer_data["Efficiency"]
             writer_CFM = writer_data["CFM"]
             writer_GSEO = writer_data["GSEO"]
@@ -306,6 +311,9 @@ class Vindaloo(QtGui.QMainWindow):
             writer_q_efficiency = writer_data["Quarterly Efficiency"]
             writer_q_CFM = writer_data["Quarterly CFM"]
             writer_q_GSEO = writer_data["Quarterly GSEO"]
+            writer_hy_efficiency = writer_data["Half-Yearly Efficiency"]
+            writer_hy_CFM = writer_data["Half-Yearly CFM"]
+            writer_hy_GSEO = writer_data["Half-Yearly GSEO"]
             writer_a_efficiency = writer_data["Average Efficiency"]
             writer_a_CFM = writer_data["Average CFM"]
             writer_a_GSEO = writer_data["Average GSEO"]
@@ -313,6 +321,7 @@ class Vindaloo(QtGui.QMainWindow):
             writer_w_SRI = writer_data["Weekly Stack Rank Index"]
             writer_m_SRI = writer_data["Monthly Stack Rank Index"]
             writer_q_SRI = writer_data["Quarterly Stack Rank Index"]
+            writer_hy_SRI = writer_data["Half-Yearly Stack Rank Index"]
             writer_a_SRI = writer_data["Average Stack Rank Index"]
             writer_tl = writer_data["Reporting Manager"]
 
@@ -499,7 +508,50 @@ class Vindaloo(QtGui.QMainWindow):
                 writer_items_list.append(QtGui.QTableWidgetItem("%s"%writer_q_SRI))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.3f"%writer_q_SRI))
+            #HERE
 
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_q_article_count)))
+
+            if (writer_hy_efficiency is None) or (math.isnan(writer_hy_efficiency)) or (writer_hy_efficiency == 0.0):
+                writer_items_list.append(QtGui.QTableWidgetItem("-"))
+            else:
+                writer_items_list.append(QtGui.QTableWidgetItem("%06.2f%%" %(100*(writer_hy_efficiency))))
+                if writer_hy_efficiency < 0.99:
+                    writer_items_list[-1].setBackgroundColor(red)
+                elif 0.99 <= writer_hy_efficiency <= 1.05:
+                    writer_items_list[-1].setBackgroundColor(green)
+                elif writer_q_efficiency > 1.05:
+                    writer_items_list[-1].setBackgroundColor(blue)
+
+            writer_items_list.append(QtGui.QTableWidgetItem(str(writer_hy_audit_count)))
+
+            if (writer_hy_CFM is None) or (math.isnan(writer_hy_CFM)):
+                writer_items_list.append(QtGui.QTableWidgetItem("-"))
+            else:
+                writer_items_list.append(QtGui.QTableWidgetItem("%06.2f%%" %(100*(writer_hy_CFM))))
+                if writer_hy_CFM < 0.95:
+                    writer_items_list[-1].setBackgroundColor(red)
+                elif 0.95 <= writer_hy_CFM <= 0.98:
+                    writer_items_list[-1].setBackgroundColor(green)
+                elif writer_hy_CFM > 0.98:
+                    writer_items_list[-1].setBackgroundColor(blue)
+
+            if (writer_hy_GSEO is None) or (math.isnan(writer_hy_GSEO)):
+                writer_items_list.append(QtGui.QTableWidgetItem("-"))
+            else:
+                writer_items_list.append(QtGui.QTableWidgetItem("%06.2f%%" %(100*(writer_hy_GSEO))))
+                if writer_hy_GSEO < 0.95:
+                    writer_items_list[-1].setBackgroundColor(red)
+                elif 0.95 <= writer_hy_GSEO <= 0.98:
+                    writer_items_list[-1].setBackgroundColor(green)
+                elif writer_hy_GSEO > 0.98:
+                    writer_items_list[-1].setBackgroundColor(blue)
+
+            if type(writer_hy_SRI) == str:
+                writer_items_list.append(QtGui.QTableWidgetItem("%s"%writer_hy_SRI))
+            else:
+                writer_items_list.append(QtGui.QTableWidgetItem("%.3f"%writer_hy_SRI))
+            #HERE
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_a_article_count)))
 
             if (writer_a_efficiency is None) or (math.isnan(writer_a_efficiency)) or (writer_a_efficiency == 0.0):
@@ -541,6 +593,7 @@ class Vindaloo(QtGui.QMainWindow):
                 writer_items_list.append(QtGui.QTableWidgetItem("%s"%writer_a_SRI))
             else:
                 writer_items_list.append(QtGui.QTableWidgetItem("%.3f"%writer_a_SRI))
+
             column_index = 0
             self.writers_report.setSortingEnabled(False)
             for widget_item in writer_items_list:

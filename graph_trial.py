@@ -14,7 +14,7 @@ if __name__ == "__main__":
     d1 = datetime.date(2015,1,1)
     d2 = datetime.date.today()
 
-    writer_1_cfm, writer_1_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, "73957")
+    writer_1_cfm, writer_1_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, "62487")
     team_cfm, team_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, "All")
     writer_2_cfm, writer_2_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, "72062")
 
@@ -52,5 +52,6 @@ if __name__ == "__main__":
     
     labels = ax.get_xticklabels()
     plt.setp(labels, rotation=30.)
+    plt.style.use('dark_background')
     plt.show()
 

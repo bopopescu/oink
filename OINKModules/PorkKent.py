@@ -133,14 +133,17 @@ class PorkKent(QtCore.QThread):
             print "Retrying to fetch the data. (trial#%d)" %retry
         self.processingStep.emit("Getting article count for %s for %s." % (self.writer_name, self.end_date))
         article_count = MOSES.getArticleCount(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting average article count for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
+        a_article_count = MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
         self.processingStep.emit("Getting weekly article count for %s for %s." % (self.writer_name, self.end_date))
         w_article_count = MOSES.getArticleCountForWeek(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting monthly article count for %s for %s." % (self.writer_name, self.end_date))
         m_article_count = MOSES.getArticleCountForMonth(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting quarterly article count for %s for %s." % (self.writer_name, self.end_date))
         q_article_count = MOSES.getArticleCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
-        self.processingStep.emit("Getting average article count for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
-        a_article_count = MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly article count for %s for %s." % (self.writer_name, self.end_date))
+        hy_article_count = MOSES.getArticleCountForHalfYear(self.user_id, self.password, self.end_date, self.writer_id)
+        
         self.processingStep.emit("Getting efficiency for %s for %s." % (self.writer_name, self.end_date))
         efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting average efficiency for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
@@ -151,16 +154,22 @@ class PorkKent(QtCore.QThread):
         m_efficiency = MOSES.getEfficiencyForMonth(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting quarterly efficiency for %s for %s." % (self.writer_name, self.end_date))
         q_efficiency = MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting half-yearly efficiency for %s for %s." % (self.writer_name, self.end_date))
+        hy_efficiency = MOSES.getEfficiencyForHalfYear(self.user_id, self.password, self.end_date, self.writer_id)
+        
         self.processingStep.emit("Getting audit count for %s for %s." % (self.writer_name, self.end_date))
         audit_count = MOSES.getAuditCount(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting average audit count for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
+        a_audit_count = MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
         self.processingStep.emit("Getting weekly audit count for %s for %s." % (self.writer_name, self.end_date))
         w_audit_count = MOSES.getAuditCountForWeek(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting monthly audit count for %s for %s." % (self.writer_name, self.end_date))
         m_audit_count = MOSES.getAuditCountForMonth(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting quarterly audit count for %s for %s." % (self.writer_name, self.end_date))
         q_audit_count = MOSES.getAuditCountForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
-        self.processingStep.emit("Getting average audit count for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
-        a_audit_count = MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly audit count for %s for %s." % (self.writer_name, self.end_date))
+        hy_audit_count = MOSES.getAuditCountForHalfYear(self.user_id, self.password, self.end_date, self.writer_id)
+        
         self.processingStep.emit("Getting CFM for %s for %s." % (self.writer_name, self.end_date))
         cfm = MOSES.getCFMFor(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting average CFM for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
@@ -171,6 +180,9 @@ class PorkKent(QtCore.QThread):
         m_cfm = MOSES.getCFMForMonth(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting quarterly CFM for %s for %s." % (self.writer_name, self.end_date))
         q_cfm = MOSES.getCFMForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
+        self.processingStep.emit("Getting quarterly CFM for %s for %s." % (self.writer_name, self.end_date))
+        hy_cfm = MOSES.getCFMForHalfYear(self.user_id, self.password, self.end_date, self.writer_id)
+        
         self.processingStep.emit("Getting GSEO for %s for %s." % (self.writer_name, self.end_date))
         gseo = MOSES.getGSEOFor(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting GSEO for %s between %s and %s." % (self.writer_name, self.start_date, self.end_date))
@@ -181,15 +193,20 @@ class PorkKent(QtCore.QThread):
         m_gseo = MOSES.getGSEOForMonth(self.user_id, self.password, self.end_date, self.writer_id)
         self.processingStep.emit("Getting quarterly GSEO for %s for %s." % (self.writer_name, self.end_date))
         q_gseo = MOSES.getGSEOForQuarter(self.user_id, self.password, self.end_date, self.writer_id)
-        self.processingStep.emit("Getting Stack Rank Indices for %s for %s." % (self.writer_name, self.end_date))
-        stack_rank_index = self.getStackRankIndex(efficiency, cfm, gseo)
+        self.processingStep.emit("Getting half-yearly GSEO for %s for %s." % (self.writer_name, self.end_date))
+        hy_gseo = MOSES.getGSEOForHalfYear(self.user_id, self.password, self.end_date, self.writer_id)
+        
         self.processingStep.emit("Getting Team Leader Name for %s for %s." % (self.writer_name, self.end_date))
         writer_tl = MOSES.getReportingManager(self.user_id, self.password, query_user=self.writer_id, query_date=self.end_date)["Reporting Manager Name"]
+        self.processingStep.emit("Getting Stack Rank Indices for %s for %s." % (self.writer_name, self.end_date))
+        stack_rank_index = self.getStackRankIndex(efficiency, cfm, gseo)
+        a_stack_rank_index = self.getStackRankIndex(a_efficiency, a_cfm, a_gseo)
         w_stack_rank_index = self.getStackRankIndex(w_efficiency, w_cfm, w_gseo)
         m_stack_rank_index = self.getStackRankIndex(m_efficiency, m_cfm, m_gseo)
         q_stack_rank_index = self.getStackRankIndex(q_efficiency, q_cfm, q_gseo)
-        a_stack_rank_index = self.getStackRankIndex(a_efficiency, a_cfm, a_gseo)
+        hy_stack_rank_index = self.getStackRankIndex(hy_efficiency, hy_cfm, hy_gseo)
         self.processingStep.emit("Building final writer stats data for %s for %s." % (self.writer_name, self.end_date))
+        
         writer_summary = {
             "Report Date": self.end_date,
             "Writer ID": self.writer_id,
@@ -200,31 +217,37 @@ class PorkKent(QtCore.QThread):
             "Weekly Article Count": w_article_count,
             "Monthly Article Count": m_article_count,
             "Quarterly Article Count": q_article_count,
+            "Half-Yearly Article Count": hy_article_count,
             "Average Article Count": a_article_count,
             "Efficiency": efficiency,
             "Weekly Efficiency": w_efficiency,
             "Monthly Efficiency": m_efficiency,
             "Quarterly Efficiency": q_efficiency,
+            "Half-Yearly Efficiency": hy_efficiency,
             "Average Efficiency": a_efficiency,
             "Audit Count": audit_count,
             "Weekly Audit Count": w_audit_count,
             "Monthly Audit Count": m_audit_count,
             "Quarterly Audit Count": q_audit_count,
+            "Half-Yearly Audit Count": hy_audit_count,
             "Average Audit Count": a_audit_count,
             "CFM": cfm,
             "Weekly CFM": w_cfm,
             "Monthly CFM": m_cfm,
             "Quarterly CFM": q_cfm,
+            "Half-Yearly CFM": hy_cfm,
             "Average CFM": a_cfm,
             "GSEO": gseo,
             "Weekly GSEO": w_gseo,
             "Monthly GSEO": m_gseo,
             "Quarterly GSEO": q_gseo,
+            "Half-Yearly GSEO": hy_gseo,
             "Average GSEO": a_gseo,
             "Stack Rank Index": stack_rank_index,
             "Weekly Stack Rank Index": w_stack_rank_index,
             "Monthly Stack Rank Index": m_stack_rank_index,
             "Quarterly Stack Rank Index": q_stack_rank_index,
+            "Half-Yearly Stack Rank Index": hy_stack_rank_index,
             "Average Stack Rank Index": a_stack_rank_index
         }
         return writer_summary
