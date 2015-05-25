@@ -4,7 +4,7 @@
 """
 Includes all the methods relevant to using MySQL-Python.
 """
-from __future__ import division
+#from __future__ import division
 import sys
 import datetime
 import csv
