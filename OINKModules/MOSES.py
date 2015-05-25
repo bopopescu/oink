@@ -3154,5 +3154,18 @@ def plotBarGraphs():
     ax3.hist(x_multi, n_bins, histtype='bar')
     ax3.set_title('different sample sizes')
 
+def getLastWorkingDayOfWeek(query_date):
+    user_id, password = getBigbrotherCredentials()
+    current_day = query_date.isocalendar()[2]
+    day_difference = 5 - current_day
+    while True:
+        possible_last_date = query_date + datetime.timedelta(days=day_difference)
+        if isWorkingDay(user_id, password, possible_last_date):
+            break
+        else:
+            day_difference -= 1
+
+    return possible_last_date
+
 if __name__ == "__main__":
     print "Never call Moses mainly."
