@@ -470,7 +470,7 @@ class Pork(QtGui.QMainWindow):
     def setVisuals(self):
         """PORK Window: Sets all the visual aspects of the PORK Main Window."""
         self.setWindowIcon(QtGui.QIcon('Images\PORK_Icon.png'))
-        self.setWindowTitle("P.O.R.K. %s - A Part of the O.I.N.K. Report Management System" % OINKM.version())
+        self.setWindowTitle("P.O.R.K. v%s - Server : %s, User: %s (%s)" % (MOSES.version(), MOSES.getHostID(), self.userID, MOSES.getEmpName(self.userID)))
         self.center()
         self.expand()
         self.show()
