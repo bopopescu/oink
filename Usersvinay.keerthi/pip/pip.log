@@ -1,0 +1,372 @@
+Downloading/unpacking pylab
+  Getting page https://pypi.python.org/simple/pylab/
+  URLs to search for versions for pylab:
+  * https://pypi.python.org/simple/pylab/
+  Analyzing links from page https://pypi.python.org/simple/pylab/
+    Found link https://pypi.python.org/packages/2.7/p/pylab/pylab-0.1.0-py2.py3-none-any.whl#md5=a49eb20cdd1ce3c2ceebcb5588cddb62 (from https://pypi.python.org/simple/pylab/), version: 0.1.0
+    Found link https://pypi.python.org/packages/2.7/p/pylab/pylab-0.1.2-py2.py3-none-any.whl#md5=2303538275337a657ab87590170feb5c (from https://pypi.python.org/simple/pylab/), version: 0.1.2
+    Found link https://pypi.python.org/packages/2.7/p/pylab/pylab-0.1.3-py2.py3-none-any.whl#md5=73ea22d0635a2b5033d8d72ca3fac802 (from https://pypi.python.org/simple/pylab/), version: 0.1.3
+  Using version 0.1.3 (newest of versions: 0.1.3, 0.1.2, 0.1.0)
+  Downloading pylab-0.1.3-py2.py3-none-any.whl
+  Downloading from URL https://pypi.python.org/packages/2.7/p/pylab/pylab-0.1.3-py2.py3-none-any.whl#md5=73ea22d0635a2b5033d8d72ca3fac802 (from https://pypi.python.org/simple/pylab/)
+Requirement already satisfied (use --upgrade to upgrade): numpy in c:\python27\lib\site-packages (from pylab)
+Requirement already satisfied (use --upgrade to upgrade): pandas in c:\python27\lib\site-packages (from pylab)
+Downloading/unpacking tornado (from pylab)
+  Getting page https://pypi.python.org/simple/tornado/
+  URLs to search for versions for tornado (from pylab):
+  * https://pypi.python.org/simple/tornado/
+  Analyzing links from page https://pypi.python.org/simple/tornado/
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-0.2.tar.gz#md5=ac4e1a5821de93cd187ef3abd5bf480f (from https://pypi.python.org/simple/tornado/), version: 0.2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-1.0.tar.gz#md5=5d87f25839af90a2ae5a862a40779e41 (from https://pypi.python.org/simple/tornado/), version: 1.0
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-1.1.1.tar.gz#md5=b68ec3957382e0f8b5a70ecc5155423c (from https://pypi.python.org/simple/tornado/), version: 1.1.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-1.1.tar.gz#md5=dd6914d09b258545bd138763c16c6c1f (from https://pypi.python.org/simple/tornado/), version: 1.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-1.2.1.tar.gz#md5=e2bfb4e0d97e79101dfb0832d76f9e2b (from https://pypi.python.org/simple/tornado/), version: 1.2.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-1.2.tar.gz#md5=268daf20ffa4faf61e5c8c7c760d44fd (from https://pypi.python.org/simple/tornado/), version: 1.2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.0.tar.gz#md5=26ae11d3292d12e3588b10d737009ec7 (from https://pypi.python.org/simple/tornado/), version: 2.0
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.1.1.tar.gz#md5=3cfa12efec87a26e013128388e1e6aa7 (from https://pypi.python.org/simple/tornado/), version: 2.1.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.1.tar.gz#md5=641b4091db56ce2ad2d37ce9705ad325 (from https://pypi.python.org/simple/tornado/), version: 2.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.2.1.tar.gz#md5=ad8d943262bff57ef1b8f7b6d502ba04 (from https://pypi.python.org/simple/tornado/), version: 2.2.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.2.tar.gz#md5=0b2c9d822e213d7ea2b7ebebca357623 (from https://pypi.python.org/simple/tornado/), version: 2.2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.3.tar.gz#md5=810c3ecd425924fbf0aa1fa040f93ad1 (from https://pypi.python.org/simple/tornado/), version: 2.3
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.4.1.tar.gz#md5=9b7146cbe7cce015e35856b592707b9b (from https://pypi.python.org/simple/tornado/), version: 2.4.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-2.4.tar.gz#md5=c738af97c31dd70f41f6726cf0968941 (from https://pypi.python.org/simple/tornado/), version: 2.4
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.0.1.tar.gz#md5=20423cb0c1ea7ee1e7a58983099969b2 (from https://pypi.python.org/simple/tornado/), version: 3.0.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.0.2.tar.gz#md5=b265b12c2612f83fc0d12b16130fe3e2 (from https://pypi.python.org/simple/tornado/), version: 3.0.2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.0.tar.gz#md5=e01f9ae85838e8ed40d977b9ffc90884 (from https://pypi.python.org/simple/tornado/), version: 3.0
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.1.1.tar.gz#md5=901e4f24b9e840860f6095451aa75828 (from https://pypi.python.org/simple/tornado/), version: 3.1.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.1.tar.gz#md5=2348d626095c5675753287e9af0c321f (from https://pypi.python.org/simple/tornado/), version: 3.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.2.1.tar.gz#md5=d11986d4639aa9f71a31da1ebf40dc19 (from https://pypi.python.org/simple/tornado/), version: 3.2.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.2.2.tar.gz#md5=bf37082723ace27f508400d65cf111fe (from https://pypi.python.org/simple/tornado/), version: 3.2.2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-3.2.tar.gz#md5=bd83cee5f1a5c5e139e87996d00b251b (from https://pypi.python.org/simple/tornado/), version: 3.2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-4.0.1.tar.gz#md5=2b28e37b95aa653369a31a440242a24a (from https://pypi.python.org/simple/tornado/), version: 4.0.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-4.0.2.tar.gz#md5=985c0e704b765c33a6193d49d1935588 (from https://pypi.python.org/simple/tornado/), version: 4.0.2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-4.0.tar.gz#md5=8f4ccc60340b9cd3ae7af6ea7a1e4d0f (from https://pypi.python.org/simple/tornado/), version: 4.0
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-4.1.tar.gz#md5=a06ea343375f2247344257ef691641f9 (from https://pypi.python.org/simple/tornado/), version: 4.1
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-4.1b2.tar.gz#md5=c2aea149f627f36be4df6e2fc37d3399 (from https://pypi.python.org/simple/tornado/), version: 4.1b2
+    Found link https://pypi.python.org/packages/source/t/tornado/tornado-4.2b1.tar.gz#md5=6729264a76b2de11cb8bee629e57c67e (from https://pypi.python.org/simple/tornado/), version: 4.2b1
+  Ignoring link https://pypi.python.org/packages/source/t/tornado/tornado-4.1b2.tar.gz#md5=c2aea149f627f36be4df6e2fc37d3399 (from https://pypi.python.org/simple/tornado/), version 4.1b2 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/t/tornado/tornado-4.2b1.tar.gz#md5=6729264a76b2de11cb8bee629e57c67e (from https://pypi.python.org/simple/tornado/), version 4.2b1 is a pre-release (use --pre to allow).
+  Using version 4.1 (newest of versions: 4.1, 4.0.2, 4.0.1, 4.0, 3.2.2, 3.2.1, 3.2, 3.1.1, 3.1, 3.0.2, 3.0.1, 3.0, 2.4.1, 2.4, 2.3, 2.2.1, 2.2, 2.1.1, 2.1, 2.0, 1.2.1, 1.2, 1.1.1, 1.1, 1.0, 0.2)
+  Downloading from URL https://pypi.python.org/packages/source/t/tornado/tornado-4.1.tar.gz#md5=a06ea343375f2247344257ef691641f9 (from https://pypi.python.org/simple/tornado/)
+  Running setup.py (path:c:\users\vinay~1.kee\appdata\local\temp\pip_build_vinay.keerthi\tornado\setup.py) egg_info for package tornado
+    running egg_info
+    creating pip-egg-info\tornado.egg-info
+    writing requirements to pip-egg-info\tornado.egg-info\requires.txt
+    writing pip-egg-info\tornado.egg-info\PKG-INFO
+    writing top-level names to pip-egg-info\tornado.egg-info\top_level.txt
+    writing dependency_links to pip-egg-info\tornado.egg-info\dependency_links.txt
+    writing manifest file 'pip-egg-info\tornado.egg-info\SOURCES.txt'
+    warning: manifest_maker: standard file '-c' not found
+    
+    reading manifest file 'pip-egg-info\tornado.egg-info\SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    writing manifest file 'pip-egg-info\tornado.egg-info\SOURCES.txt'
+  Source in c:\users\vinay~1.kee\appdata\local\temp\pip_build_vinay.keerthi\tornado has version 4.1, which satisfies requirement tornado (from pylab)
+Requirement already satisfied (use --upgrade to upgrade): matplotlib in c:\python27\lib\site-packages (from pylab)
+Downloading/unpacking seaborn (from pylab)
+  Getting page https://pypi.python.org/simple/seaborn/
+  URLs to search for versions for seaborn (from pylab):
+  * https://pypi.python.org/simple/seaborn/
+  Analyzing links from page https://pypi.python.org/simple/seaborn/
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.1.tar.gz#md5=ce263ac99494e2a1c07878d559bdf2b0 (from https://pypi.python.org/simple/seaborn/), version: 0.1
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.2.0.tar.gz#md5=25e658eeade56bb06e39aa42887c530c (from https://pypi.python.org/simple/seaborn/), version: 0.2.0
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.2.1.tar.gz#md5=e717341e46b50062a62603d3c88175df (from https://pypi.python.org/simple/seaborn/), version: 0.2.1
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.3.1.tar.gz#md5=7f39766a1dd2c9ddaacf7420d77208b2 (from https://pypi.python.org/simple/seaborn/), version: 0.3.1
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.3.tar.gz#md5=0f6bbe1f50c02ff87c7313c1854402a4 (from https://pypi.python.org/simple/seaborn/), version: 0.3
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.4.0.tar.gz#md5=b0a37352524c2363f78aa6780b6d246f (from https://pypi.python.org/simple/seaborn/), version: 0.4.0
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.5.0.tar.gz#md5=7819de163552b966d391b4aa99d7fd40 (from https://pypi.python.org/simple/seaborn/), version: 0.5.0
+    Found link https://pypi.python.org/packages/source/s/seaborn/seaborn-0.5.1.tar.gz#md5=2ce6ea7d3c67858c0b1f5793fa2043b8 (from https://pypi.python.org/simple/seaborn/), version: 0.5.1
+  Using version 0.5.1 (newest of versions: 0.5.1, 0.5.0, 0.4.0, 0.3.1, 0.3, 0.2.1, 0.2.0, 0.1)
+  Downloading from URL https://pypi.python.org/packages/source/s/seaborn/seaborn-0.5.1.tar.gz#md5=2ce6ea7d3c67858c0b1f5793fa2043b8 (from https://pypi.python.org/simple/seaborn/)
+  Running setup.py (path:c:\users\vinay~1.kee\appdata\local\temp\pip_build_vinay.keerthi\seaborn\setup.py) egg_info for package seaborn
+    running egg_info
+    creating pip-egg-info\seaborn.egg-info
+    writing requirements to pip-egg-info\seaborn.egg-info\requires.txt
+    writing pip-egg-info\seaborn.egg-info\PKG-INFO
+    writing top-level names to pip-egg-info\seaborn.egg-info\top_level.txt
+    writing dependency_links to pip-egg-info\seaborn.egg-info\dependency_links.txt
+    writing manifest file 'pip-egg-info\seaborn.egg-info\SOURCES.txt'
+    warning: manifest_maker: standard file '-c' not found
+    
+    reading manifest file 'pip-egg-info\seaborn.egg-info\SOURCES.txt'
+    writing manifest file 'pip-egg-info\seaborn.egg-info\SOURCES.txt'
+  Source in c:\users\vinay~1.kee\appdata\local\temp\pip_build_vinay.keerthi\seaborn has version 0.5.1, which satisfies requirement seaborn (from pylab)
+Requirement already satisfied (use --upgrade to upgrade): pytz in c:\python27\lib\site-packages (from pylab)
+Downloading/unpacking networkx (from pylab)
+  Getting page https://pypi.python.org/simple/networkx/
+  URLs to search for versions for networkx (from pylab):
+  * https://pypi.python.org/simple/networkx/
+  Analyzing links from page https://pypi.python.org/simple/networkx/
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-0.34-py2.4.egg#md5=cbe7a56fbd664e34ba1df175e10a0c71 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-0.35-py2.4.egg#md5=d96e173310ef3eb37d0b8e878177bf62 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-0.35.1-py2.4.egg#md5=a6382079e85eda3179879cea77751def (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-0.36-py2.4.egg#md5=7ab9b8fddd77efb0f7107c9cff78f51f (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-0.37-py2.4.egg#md5=cbe74eea7d8bb22196e004930e36bd56 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-0.99-py2.4.egg#md5=659132ddf83013a72acea973e2b93657 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-0.99.win32.exe#md5=cefc81a24347afd049247ee9d6c773f1 (from https://pypi.python.org/simple/networkx/); unknown archive format: .exe
+    Skipping link https://pypi.python.org/packages/2.4/n/networkx/networkx-1.0rc1-py2.4.egg#md5=cb8c881db4f55c7d45604fcb3389ae78 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-0.34-py2.5.egg#md5=c540d9c6203b303bb8d9cf97e1d527e1 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-0.35-py2.5.egg#md5=a02fbc80ed9979411749588c2a1509c6 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-0.35.1-py2.5.egg#md5=37733b55d217ca1d9ce24334b89c0caf (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-0.36-py2.5.egg#md5=14f4a3152dba5abfafbae93897a73dc0 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-0.37-py2.5.egg#md5=4defdd6beb227c98e5c92fdad82eaf82 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-0.99-py2.5.egg#md5=f404dddb292ec3d1c3e5d6297117093c (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-1.0rc1-py2.5.egg#md5=5148e1cde10c341b47fcfcf1767adfec (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.5/n/networkx/networkx-1.1-py2.5.egg#md5=be38e0c1e5fadcdf314d94dde94d724f (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.0-py2.6.egg#md5=b543700e4e2959de2b7224c9338def67 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.0.1-py2.6.egg#md5=d5926679b571b50025208b5ac27f67c4 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.0rc1-py2.6.egg#md5=9af22f4e3606ebce966fb10bece366a7 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.1-py2.6.egg#md5=54404059f74d6a1209aa467fdcb54698 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.2-py2.6.egg#md5=bc60e43a7d3a8a63b5d6d422c329f373 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.3-py2.6.egg#md5=504cfdf0e3d1511c818b89e2502bdb93 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.3rc1-py2.6.egg#md5=b5518f05402753348eab0563feec0549 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.4-py2.6.egg#md5=da5d333573175f8347d1d64da0e4d694 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.4rc1-py2.6.egg#md5=218caa25030c2b4239a1ccbfeb6a252c (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.5-py2.6.egg#md5=7c8f544b7d7218d91836bbb900f0b7f0 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.5rc1-py2.6.egg#md5=83997b2aeb66a064fb280f2608d97528 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.6-py2.6.egg#md5=85bea3bc5f8f34b444b5fbda67c546c4 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.6rc1-py2.6.egg#md5=37e616053be2b3f3575684cc116b95f1 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.7-py2.6.egg#md5=3305b39272b5b62e6f7be0022d85f14a (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.7rc1-py2.6.egg#md5=9cf8e0e59ca11297c37dadd1dbd4484c (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.8-py2.6.egg#md5=1759ce2e3652c26de026b13f5d5c2c17 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.8.1-py2.6.egg#md5=1399cc1cf4509201453ca12ddaef8be8 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.6/n/networkx/networkx-1.8rc1-py2.6.egg#md5=2a1baea535821ca6f5ded377f0b01668 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.3-py2.7.egg#md5=93aaae77abd632a4aa58cf4493f04bf4 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.3rc1-py2.7.egg#md5=b1b7a45ab699c5c5f332046ff8f3402d (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.4-py2.7.egg#md5=1b3c00fa02369c0c527b6a500620a639 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.4rc1-py2.7.egg#md5=95c298b9086887ad84542bd4e37f7b1c (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.5-py2.7.egg#md5=6ca0ad39198b85b8708a6a648729ee4b (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.5rc1-py2.7.egg#md5=1eedae66b7f24e7d8bfb9cd2a6185f3d (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.6-py2.7.egg#md5=846f86c5af02c61ad6ed3ba3bcc3753d (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.6rc1-py2.7.egg#md5=b5c2f8e49f8bc39f518dada7c2131af3 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.7-py2.7.egg#md5=1d4c59f1e894f39f8928be8718905969 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.7rc1-py2.7.egg#md5=3f95e897299b2d8b6632ca561dd35b32 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.8-py2.7.egg#md5=b0a0ab7294c74e2b06e2072f0b87b5b4 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.8.1-py2.7.egg#md5=ba29a8e2528114367b4fd9c4badb138b (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.8rc1-py2.7.egg#md5=c1fae60073ed88bcc840cc3c5715f1f2 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Found link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.9-py2.py3-none-any.whl#md5=a40ca6762eebee47b64b2e2341f802b2 (from https://pypi.python.org/simple/networkx/), version: 1.9
+    Found link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.9.1-py2.py3-none-any.whl#md5=15bb60c9b386563a6d4765264f5bf687 (from https://pypi.python.org/simple/networkx/), version: 1.9.1
+    Found link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.9rc1-py2.py3-none-any.whl#md5=7e783da3edc7cc663bd539a642341970 (from https://pypi.python.org/simple/networkx/), version: 1.9rc1
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.3-py3.1.egg#md5=f9ad9e8a77865513874021582c03cfe1 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.3rc1-py3.1.egg#md5=505e3b1754b4aaffbc62a13997317d48 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.4-py3.1.egg#md5=a4941a238a7aac533da6fdb2ad1c2497 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.4rc1-py3.1.egg#md5=396876e299c754727aff97aa0bdc056c (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.5-py3.1.egg#md5=2e6856639dc086aef61c4fa5a5cfc152 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.5rc1-py3.1.egg#md5=898ce95c1f635e6d843a67ddc8aa967e (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.6-py3.1.egg#md5=9243dcc6d84dcb65a238912da42c7d05 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.1/n/networkx/networkx-1.6rc1-py3.1.egg#md5=b005723e3eea0c8db709f407e192ffb0 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.3-py3.2.egg#md5=640babb460105ec2ba94eec123a6437f (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.4-py3.2.egg#md5=be5594c4d3d7b0ff5e06eb38606d643a (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.4rc1-py3.2.egg#md5=932fa909f25484068f25842ea1e5bbc7 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.5-py3.2.egg#md5=3278465ac025e71a209242e5a0f08b4b (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.5rc1-py3.2.egg#md5=f44c10c5af89c0ee3db106854240ca42 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.6-py3.2.egg#md5=f9cf6a0013c7212c02f67544402d05e9 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.6rc1-py3.2.egg#md5=f5d2c3b544047bc608b6de7080298077 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.7-py3.2.egg#md5=5a852d8e2c815dd69ffce22e6056af9e (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.7rc1-py3.2.egg#md5=2f929183b129bf9d04ac34fa4559fcc4 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.8-py3.2.egg#md5=da50c9762f3334ca6d4a90747bb0b06f (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.8.1-py3.2.egg#md5=31d74bed9c946dc954f306815d85f62d (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.2/n/networkx/networkx-1.8rc1-py3.2.egg#md5=e4d7bdff9286ee4b232dec490d8fdafd (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.3/n/networkx/networkx-1.8-py3.3.egg#md5=b69a1b33e218f5dc26c8ca8ac5a1dc33 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.3/n/networkx/networkx-1.8.1-py3.3.egg#md5=f6842885f9ef2afa20f667d62bf94d17 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/3.3/n/networkx/networkx-1.8rc1-py3.3.egg#md5=e250656d0ca3e0aa403cab69a97f55f2 (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Skipping link https://pypi.python.org/packages/any/n/networkx/networkx-0.34.win32.exe#md5=ad0981bf396e6eff66796e9202b11176 (from https://pypi.python.org/simple/networkx/); unknown archive format: .exe
+    Skipping link https://pypi.python.org/packages/any/n/networkx/networkx-0.35.1.win32.exe#md5=df52aeb613624da305f13aa1b2294bdb (from https://pypi.python.org/simple/networkx/); unknown archive format: .exe
+    Skipping link https://pypi.python.org/packages/any/n/networkx/networkx-0.35.win32.exe#md5=0222cf3dbf1346c6950471e724ddd3a3 (from https://pypi.python.org/simple/networkx/); unknown archive format: .exe
+    Skipping link https://pypi.python.org/packages/any/n/networkx/networkx-0.36.win32.exe#md5=96d027f31860bf5a6b5a624c0f5616fa (from https://pypi.python.org/simple/networkx/); unknown archive format: .exe
+    Skipping link https://pypi.python.org/packages/any/n/networkx/networkx-0.37.win32.exe#md5=01cc98c394f2afc06c5070cea9ddd481 (from https://pypi.python.org/simple/networkx/); unknown archive format: .exe
+    Skipping link https://pypi.python.org/packages/any/n/networkx/networkx-1.2rc1-py2.6.egg#md5=257b9260bd4ed2615c81840e9999e65f (from https://pypi.python.org/simple/networkx/); unknown archive format: .egg
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.34.tar.gz#md5=24032de84e97407bbabf030e6c70ce75 (from https://pypi.python.org/simple/networkx/), version: 0.34
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.34.zip#md5=dfe5a109f4a609256b637dd307528d65 (from https://pypi.python.org/simple/networkx/), version: 0.34
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.35.1.tar.gz#md5=4f9924488a05bd61ace7dd85a5272732 (from https://pypi.python.org/simple/networkx/), version: 0.35.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.35.1.zip#md5=d2be068d7506fb1914a0fbf9074a4096 (from https://pypi.python.org/simple/networkx/), version: 0.35.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.35.tar.gz#md5=0e1d14e0640138e4101c65f3b072ff03 (from https://pypi.python.org/simple/networkx/), version: 0.35
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.35.zip#md5=3fbbf5d3f85e8b27cbe54e0382b7e684 (from https://pypi.python.org/simple/networkx/), version: 0.35
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.36.tar.gz#md5=546330cb86bc20a03c6e90a351e08b22 (from https://pypi.python.org/simple/networkx/), version: 0.36
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.36.zip#md5=55d851096b4da7d9a05b7b9a0a5e46fb (from https://pypi.python.org/simple/networkx/), version: 0.36
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.37.tar.gz#md5=d0c8e88581b9c8f71666fd4f8a209929 (from https://pypi.python.org/simple/networkx/), version: 0.37
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.37.zip#md5=abadb5b55f62a498a18ccc55b8dd892a (from https://pypi.python.org/simple/networkx/), version: 0.37
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.99.tar.gz#md5=1d3238c973ad198583e90533b27d6cd3 (from https://pypi.python.org/simple/networkx/), version: 0.99
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-0.99.zip#md5=a4fc5074ee0f0f4959b47d25c8d8b343 (from https://pypi.python.org/simple/networkx/), version: 0.99
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.0.1.tar.gz#md5=7932be87013d6ab451f045129a49ec30 (from https://pypi.python.org/simple/networkx/), version: 1.0.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.0.1.zip#md5=7ab1c26922c4b0f2a7c15e4bbc152eee (from https://pypi.python.org/simple/networkx/), version: 1.0.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.0.tar.gz#md5=00ab6f3253ac9ea7e466ba9455728bc7 (from https://pypi.python.org/simple/networkx/), version: 1.0
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.0.zip#md5=9bc91d74343cf7d697f4ef70383576bc (from https://pypi.python.org/simple/networkx/), version: 1.0
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.0rc1.tar.gz#md5=176cf1213bdc6ebe615dc726ebb639c4 (from https://pypi.python.org/simple/networkx/), version: 1.0rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.0rc1.zip#md5=91333d2aa72a7a6104223b29d58a9e16 (from https://pypi.python.org/simple/networkx/), version: 1.0rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.1.tar.gz#md5=f72e260447711ca0fd7b1b1de5a2396d (from https://pypi.python.org/simple/networkx/), version: 1.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.1.zip#md5=019c5178a1481014db74dd03e1e2aacc (from https://pypi.python.org/simple/networkx/), version: 1.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.2.tar.gz#md5=fd0773b827344c4b9d41717c8a26894b (from https://pypi.python.org/simple/networkx/), version: 1.2
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.2.zip#md5=fdc4c71b1dffd096eb112d99ddee8813 (from https://pypi.python.org/simple/networkx/), version: 1.2
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.2rc1.tar.gz#md5=def9b8cbc6e3813312bf947b965595fa (from https://pypi.python.org/simple/networkx/), version: 1.2rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.2rc1.zip#md5=43497bea1791e5d27e016b2bf6451155 (from https://pypi.python.org/simple/networkx/), version: 1.2rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.3.tar.gz#md5=d37d99a5623b68061719a1b8f7f21fdf (from https://pypi.python.org/simple/networkx/), version: 1.3
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.3.zip#md5=63ee339fe35f57be9c9772682d352fab (from https://pypi.python.org/simple/networkx/), version: 1.3
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.3rc1.tar.gz#md5=22f3b213721243ffdf878692c9bfdf11 (from https://pypi.python.org/simple/networkx/), version: 1.3rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.3rc1.zip#md5=7b5b22430434de4e74665639a506d2e5 (from https://pypi.python.org/simple/networkx/), version: 1.3rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.4.tar.gz#md5=468f79a64fde3662e2b80b3ee209dbe7 (from https://pypi.python.org/simple/networkx/), version: 1.4
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.4.zip#md5=b04d8159f2300fc41c15ccaea14eeb41 (from https://pypi.python.org/simple/networkx/), version: 1.4
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.4rc1.tar.gz#md5=77c9676162aa5b20c58d100cfb3f2e50 (from https://pypi.python.org/simple/networkx/), version: 1.4rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.4rc1.zip#md5=2655a0c86c0e6f5881415d83c8f9a30d (from https://pypi.python.org/simple/networkx/), version: 1.4rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.5.tar.gz#md5=ecfebcc38c0287e81142a32f2ac22c84 (from https://pypi.python.org/simple/networkx/), version: 1.5
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.5.zip#md5=36121f469c3d41ca25510487665d04ea (from https://pypi.python.org/simple/networkx/), version: 1.5
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.5rc1.tar.gz#md5=f9b111b1c6a3d290e5ff03cb7793a35d (from https://pypi.python.org/simple/networkx/), version: 1.5rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.5rc1.zip#md5=43d85f49888bfa682869ef46851f5221 (from https://pypi.python.org/simple/networkx/), version: 1.5rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.6.tar.gz#md5=a5e62b841b30118574b57d0eaf1917ca (from https://pypi.python.org/simple/networkx/), version: 1.6
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.6.zip#md5=9f763c7601df647203d45f9fe59faa93 (from https://pypi.python.org/simple/networkx/), version: 1.6
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.6rc1.tar.gz#md5=533c291aef6a0f428625ee253db6c450 (from https://pypi.python.org/simple/networkx/), version: 1.6rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.6rc1.zip#md5=f738327dd8e9f01790d670f474a880ce (from https://pypi.python.org/simple/networkx/), version: 1.6rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.7.tar.gz#md5=1a73da9d571a206aa40f6ef69254f7b4 (from https://pypi.python.org/simple/networkx/), version: 1.7
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.7.zip#md5=01946b56c6d8f80e9ccfa97276efeb73 (from https://pypi.python.org/simple/networkx/), version: 1.7
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.7rc1.tar.gz#md5=ca1003115f5775451103320b2f1e3a6e (from https://pypi.python.org/simple/networkx/), version: 1.7rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.7rc1.zip#md5=e4699d277cb5edc8393fb747b9481214 (from https://pypi.python.org/simple/networkx/), version: 1.7rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.8.1.tar.gz#md5=b4a9e68ecd1b0164446ee432d2e20bd0 (from https://pypi.python.org/simple/networkx/), version: 1.8.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.8.1.zip#md5=4a90328898d9db29bbb12ef3e6223bab (from https://pypi.python.org/simple/networkx/), version: 1.8.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.8.tar.gz#md5=be1be4c5ec20c955b0e593d640662599 (from https://pypi.python.org/simple/networkx/), version: 1.8
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.8.zip#md5=cbe5f090d44859f772ede4b8a636769d (from https://pypi.python.org/simple/networkx/), version: 1.8
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.8rc1.tar.gz#md5=fdde72adcbc11366a6bcc338c1d5aecd (from https://pypi.python.org/simple/networkx/), version: 1.8rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.8rc1.zip#md5=d3cd075110ca412c2a4caa4037c989a0 (from https://pypi.python.org/simple/networkx/), version: 1.8rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.9.1.tar.gz#md5=a2d9ee8427c5636426f319968e0af9f2 (from https://pypi.python.org/simple/networkx/), version: 1.9.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.9.1.zip#md5=9c70edab46a9ce64ed03e4bbf15f2c2b (from https://pypi.python.org/simple/networkx/), version: 1.9.1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.9.tar.gz#md5=683ca697a9ad782cb78b247cbb5b51d6 (from https://pypi.python.org/simple/networkx/), version: 1.9
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.9.zip#md5=d2359372a8c72077b57dec5cc26d4690 (from https://pypi.python.org/simple/networkx/), version: 1.9
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.9rc1.tar.gz#md5=3c4729d7176b0963b90e903c81bc2ad5 (from https://pypi.python.org/simple/networkx/), version: 1.9rc1
+    Found link https://pypi.python.org/packages/source/n/networkx/networkx-1.9rc1.zip#md5=e9740ede9498ba9afb779da2b8d0f7a2 (from https://pypi.python.org/simple/networkx/), version: 1.9rc1
+    Skipping link http://networkx.github.io/ (from https://pypi.python.org/simple/networkx/); not a file
+    Skipping link http://networkx.lanl.gov (from https://pypi.python.org/simple/networkx/); not a file
+    Skipping link http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/); not a file
+    Skipping link http://networkx.lanl.gov/download (from https://pypi.python.org/simple/networkx/); not a file
+    Skipping link http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/); not a file
+    Skipping link http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/); unknown archive format: .php
+    Skipping link https://networkx.lanl.gov (from https://pypi.python.org/simple/networkx/); not a file
+    Skipping link https://pypi.python.org/pypi/networkx/ (from https://pypi.python.org/simple/networkx/); not a file
+  Not searching http://networkx.github.io/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.github.io/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.github.io/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://networkx.lanl.gov/download/networkx (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching http://sourceforge.net/project/showfiles.php?group_id=122233 (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching https://networkx.lanl.gov (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching https://pypi.python.org/pypi/networkx/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching https://pypi.python.org/pypi/networkx/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Not searching https://pypi.python.org/pypi/networkx/ (from https://pypi.python.org/simple/networkx/) for files because external urls are disallowed.
+  Ignoring link https://pypi.python.org/packages/2.7/n/networkx/networkx-1.9rc1-py2.py3-none-any.whl#md5=7e783da3edc7cc663bd539a642341970 (from https://pypi.python.org/simple/networkx/), version 1.9rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.0rc1.tar.gz#md5=176cf1213bdc6ebe615dc726ebb639c4 (from https://pypi.python.org/simple/networkx/), version 1.0rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.0rc1.zip#md5=91333d2aa72a7a6104223b29d58a9e16 (from https://pypi.python.org/simple/networkx/), version 1.0rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.2rc1.tar.gz#md5=def9b8cbc6e3813312bf947b965595fa (from https://pypi.python.org/simple/networkx/), version 1.2rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.2rc1.zip#md5=43497bea1791e5d27e016b2bf6451155 (from https://pypi.python.org/simple/networkx/), version 1.2rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.3rc1.tar.gz#md5=22f3b213721243ffdf878692c9bfdf11 (from https://pypi.python.org/simple/networkx/), version 1.3rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.3rc1.zip#md5=7b5b22430434de4e74665639a506d2e5 (from https://pypi.python.org/simple/networkx/), version 1.3rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.4rc1.tar.gz#md5=77c9676162aa5b20c58d100cfb3f2e50 (from https://pypi.python.org/simple/networkx/), version 1.4rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.4rc1.zip#md5=2655a0c86c0e6f5881415d83c8f9a30d (from https://pypi.python.org/simple/networkx/), version 1.4rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.5rc1.tar.gz#md5=f9b111b1c6a3d290e5ff03cb7793a35d (from https://pypi.python.org/simple/networkx/), version 1.5rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.5rc1.zip#md5=43d85f49888bfa682869ef46851f5221 (from https://pypi.python.org/simple/networkx/), version 1.5rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.6rc1.tar.gz#md5=533c291aef6a0f428625ee253db6c450 (from https://pypi.python.org/simple/networkx/), version 1.6rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.6rc1.zip#md5=f738327dd8e9f01790d670f474a880ce (from https://pypi.python.org/simple/networkx/), version 1.6rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.7rc1.tar.gz#md5=ca1003115f5775451103320b2f1e3a6e (from https://pypi.python.org/simple/networkx/), version 1.7rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.7rc1.zip#md5=e4699d277cb5edc8393fb747b9481214 (from https://pypi.python.org/simple/networkx/), version 1.7rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.8rc1.tar.gz#md5=fdde72adcbc11366a6bcc338c1d5aecd (from https://pypi.python.org/simple/networkx/), version 1.8rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.8rc1.zip#md5=d3cd075110ca412c2a4caa4037c989a0 (from https://pypi.python.org/simple/networkx/), version 1.8rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.9rc1.tar.gz#md5=3c4729d7176b0963b90e903c81bc2ad5 (from https://pypi.python.org/simple/networkx/), version 1.9rc1 is a pre-release (use --pre to allow).
+  Ignoring link https://pypi.python.org/packages/source/n/networkx/networkx-1.9rc1.zip#md5=e9740ede9498ba9afb779da2b8d0f7a2 (from https://pypi.python.org/simple/networkx/), version 1.9rc1 is a pre-release (use --pre to allow).
+  Using version 1.9.1 (newest of versions: 1.9.1, 1.9.1, 1.9.1, 1.9, 1.9, 1.9, 1.8.1, 1.8.1, 1.8, 1.8, 1.7, 1.7, 1.6, 1.6, 1.5, 1.5, 1.4, 1.4, 1.3, 1.3, 1.2, 1.2, 1.1, 1.1, 1.0.1, 1.0.1, 1.0, 1.0, 0.99, 0.99, 0.37, 0.37, 0.36, 0.36, 0.35.1, 0.35.1, 0.35, 0.35, 0.34, 0.34)
+  Downloading from URL https://pypi.python.org/packages/2.7/n/networkx/networkx-1.9.1-py2.py3-none-any.whl#md5=15bb60c9b386563a6d4765264f5bf687 (from https://pypi.python.org/simple/networkx/)
+Cleaning up...
+  Removing temporary dir c:\users\vinay~1.kee\appdata\local\temp\pip_build_vinay.keerthi...
+Exception:
+Traceback (most recent call last):
+  File "C:\Python27\lib\site-packages\pip\basecommand.py", line 122, in main
+    status = self.run(options, args)
+  File "C:\Python27\lib\site-packages\pip\commands\install.py", line 278, in run
+    requirement_set.prepare_files(finder, force_root_egg_info=self.bundle, bundle=self.bundle)
+  File "C:\Python27\lib\site-packages\pip\req.py", line 1197, in prepare_files
+    do_download,
+  File "C:\Python27\lib\site-packages\pip\req.py", line 1375, in unpack_url
+    self.session,
+  File "C:\Python27\lib\site-packages\pip\download.py", line 572, in unpack_http_url
+    download_hash = _download_url(resp, link, temp_location)
+  File "C:\Python27\lib\site-packages\pip\download.py", line 433, in _download_url
+    for chunk in resp_read(4096):
+  File "C:\Python27\lib\site-packages\pip\download.py", line 421, in resp_read
+    chunk_size, decode_content=False):
+  File "C:\Python27\lib\site-packages\pip\_vendor\requests\packages\urllib3\response.py", line 240, in stream
+    data = self.read(amt=amt, decode_content=decode_content)
+  File "C:\Python27\lib\site-packages\pip\_vendor\requests\packages\urllib3\response.py", line 187, in read
+    data = self._fp.read(amt)
+  File "C:\Python27\lib\httplib.py", line 567, in read
+    s = self.fp.read(amt)
+  File "C:\Python27\lib\socket.py", line 380, in read
+    data = self._sock.recv(left)
+  File "C:\Python27\lib\ssl.py", line 246, in recv
+    return self.read(buflen)
+  File "C:\Python27\lib\ssl.py", line 165, in read
+    return self._sslobj.read(len)
+SSLError: The read operation timed out
