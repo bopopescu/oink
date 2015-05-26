@@ -1,6 +1,6 @@
 # -*- mode: python -*-
-a = Analysis(['.\\OINK.pyw'],
-             pathex=['C:\\Users\\vinay.keerthi\\Google Drive\\Projects\\WFM\\O.I.N.K Report Management System\\Admin\\OINK'],
+a = Analysis(['OINK.pyw'],
+             pathex=['c:\\Users\\vinay.keerthi\\Google Drive\\Projects\\WFM\\O.I.N.K Report Management System\\Admin\\OINK'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)

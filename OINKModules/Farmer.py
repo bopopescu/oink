@@ -9,7 +9,11 @@ class Farmer(QtGui.QWidget):
         self.user_id = user_id
         self.password = password
         self.createUI()
-    
+        self.createEvents()
+        self.populateSubCategory()
+        self.populateTypeSource()
+        self.populateHeadCountTable()
+
     def createUI(self):
         self.week_dates_label = QtGui.QLabel("Week Dates:")
         self.week_start_dateedit = QtGui.QDateTimeEdit()
@@ -76,6 +80,64 @@ class Farmer(QtGui.QWidget):
         self.setLayout(self.form_layout)
         self.show()
         self.setWindowTitle("Farmer: Two legs good, four legs bad.")
+    
+    def createEvents(self):
+        self.week_start_dateedit.dateChanged.connect(self.limitEndDate)
+        self.week_start_dateedit.dateChanged.connect(self.putWeekNumber)
+        self.reset_button.clicked.connect(self.reset)
+        self.submit_button.clicked.connect(self.submit)
+        self.delete_button.clicked.connect(self.delete)
+        self.edit_button.clicked.connect(self.edit)
+        self.sub_category_combobox.currentIndexChanged.connect(self.populateCategory)
+        self.category_combobox.currentIndexChanged.connect(self.populateSuperCategory)
+        self.super_category_combobox.currentIndexChanged.connect(self.populateBU)
+    
+    def limitEndDate(self):
+        self.start_date = self.week_start_dateedit.date().toPyDate()
+        self.end_date = MOSES.getLastWorkingDayOfWeek(self.start_date)
+        self.week_end_dateedit.setMinimumDate(self.end_date)
+        self.week_end_dateedit.setMaximumDate(self.end_date)
+        
+    def putWeekNumber(self):
+        self.week_number = OINKM.getWeekNum(self.start_date)
+        self.week_number_lineedit.setText("Week #%d" %self.week_number)
+
+    def submit():
+        print "Event triggered successfully."
+    def reset():
+        print "Event triggered successfully."
+    def edit():
+        print "Event triggered successfully."
+    def delete():
+        print "Event triggered successfully."
+    def populateHeadCountTable(self):
+        print "Event triggered successfully."
+    def displayProgress(self):
+        print "Event triggered successfully."
+    def displayMessage(self):
+        print "Event triggered successfully."
+    def getDataDict(self):
+        print "Event triggered successfully."
+    def populateSubCategory(self):
+        print "Event triggered successfully."
+        self.sub_category_combobox.clear()
+        self.sub_category_combobox.addItems(MOSES.getSubCategoryValues(self.user_id, self.password))
+    def populateCategory(self):
+        self.category_combobox.clear()
+        self.category_combobox.addItems(MOSES.getCategoryValues(self.user_id, self.password))
+    def populateSuperCategory(self):
+        self.super_category_combobox.clear()
+        self.super_category_combobox.addItems(MOSES.getSuperCategoryValues(self.user_id, self.password))
+    def populateBU(self):
+        print "Event triggered successfully."
+        self.bu_combobox.clear()
+        self.bu_combobox.addItems(MOSES.getBUValues(self.user_id, self.password))
+    def populateTypeSource(self):
+        self.type_combobox.clear()
+        self.type_combobox.addItems(["Regular Description","SEO","Rich Product Description"])
+        self.source_combobox.clear()
+        self.source_combobox.addItems(["Inhouse","Outsourced"])
+
 
 if __name__ == "__main__":
     app = QtGui.QApplication([])

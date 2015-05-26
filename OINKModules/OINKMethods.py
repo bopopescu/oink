@@ -263,18 +263,8 @@ def getWeekNum(inputDate):
 def getQuarter(inputDate):
     month = getMonth(inputDate)
     month_quarter_mapping = {
-        1: "JFM",
-        2: "JFM",
-        3: "JFM",
-        4: "AMJ",
-        5: "AMJ",
-        6: "AMJ",
-        7: "JAS",
-        8: "JAS",
-        9: "JAS",
-        10: "OND",
-        11: "OND",
-        12: "OND"
+        1: "JFM", 2: "JFM", 3: "JFM", 4: "AMJ", 5: "AMJ", 6: "AMJ", 
+        7: "JAS", 8: "JAS", 9: "JAS", 10: "OND", 11: "OND", 12: "OND"
     }
     return month_quarter_mapping[month]
     

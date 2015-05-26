@@ -2241,6 +2241,17 @@ def getBrandValues(user_id, password):
     brandList.sort()
     return brandList
 
+def getCategoryTree(user_id, password):
+    """Returns a list containing the appropriate list of values for Sub-Category."""
+    connectdb = getOINKConnector(user_id, password)
+    dbcursor = connectdb.cursor()
+    sqlcmdstring = "SELECT * FROM `categorytree`;"
+    dbcursor.execute(sqlcmdstring)
+    data = dbcursor.fetchall()
+    connectdb.commit()
+    connectdb.close()
+    #print brandTuple #debug
+    return data
 
 def checkDuplicacy(FSN, articleType, articleDate):
     """Returns true if it finds this FSN written before in the same type."""
