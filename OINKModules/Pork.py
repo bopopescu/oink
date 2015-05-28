@@ -48,6 +48,7 @@ class Pork(QtGui.QMainWindow):
         self.addMenus()
         self.setVisuals()
         #Initialize the application with required details.
+        self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         self.populateBU()
         #self.populateTable()
         self.populateClarification()
@@ -546,9 +547,6 @@ class Pork(QtGui.QMainWindow):
         """PORK Window method that updates the writer's statistics sheet.
         This should be triggered along with the populateTable method
         when the date is changed."""
-        print "***"
-        print stats_data
-        print "***"
         #get data for last working date (lwd)
         self.last_working_date = stats_data["LWD"]
         self.lwd_efficiency = stats_data["LWD Efficiency"]
@@ -965,78 +963,47 @@ class Pork(QtGui.QMainWindow):
     def populateBU(self):
         """PORK Window."""
         self.comboBoxBU.clear()
-        BUValues = MOSES.getBUValues(self.userID,self.password)
-        #print len(BUValues)
-        self.comboBoxBU.addItems(BUValues)
+        bus = list(set(self.category_tree["BU"]))
+        bus.sort()
+        self.comboBoxBU.addItems(bus)
         self.comboBoxBU.setCurrentIndex(-1)
 
     def populateSuperCategory(self):
         """PORK Window."""
         self.comboBoxSuperCategory.clear()
-        self.selectedBU = str(self.comboBoxBU.currentText())
-        try:
-            self.comboBoxSuperCategory.addItems(MOSES.getSuperCategoryValues(self.userID,self.password,BU=self.selectedBU))
-        except:
-            self.notify("Error","Error trying to populate the Super-Category combo box with values for " + self.selectedBU + " BU. Check if there are predefined values.")
+        bu = str(self.comboBoxBU.currentText())
+        filtered_category_tree = self.category_tree.loc[self.category_tree["BU"] == bu]
+        super_categories = list(set(filtered_category_tree["Super-Category"]))
+        super_categories.sort()
+        self.comboBoxSuperCategory.addItems(super_categories)
 
     def populateCategory(self):
         """PORK Window."""
         self.comboBoxCategory.clear()
-        self.selectedSuperCategory = str(self.comboBoxSuperCategory.currentText())
-        try:
-            self.comboBoxCategory.addItems(MOSES.getCategoryValues(self.userID,self.password,SupC=self.selectedSuperCategory))
-        except:
-            self.notify("Error.","Error trying to populate Category combo Box with values for " + self.selectedSuperCategory + " super category. Check if there are predefined values.")
-        try:
-            if self.selectedSuperCategory != "BGM":
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("There seem to be no preset guidelines for the %s articles. Ask your TL if there's something you need to remember while writing articles." % self.selectedSuperCategory)
-            else:
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("There are guidelines for at least one Category in %s." % self.selectedSuperCategory)
-        except:
-            self.notify("Error","No super category has been selected.")
+        super_category = str(self.comboBoxSuperCategory.currentText())
+        filtered_category_tree = self.category_tree.loc[self.category_tree["Super-Category"] == super_category]
+        categories = list(set(filtered_category_tree["Category"]))
+        categories.sort()
+        self.comboBoxCategory.addItems(categories)
 
     def populateSubCategory(self):
         """PORK Window."""
         self.comboBoxSubCategory.clear()
-        self.selectedCategory = str(self.comboBoxCategory.currentText())
-        SubCatList = MOSES.getSubCategoryValues(self.userID,self.password,Cat=self.selectedCategory)
-        try:
-            self.comboBoxSubCategory.addItems(SubCatList)
-        except:
-            self.notify("Error","Error trying to populate Sub-Category combo-box with values for " + self.selectedCategory + " category. Check if there are predefined values.")
-        try:
-            if self.selectedCategory != "Toy":
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("There seem to be no preset guidelines for the %s articles. Ask your TL if there's something you need to remember while writing articles." % self.selectedCategory)
-            else:
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("There are guidelines for at least one sub-category in %s." % self.selectedCategory)
-        except:
-            self.notify("Error","No category has been selected.")
+        category = str(self.comboBoxCategory.currentText())
+        filtered_category_tree = self.category_tree.loc[self.category_tree["Category"] == category]
+        sub_categories = list(set(filtered_category_tree["Sub-Category"]))
+        sub_categories.sort()
+        self.comboBoxSubCategory.addItems(sub_categories)
 
     def populateBrandVertical(self):
         """PORK Window."""
         self.comboBoxVertical.clear()
-        self.selectedSubCategory = str(self.comboBoxSubCategory.currentText())
-        Verts = MOSES.getVerticalValues(self.userID,self.password,self.selectedSubCategory)
-        try: 
-            self.comboBoxVertical.addItems(Verts)
-        except:
-            self.notify("Error","Error trying to populate vertical combo-box with values for " + self.selectedCategory + " category. Check if there are predefined values.")
-        try:
-            if self.selectedCategory == "RolePlayToy":
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("Role-play toys help a child with their creative skills, imagination, leadership skills, etc.")
-            elif self.selectedCategory == "EducationalToy":
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("When writing about educational toys, be sure to specify how they can improve a child's motor skills, hand-eye coordination and memory. Parents will appreciate knowing they're buying instructive toys for their kids.")    
-            else:
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("There are no guidelines available for %s verticals. Please ask your TL for advice." % self.selectedVertical)    
-        except:
-            self.notify("Error","No sub-category has been selected.")
+        sub_category = str(self.comboBoxSubCategory.currentText())
+        filtered_category_tree = self.category_tree.loc[self.category_tree["Sub-Category"] == sub_category]
+        verticals = list(set(filtered_category_tree["Vertical"]))
+        verticals.sort()
+        self.comboBoxVertical.addItems(verticals)
+        self.textEditGuidelines.clear()
 
     def populateClarification(self):
         """PORK Window."""

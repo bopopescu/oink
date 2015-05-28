@@ -2243,6 +2243,7 @@ def getBrandValues(user_id, password):
 
 def getCategoryTree(user_id, password):
     """Returns a list containing the appropriate list of values for Sub-Category."""
+    import pandas
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
     sqlcmdstring = "SELECT * FROM `categorytree`;"
@@ -2250,8 +2251,9 @@ def getCategoryTree(user_id, password):
     data = dbcursor.fetchall()
     connectdb.commit()
     connectdb.close()
+    data_frame = pandas.DataFrame(list(data))
     #print brandTuple #debug
-    return data
+    return data_frame
 
 def checkDuplicacy(FSN, articleType, articleDate):
     """Returns true if it finds this FSN written before in the same type."""
@@ -2718,7 +2720,7 @@ def getAuditParameterName(query_parameter):
     param_class_index = query_parameter[-1:]
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
-    sqlcmdstring = """SELECT * FROM auditscoresheet WHERE `Parameter Class`="%s" AND `Parameter Class Index`="%s";""" %(param_class,param_class_index)
+    sqlcmdstring = """SELECT * FROM auditscoresheet WHERE `Parameter Class`="%s" AND `Parameter Class Index`="%s";""" %(param_class, param_class_index)
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
     data = data[0]["Column Descriptions"]
@@ -3078,8 +3080,6 @@ def getRawDataParameterPercentagesBetween(user_id, password, start_date, end_dat
     #print len(raw_data)
     for entry in raw_data:
         cfm_scores, gseo_scores = getRawDataParameterPercentagesForRow(entry)
-        #print cfm_scores
-        #print "WTF?"
         cfm_score_lists.append(cfm_scores)
         gseo_score_lists.append(gseo_scores)
 
@@ -3089,34 +3089,38 @@ def getRawDataParameterPercentagesBetween(user_id, password, start_date, end_dat
 
 def getRawDataParameterPercentagesForRow(raw_data_row):
     max_scores = {
-            "CFM01": 10,
-            "CFM02": 10,
-            "CFM03": 10,
-            "CFM04": 10,
-            "CFM05": 10,
-            "CFM06": 10,
-            "CFM07": 10,
-            "CFM08": 5,
-            "GSEO01": 5,
-            "GSEO02": 5,
+            "CFM01": 10.0,
+            "CFM02": 10.0,
+            "CFM03": 10.0,
+            "CFM04": 10.0,
+            "CFM05": 10.0,
+            "CFM06": 10.0,
+            "CFM07": 10.0,
+            "CFM08": 5.0,
+            "GSEO01": 5.0,
+            "GSEO02": 5.0,
             "GSEO03": 2.5,
             "GSEO04": 2.5,
             "GSEO05": 2.5,
             "GSEO06": 2.5,
-            "GSEO07": 5
+            "GSEO07": 5.0
     }
     process_dict = dict((key, raw_data_row[key]) for key in max_scores.keys())
+    #print process_dict
     if raw_data_row["FAT01"] == "Yes" and raw_data_row["FAT01"] == "Yes" or raw_data_row["FAT03"] == "Yes":
         #print "Found fatal?"
         cfm_percentages_list = numpy.zeros(8)
         gseo_percentages_list = numpy.zeros(7)
     else:
         #print "No fatal."
-        cfm_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "CFM" in key]
-        gseo_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "GSEO" in key]
-
-    #cfm_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "CFM" in key]
-    #gseo_percentages_list = [(process_dict[key]/max_scores[key]) for key in process_dict.keys() if "GSEO" in key]
+        cfm_keys = [key for key in max_scores.keys() if "CFM" in key]
+        cfm_keys.sort()
+        #print cfm_keys
+        gseo_keys = [key for key in max_scores.keys() if "GSEO" in key]
+        gseo_keys.sort()
+        #print gseo_keys
+        cfm_percentages_list = [(process_dict[key]/max_scores[key]) for key in cfm_keys]
+        gseo_percentages_list = [(process_dict[key]/max_scores[key]) for key in gseo_keys]
     return cfm_percentages_list, gseo_percentages_list
 
 def getColumnAverages(data_list):
