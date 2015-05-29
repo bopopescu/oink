@@ -11,9 +11,9 @@ if __name__ == "__main__":
     from OINKModules import MOSES
     import datetime
     u, p = MOSES.getBigbrotherCredentials()
-    d1 = datetime.date(2015,5,1)
+    d1 = datetime.date(2015,1,1)
     d2 = datetime.date.today()
-    query_user = "62487"
+    query_user = "72891"
     writer_1_cfm, writer_1_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, query_user)
     team_cfm, team_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, "All")
     quality_header_codes = ["CFM0%d"%(x+1) for x in range(len(writer_1_cfm))]+["GSEO0%d"%(x+1) for x in range(len(writer_1_gseo))]
@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     #writer_quality = np.array([90,95,98,100])
     #team_quality = np.array([80,100,98,99])
-    x = np.array([y*0.25 for y in np.arange(len(writer_quality))])
+    x = np.array([y+1 for y in np.arange(len(writer_quality))])
     #print x
     x1 = np.arange(len(writer_quality))
 
@@ -36,9 +36,9 @@ if __name__ == "__main__":
     plt.xlabel("Quality Parameters")
     plt.ylabel("Average %")
     layout_grid_size = (1,2)
-
-    plt.barh(x, writer_quality, height=0.125, alpha=0.45, color="blue", linestyle='solid', label="%s..."%MOSES.getEmpName(query_user)[:10])
-    plt.barh(x+0.125, team_quality, height=0.0625, color="green", linestyle='solid', label="Team")
+    writer_name = MOSES.getEmpName(query_user)
+    plt.barh(x, writer_quality, height=0.5, alpha=0.45, color="blue", linestyle='solid', label="%s"%writer_name[:writer_name.find(" ")])
+    plt.barh(x+0.5, team_quality, height=0.25, color="green", linestyle='solid', label="Team")
 
     plt.title("Comparison of %s's quality with the team between %s and %s" %(MOSES.getEmpName(query_user), d1, d2))
     plt.grid(True, lw=0.5, ls="--", c="0.05")
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     x_min = np.min([np.min(writer_quality), np.min(team_quality)])
 
     #print x_min
-    ax.set_xlim([x_min-10,100])
+    ax.set_xlim([x_min-2,100])
     steps = (100 - x_min)/12
 
     ax.xaxis.set_major_locator(ticker.MultipleLocator(steps))
@@ -63,6 +63,6 @@ if __name__ == "__main__":
     plt.setp(labels)
 
     plt.style.use('dark_background')
-    plt.subplots_adjust(bottom=0.4)
+    plt.subplots_adjust(left=0.2)
     plt.show()
 

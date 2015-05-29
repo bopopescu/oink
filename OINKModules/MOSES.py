@@ -776,7 +776,27 @@ def isWorkingDay(user_id, password, queryDate):
     return not (OINKM.isWeekend(queryDate) or isHoliday(user_id, password, queryDate)[0])
 
 
+def getWorkingDatesLists(query_date, group_size=None, quantity=None):
+    user_id, password = getBigbrotherCredentials()
+    if group_size is None:
+        group_size = 1
+    if quantity is None:
+        quantity = 5
+    dates_list = []
+    required_no_of_working_dates = group_size * quantity
+    no_of_working_dates = 0
+    processing_date = query_date    
+    while no_of_working_dates < required_no_of_working_dates:
+        if isWorkingDay(user_id, password, processing_date):
+            dates_list.append(processing_date)
+            no_of_working_dates += 1
+        processing_date -= datetime.timedelta(days=1)
 
+    dates_lists = [[dates_list.pop() for y in range(group_size)] for x in range(quantity)]
+    for dates_ in dates_list:
+        dates_.sort()
+    dates_list.sort()
+    return dates_lists
 
 def updatePiggyBankEntry(entry_dict, user_id, password):
     """Method to update the values in an entry in the piggybank. This cross-checks the FSN with the date. 
@@ -1928,6 +1948,86 @@ def getCFMFor(user_id, password, query_date, query_user=None):
     if query_user is None:
         query_user = user_id
     return getCFMBetweenDates(user_id, password, query_date, query_date, query_user)
+
+def getAverageTeamCFMBetween(start_date, end_date):
+    """;"""
+    import numpy
+    user_id, password = getBigbrotherCredentials()
+    raw_data_table, CFM_key_list, GSEO__key_list = getRawDataTableAndAuditParameters()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * FROM `%s` WHERE `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    audits = len(data)
+    #print "Found %d audited articles." % audits
+    counter = 0
+    fat_key_list = ["FAT01","FAT02","FAT03"]
+    CFM_scores = []
+    for each_entry in data:
+        CFM_score = numpy.sum(list(each_entry[CFM_key] for CFM_key in CFM_key_list)) / float(75.0)
+        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
+        if "Yes" in fatals:
+            CFM_score = 0.0
+        counter += 1
+        recorded_cfm = each_entry["CFM Quality"]
+        CFM_score = numpy.around(CFM_score, decimals=3)
+        #if CFM_score < recorded_cfm:
+        #    sign = "<"
+        #elif CFM_score > recorded_cfm:
+        #    sign = ">"
+        #else:
+        #    sign = "=="
+        #print "%f %s %f. Difference = %s" %(CFM_score, sign, recorded_cfm, CFM_score - recorded_cfm)
+        CFM_scores.append(CFM_score) 
+    if audits > 0:
+        CFM_score_average = numpy.mean(CFM_scores)
+        CFM_score_average = numpy.around(CFM_score_average, decimals=6)
+    else:
+        CFM_score_average = None
+    #print CFM_scores
+    return CFM_score_average
+
+def getAverageTeamGSEOBetween(start_date, end_date):
+    """;"""
+    import numpy
+    user_id, password = getBigbrotherCredentials()
+    raw_data_table, CFM_key_list, GSEO_key_list = getRawDataTableAndAuditParameters()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * FROM `%s` WHERE `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    audits = len(data)
+    #print "Found %d audited articles." % audits
+    counter = 0
+    fat_key_list = ["FAT01","FAT02","FAT03"]
+    GSEO_scores = []
+    for each_entry in data:
+        GSEO_score = numpy.sum(list(each_entry[GSEO_key] for GSEO_key in GSEO_key_list)) / float(25.0)
+        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
+        if "Yes" in fatals:
+            GSEO_score = 0.0
+        counter += 1
+        recorded_GSEO = each_entry["GSEO Quality"]
+        GSEO_score = numpy.around(GSEO_score, decimals=4)
+        #if GSEO_score < recorded_GSEO:
+        #    sign = "<"
+        #elif GSEO_score > recorded_GSEO:
+        #    sign = ">"
+        #else:
+        #    sign = "=="
+        #print "%f %s %f. Difference = %s" %(GSEO_score, sign, recorded_GSEO, GSEO_score - recorded_GSEO)
+        GSEO_scores.append(GSEO_score)
+    if audits > 0:
+        GSEO_score_average = numpy.mean(GSEO_scores)
+        GSEO_score_average = numpy.around(GSEO_score_average, decimals=6)
+    else:
+        GSEO_score_average = None
+    #print GSEO_scores
+    return GSEO_score_average
 
 def getCFMBetweenDates(user_id, password, start_date, end_date, query_user=None):
     import numpy
@@ -3111,6 +3211,7 @@ def getRawDataParameterPercentagesForRow(raw_data_row):
         #print "Found fatal?"
         cfm_percentages_list = numpy.zeros(8)
         gseo_percentages_list = numpy.zeros(7)
+    #if True:
     else:
         #print "No fatal."
         cfm_keys = [key for key in max_scores.keys() if "CFM" in key]
@@ -3122,6 +3223,24 @@ def getRawDataParameterPercentagesForRow(raw_data_row):
         cfm_percentages_list = [(process_dict[key]/max_scores[key]) for key in cfm_keys]
         gseo_percentages_list = [(process_dict[key]/max_scores[key]) for key in gseo_keys]
     return cfm_percentages_list, gseo_percentages_list
+
+def getAuditPercentageBetween(query_user, start_date, end_date):
+    user_id, password = getbbc()
+    article_count = getArticleCountBetween(user_id, password, start_date-datetime.timedelta(days=1), end_date-datetime.timedelta(days=2), query_user)
+    audit_count = getAuditCountBetween(user_id, password, start_date, end_date-datetime.timedelta(days=1), query_user)
+    return audit_count/article_count
+
+def showWriterAuditPercentages():
+    start_date = datetime.date(2015,5,1)
+    end_date = datetime.date.today()
+    user_id, password = getbbc()
+    writer_data_list = getWritersList(user_id, password, start_date)
+    for writer in writer_data_list:
+        writer_id = writer["Employee ID"]
+        writer_name = writer["Name"]
+        audit_percentage = getAuditPercentageBetween(writer_id, start_date, end_date)
+        print writer_name, audit_percentage*100
+    print "Done."
 
 def getColumnAverages(data_list):
     import numpy

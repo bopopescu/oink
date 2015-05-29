@@ -36,7 +36,7 @@ def getData(query_date=None):
     writer_counter = 0
     for writer in writers_data_list:
         writer_id = writer["Employee ID"]
-        writer_name = "%s..." %writer["Name"][:10]
+        writer_name = "%s" %writer["Name"][:writer["Name"].find(" ")]
         status, relaxation, approval = MOSES.checkWorkStatus(user_id, password, query_date, writer_id)
         if status == "Working":
             efficiency = MOSES.getEfficiencyFor(user_id, password, query_date, writer_id)
@@ -83,11 +83,13 @@ def getData(query_date=None):
     return writer_data_frame
     
 if __name__ == "__main__":
-    query_date = datetime.date(2015, 5, 21)
+    query_date = datetime.date(2015, 5, 13)
     data_set = getData(query_date)
     print data_set
     #first plot the efficiency
-    data_set.sort(["Efficiency", "Status"],ascending=[0,1],inplace = True)
+    data_set.sort(["Efficiency", "Status"],ascending=[0,0],inplace = True)
+    #data_set.sort(["Status"],ascending=[0],inplace = True)
+
     efficiency_writers_order = list(data_set["Employee Name"])
     efficiency_list = list(data_set["Efficiency"])
     efficiency_colors = list(data_set["Efficiency Color"])
