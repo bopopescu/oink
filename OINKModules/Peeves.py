@@ -11,7 +11,9 @@ class Peeves(QtCore.QThread):
     def __init__(self, user_id, password):
 #       QtCore.QThread.__init__(self)
         super(Peeves, self).__init__()
-        self.mode = 1
+        self.mode = 0 # 0 fetches all data. 1 fetches written entries. 2 fetches unwritten entries.
+        self.search_type = 0 #0 searches for fsns. 1 searches for item_ids.
+        self.search_function = [MOSES.seekFSN, MOSES.seekItemID]
         self.user_id = user_id
         self.password = password
         self.mutex = QtCore.QMutex()
@@ -30,41 +32,42 @@ class Peeves(QtCore.QThread):
         self.mutex.unlock()
         self.wait()
 
-    def fetchData(self, fsns, mode):
+    def fetchData(self, search_strings, mode, search_type):
         """"""
         self.stop_sending = True
-        self.fsns = fsns
+        self.search_strings = search_strings
         self.mode = mode
-        self.processFSNs()
+        self.search_type = search_type
+        self.processSearchStrings()
 
-    def processFSNs(self):
-        fsn_data = []
+    def processSearchStrings(self):
+        search_results = []
         self.stop_sending = False
         start_time = datetime.datetime.now()
-        total = len(self.fsns)
+        total = len(self.search_strings)
         counter = 1
-        for fsn in self.fsns:
+        for search_string in self.search_strings:
             try:
-                fsn_dict= MOSES.seekFSN(self.user_id, self.password, fsn)
+                search_result= self.search_function[self.search_type](self.user_id, self.password, search_string)
             except:
                 time.sleep(5)
                 try:
-                    fsn_dict= MOSES.seekFSN(self.user_id, self.password, fsn)
+                    search_result= self.search_function[self.search_type](self.user_id, self.password, search_string)
                 except:
                     time.sleep(5)
                     try:
-                        fsn_dict= MOSES.seekFSN(self.user_id, self.password, fsn)
+                        search_result= self.search_function[self.search_type](self.user_id, self.password, search_string)
                     except:
                         time.sleep(5)
                         try:
-                            fsn_dict= MOSES.seekFSN(self.user_id, self.password, fsn)
+                            search_result= self.search_function[self.search_type](self.user_id, self.password, search_string)
                         except:
                             raise                        
-            fsn_data.append(fsn_dict)
+            search_results.append(search_result)
             eta = MOSES.getETA(start_time, counter, total)
             self.sendProgress.emit(counter, total, eta)
             counter += 1
             if self.stop_sending:
                 break
-        self.sendData.emit(fsn_data)
+        self.sendData.emit(search_results)
 

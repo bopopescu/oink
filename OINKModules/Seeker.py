@@ -5,25 +5,31 @@ from Peeves import Peeves
 
 
 class Seeker(QtGui.QWidget):
-    """Seeker class to find FSNs and filter out those which have not been written before.
+    """Seeker class to find FSNs or Item_IDs 
+    and filter out those which have not been written before.
     """
     def __init__(self, user_id, password):
         super(Seeker, self).__init__()
         self.user_id = user_id
         self.password = password
-        self.mode = 1
+        self.mode = 0
         self.clip = QtGui.QApplication.clipboard()
         self.peeves = Peeves(user_id, password)
         self.createUI()
         self.createEvents()
 
     def createUI(self):
-        self.fsns_label = QtGui.QLabel("FSNs:")
+        self.fsns_label = QtGui.QLabel("FSNs\Item IDs:")
         self.fsns_text_edit = QtGui.QTextEdit()
-        self.fsns_text_edit.setToolTip("Paste a list of FSNs here. The FSNs can be separated by a comma or a new line.")
+        self.fsns_text_edit.setToolTip("Paste a list of FSNs or Item IDs here,\nseparated either by a new line or a comma.")
+        self.type_selector = QtGui.QComboBox()
+        self.type_selector.addItems(["FSN(s)", "Item ID(s)"])
+        self.type_selector.setToolTip("Select the list type. Are you searching by FSNs or Item IDs?")
+        self.type_selector.setCurrentIndex(0)
         self.mode_label = QtGui.QLabel("Mode")
         self.mode_combo_box = QtGui.QComboBox()
-        self.mode_combo_box.addItems(["Show All Data", "Show Only Unreported FSNs"])
+        self.mode_combo_box.addItems(["Show all data", 
+                            "Show results which have articles","Show results without articles"])
         self.output_table = QtGui.QTableWidget(0,0)
         self.progress_bar = QtGui.QProgressBar()
         progress_bar_style = """
@@ -34,8 +40,9 @@ class Seeker(QtGui.QWidget):
         #self.processing_information = QtGui.QLabel("")
         self.fetch_data_button = QtGui.QPushButton("Fetch Data")
         self.layout = QtGui.QGridLayout()
-        self.layout.addWidget(self.fsns_label, 0, 0, 2, 1)
+        self.layout.addWidget(self.fsns_label, 0, 0, 1, 1)
         self.layout.addWidget(self.fsns_text_edit, 0, 1, 2, 2)
+        self.layout.addWidget(self.type_selector, 1, 0, 1, 1)
         self.layout.addWidget(self.mode_label, 2, 0)
         self.layout.addWidget(self.mode_combo_box, 2, 1)
         self.layout.addWidget(self.fetch_data_button, 2, 2)
@@ -55,20 +62,24 @@ class Seeker(QtGui.QWidget):
         self.peeves.sendData.connect(self.populateTable)
     
     def fetchData(self):
-        fsns = str(self.fsns_text_edit.toPlainText()).strip().split("\n")
-        fsns = ",".join(fsns)
-        fsns.replace('"',"")
-        self.fsns_text_edit.setText(fsns)
-        fsns = str(self.fsns_text_edit.toPlainText()).strip().split(",")
-        self.peeves.fetchData(fsns, self.mode)
+        search_items = list(set(str(self.fsns_text_edit.toPlainText()).strip().split("\n")))
+        search_items = ",".join(search_items)
+        search_items.replace('"',"")
+        self.fsns_text_edit.setText(search_items)
+        search_items = str(self.fsns_text_edit.toPlainText()).strip().split(",")
+        self.mode = self.mode_combo_box.currentIndex()
+        self.search_type = self.type_selector.currentIndex()
+        self.peeves.fetchData(search_items, self.mode, self.search_type)
         #print len(fsns)
 
     def populateTable(self, fsn_data):
         #print "Populating the table!"
         self.output_table.setSortingEnabled(False)
+
         table_headers = [
             "FSN",
             "Status",
+            "Item ID",
             "Description Type",
             "Writer ID",
             "Writer Name",
@@ -79,8 +90,7 @@ class Seeker(QtGui.QWidget):
             "Category",
             "Sub-Category",
             "Vertical",
-            "Brand",
-            "Item ID"
+            "Brand"
             ]
         #print table_headers
         rows = len(fsn_data)
@@ -119,7 +129,30 @@ class Seeker(QtGui.QWidget):
 
 if __name__ == "__main__":
     import MOSES
+    class SoleSeeker(Seeker):
+        def __init__(self, user_id, password):
+            super(SoleSeeker, self).__init__(user_id, password)
+            self.user_id = user_id
+            self.password = password
+
+        def keyPressEvent(self, e):
+            if (e.modifiers() & QtCore.Qt.ControlModifier):
+                if e.key() == QtCore.Qt.Key_C: #copy
+                    table_to_copy = self.output_table
+                    selected = table_to_copy.selectedRanges()
+                    s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
+                    s = s + '\n'
+
+                    for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
+                        s += str(r+1) + '\t' 
+                        for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
+                            try:
+                                s += str(table_to_copy.item(r,c).text()) + "\t"
+                            except AttributeError:
+                                s += "\t"
+                        s = s[:-1] + "\n" #eliminate last '\t'
+                    self.clip.setText(s)
     app = QtGui.QApplication([])
     u, p = MOSES.getBigbrotherCredentials()
-    seeker = Seeker(u, p)
+    seeker = SoleSeeker(u, p)
     sys.exit(app.exec_())

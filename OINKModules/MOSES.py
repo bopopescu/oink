@@ -133,6 +133,75 @@ def seekFSN(user_id, password, fsn):
         "Item ID": item_id
         }
     return fsn_dict
+
+
+def seekItemID(user_id, password, item_id):
+    """"""
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * from `piggybank` WHERE `Item ID`="%s";""" %item_id
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    fsn = "NA"
+    article_date = "NA"
+    database_table = "NA"
+    status = "NA"
+    database_table = "NA"
+    description_type = "NA"
+    writer_id = "NA"
+    writer_name = "NA"
+    article_date = "NA"
+    bu = "NA"
+    super_category = "NA"
+    category = "NA"
+    sub_category = "NA"
+    vertical = "NA"
+    brand = "NA"
+
+    if len(data) == 0:
+        sqlcmdstring = """SELECT * from `fsndump` WHERE `Item ID`="%s";""" %item_id
+        cursor.execute(sqlcmdstring)
+        data_fsn_dump = cursor.fetchall()
+        if len(data_fsn_dump) == 0:
+            status = "Not Written Yet"
+        else:
+            status = "Written"
+            database_table = "FSN Dump"
+            fsn = data_fsn_dump[0]["FSN"]
+            description_type = data_fsn_dump[0]["Description Type"]
+    else:
+        status = "Written"
+        fsn = data[0]["FSN"]
+        database_table = "Piggy Bank"
+        description_type = data[0]["Description Type"]
+        writer_id = data[0]["WriterID"]
+        writer_name = data[0]["Writer Name"]
+        article_date = data[0]["Article Date"]
+        bu = data[0]["BU"]
+        super_category = data[0]["Super-Category"]
+        category = data[0]["Category"]
+        sub_category = data[0]["Sub-Category"]
+        vertical = data[0]["Vertical"]
+        brand = data[0]["Brand"]
+        fsn = data[0]["FSN"]
+    conn.close()
+    fsn_dict = {
+        "FSN": fsn,
+        "Status": status,
+        "Description Type": description_type,
+        "Writer ID": writer_id,
+        "Writer Name": writer_name,
+        "Article Date": article_date,
+        "Database table": database_table,
+        "BU": bu,
+        "Super-Category": super_category,
+        "Category": category,
+        "Sub-Category": sub_category,
+        "Vertical": vertical,
+        "Brand": brand,
+        "Item ID": item_id
+        }
+    return fsn_dict
     
 def recursiveUploadRawDataFile(user_id, password):
     if not os.path.isfile("Archive\\RawData_Archive.csv"):
