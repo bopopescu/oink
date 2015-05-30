@@ -1949,8 +1949,10 @@ def getCFMFor(user_id, password, query_date, query_user=None):
         query_user = user_id
     return getCFMBetweenDates(user_id, password, query_date, query_date, query_user)
 
-def getAverageTeamCFMBetween(start_date, end_date):
+def getAverageTeamCFMBetween(start_date, end_date, consider_fatal=None):
     """;"""
+    if consider_fatal is None:
+        consider_fatal = True
     import numpy
     user_id, password = getBigbrotherCredentials()
     raw_data_table, CFM_key_list, GSEO__key_list = getRawDataTableAndAuditParameters()
@@ -1968,8 +1970,9 @@ def getAverageTeamCFMBetween(start_date, end_date):
     for each_entry in data:
         CFM_score = numpy.sum(list(each_entry[CFM_key] for CFM_key in CFM_key_list)) / float(75.0)
         fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
-        if "Yes" in fatals:
-            CFM_score = 0.0
+        if consider_fatal:
+            if "Yes" in fatals:
+                CFM_score = 0.0
         counter += 1
         recorded_cfm = each_entry["CFM Quality"]
         CFM_score = numpy.around(CFM_score, decimals=3)
@@ -1989,9 +1992,11 @@ def getAverageTeamCFMBetween(start_date, end_date):
     #print CFM_scores
     return CFM_score_average
 
-def getAverageTeamGSEOBetween(start_date, end_date):
+def getAverageTeamGSEOBetween(start_date, end_date, consider_fatal=None):
     """;"""
     import numpy
+    if consider_fatal is None:
+        consider_fatal = True
     user_id, password = getBigbrotherCredentials()
     raw_data_table, CFM_key_list, GSEO_key_list = getRawDataTableAndAuditParameters()
     conn = getOINKConnector(user_id, password)
@@ -2008,8 +2013,9 @@ def getAverageTeamGSEOBetween(start_date, end_date):
     for each_entry in data:
         GSEO_score = numpy.sum(list(each_entry[GSEO_key] for GSEO_key in GSEO_key_list)) / float(25.0)
         fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
-        if "Yes" in fatals:
-            GSEO_score = 0.0
+        if consider_fatal:
+            if "Yes" in fatals:
+                GSEO_score = 0.0
         counter += 1
         recorded_GSEO = each_entry["GSEO Quality"]
         GSEO_score = numpy.around(GSEO_score, decimals=4)
@@ -2356,14 +2362,15 @@ def getCategoryTree(user_id, password):
     return data_frame
 
 def checkDuplicacy(FSN, articleType, articleDate):
-    """Returns true if it finds this FSN written before in the same type."""
-    #First check if that FSN was written in this date.
-    #Look for that data in `piggybank`.
-    #If found, return "Local"
-    #Else, look in `piggybank` without the date and in the FSN Dump.
-    #If found, return "Global"
-    #Else return False
-    #Some issue. Check!!!!
+    """Working Principle:
+    1. Check if the FSN has been entered in the piggybank on the same date. Return "Local" if found.
+    2. Else, check if the FSN has been entered in the piggybank on some other date.
+        (a) If the description  type is "Regular Description", also search for "Rich Product Description", "Rich Product Description Plan A" and "Rich Product Description Plan B".
+        (b) If the description type is one of the RPD types, search for all RPD types.
+        (c) If Found, return "Global".
+    3. Else, check the fsndump using the same logic as step #2.
+    4. Return False if not found.
+    """
     wasWrittenBefore = False
     user_id, password = getBigbrotherCredentials()
     connectdb = getOINKConnector(user_id, password)
@@ -2372,60 +2379,47 @@ def checkDuplicacy(FSN, articleType, articleDate):
     dbcursor.execute(sqlcmdstring)
     local_data = dbcursor.fetchall()
     if len(local_data) > 0: #If that FSN exists in the data for a given date.
-        print "Found FSN in local data."
+        #print "Found FSN in local data."
         wasWrittenBefore = "Local"
-    else: #If not found in the given date
+    else: 
+        #If not found in the given date
         #For RPD, it should search for RPD, RPD Plan A and RPD Plan B.
+        #Check the first 24 letters as the type could be Plan A or Plan B as well.
         isRPD = False
         if articleType[:24] == "Rich Product Description":
             isRPD = True
-            articleType = "Rich Product Description"
-        sqlcmdstring = """SELECT * from `piggybank` WHERE `FSN` = '%s' and `Description Type` = '%s';""" % (FSN, articleType)
+            sqlcmdstring = """SELECT * FROM `piggybank` 
+            WHERE `FSN` = '%s' AND (`Description Type`="Rich Product Description" OR 
+                `Description Type`="Rich Product Description Plan A"
+                OR `Description Type`="Rich Product Description Plan B");"""%FSN
+        else:
+            sqlcmdstring = """SELECT * from `piggybank` WHERE `FSN` = '%s' and 
+                (`Description Type` = '%s' OR `Description Type`="Rich Product Description" 
+                OR `Description Type`="Rich Product Description Plan A"
+                OR `Description Type`="Rich Product Description Plan B");""" % (FSN, articleType)
         dbcursor.execute(sqlcmdstring)
         global_data = dbcursor.fetchall()
         if len(global_data) > 0: #If found for some date
             print " Found FSN in global data."
             print global_data
             wasWrittenBefore = "Global"
-        else: #If not found
-            sqlcmdstring = """SELECT * from `fsndump` WHERE `FSN` = '%s' and `Description Type` = '%s';""" % (FSN, articleType)
+        else:
+            if isRPD:
+                sqlcmdstring = """SELECT * FROM `fsndump` 
+                    WHERE `FSN` = '%s' AND (`Description Type`="Rich Product Description" OR 
+                    `Description Type`="Rich Product Description Plan A"
+                    OR `Description Type`="Rich Product Description Plan B");"""%FSN
+            else:
+                sqlcmdstring = """SELECT * from `fsndump` WHERE 
+                `FSN` = '%s' and (`Description Type` = "%s" OR 
+                    `Description Type`="Rich Product Description" OR 
+                    `Description Type`="Rich Product Description Plan A"
+                    OR `Description Type`="Rich Product Description Plan B");""" % (FSN, articleType)
             dbcursor.execute(sqlcmdstring)
             global_data = dbcursor.fetchall()
             if len(global_data) > 0: #If found in the fsndump
                 print "Found in the dump!"
                 wasWrittenBefore = "Global"
-            elif isRPD:
-                articleType = "Rich Product Description Plan A"
-                sqlcmdstring = """SELECT * from `piggybank` WHERE `FSN` = '%s' and `Description Type` = '%s';""" % (FSN, articleType)
-                dbcursor.execute(sqlcmdstring)
-                global_data = dbcursor.fetchall()
-                if len(global_data) > 0: #If found for some date
-                    print " Found FSN in global data."
-                    print global_data
-                    wasWrittenBefore = "Global"
-                else: #If not found
-                    sqlcmdstring = """SELECT * from `fsndump` WHERE `FSN` = '%s' and `Description Type` = '%s';""" % (FSN, articleType)
-                    dbcursor.execute(sqlcmdstring)
-                    global_data = dbcursor.fetchall()
-                    if len(global_data) > 0: #If found in the fsndump
-                        print "Found in the dump!"
-                        wasWrittenBefore = "Global"
-                if not wasWrittenBefore:
-                    articleType = "Rich Product Description Plan B"
-                    sqlcmdstring = """SELECT * from `piggybank` WHERE `FSN` = '%s' and `Description Type` = '%s';""" % (FSN, articleType)
-                    dbcursor.execute(sqlcmdstring)
-                    global_data = dbcursor.fetchall()
-                    if len(global_data) > 0: #If found for some date
-                        print " Found FSN in global data."
-                        print global_data
-                        wasWrittenBefore = "Global"
-                    else: #If not found
-                        sqlcmdstring = """SELECT * from `fsndump` WHERE `FSN` = '%s' and `Description Type` = '%s';""" % (FSN, articleType)
-                        dbcursor.execute(sqlcmdstring)
-                        global_data = dbcursor.fetchall()
-                        if len(global_data) > 0: #If found in the fsndump
-                            print "Found in the dump!"
-                            wasWrittenBefore = "Global"
     connectdb.commit()
     connectdb.close()   
     return wasWrittenBefore
@@ -2644,12 +2638,6 @@ def getSQLErrorType(errorString):
     return error
 
 
-#queryDict = {"BU":"FMCGAndOthers","Super-Category":"Book","Category":"Book","Sub-Category":"Books-Fiction","Vertical":"Yearbooks & Annuals1","Source":"Inhouse","Description Type":"Regular Description"} #debug
-#queryDict = {"BU":"Lifestyle","Super-Category":"LifestyleAccessory","Category":"LifestyleAccessory","Sub-Category":"LifestyleAccessory","Category":"LifestyleAccessory","Vertical":"LifestyleAccessory","Source":"Inhouse","Description Type":"Regular Description"}
-
-#######################################################################################
-####################################Pending methods.###################################
-#######################################################################################
 def pendingmethods():
     """Pending methods."""
     print "Pending methods."
@@ -3060,7 +3048,6 @@ def createLogoutStamp(user_id, password, logout_date=None, logout_time=None):
     dbcursor.execute(sqlcmdstring)
     connectdb.commit()
     connectdb.close()
-
 
 def isIdle(time_to_wait=None):
     import time

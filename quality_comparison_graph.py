@@ -62,7 +62,11 @@ if __name__ == "__main__":
         #label.set_bbox(dict(facecolor='white',edgecolor='None', alpha=0.65))
     plt.setp(labels)
 
-    plt.style.use('dark_background')
+    #plt.style.use('dark_background')
     plt.subplots_adjust(left=0.2)
-    plt.show()
 
+    file_name = "Quality_Comparision_Graph_%s_%d%d%d.png" %(query_user,d1.year,d1.month, d1.day)
+
+    plt.savefig(file_name, dpi=300, bbox_inches='tight')
+    #plt.show()
+    print "Generated graph and wrote to file %s" %file_name

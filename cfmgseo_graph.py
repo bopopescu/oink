@@ -6,7 +6,7 @@ import matplotlib.ticker as ticker
 import pandas as pd
 from OINKModules import MOSES
 
-def getData(query_date=None):
+def getCFMGSEOData(query_date=None):
     #Set the date.
     if query_date is None:
         query_date = datetime.date.today()
@@ -32,6 +32,7 @@ def getData(query_date=None):
     green = "#43AD38"
     blue = "#027CD5"
     bright_blue = "#027CD5"
+
     grey = "0.75"
     writer_counter = 0
     for writer in writers_data_list:
@@ -88,8 +89,8 @@ def getData(query_date=None):
     writer_data_frame.sort(["Efficiency","CFM","GSEO"], ascending = [0,0,0], inplace = True)
     return writer_data_frame
     
-if __name__ == "__main__":
-    query_date = datetime.date(2015, 5, 27)
+def plotCFMGSEOGraph(query_date=None):
+    query_date = datetime.date(2015, 5, 28)
     data_set = getData(query_date)
     print data_set
     #first plot the efficiency
@@ -128,5 +129,9 @@ if __name__ == "__main__":
 #    ax.xaxis.set_major_locator(ticker.FixedFormatter(efficiency_writers_order))
 #    ax.xaxis.set_major_locator(ticker.FixedFormatter(efficiency_writers_order))
    # plt.setp(labels)
-    plt.show()
+    file_name = "CFM_GSEO_Graph_%d%d%d.png" %(query_date.year,query_date.month, query_date.day)
+
+    plt.savefig(file_name, dpi=300, bbox_inches='tight')
+    #plt.show()
+    print "Completed and wrote to file."
     

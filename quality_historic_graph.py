@@ -6,11 +6,15 @@ import pandas as pd
 from OINKModules import MOSES
 
 
-def getQualityData(query_date = None):
+def getQualityData(query_date = None, period = None):
     if query_date is None:
         query_date = datetime.date.today()
+    if period is None:
+        period = 5
+    group_size = 5
+    quantity = int(period/group_size)
     #Get a list of lists containing group of working dates.
-    dates_lists = MOSES.getWorkingDatesLists(query_date, group_size=5, quantity=20)
+    dates_lists = MOSES.getWorkingDatesLists(query_date, group_size=group_size, quantity=quantity)
     #create two lists of average cfm and average gseo for all writers for these groups of dates.
     #print dates_lists
     cfm_average_list, gseo_average_list = [], []
@@ -20,17 +24,21 @@ def getQualityData(query_date = None):
         end_date = max(date_set)
         end_dates.append(end_date)
         #print start_date, end_date
-        cfm_average = 100.00*MOSES.getAverageTeamCFMBetween(start_date, end_date)
-        gseo_average = 100.00*MOSES.getAverageTeamGSEOBetween(start_date, end_date)
+        cfm_average = 100.00*MOSES.getAverageTeamCFMBetween(start_date, end_date, True)
+        gseo_average = 100.00*MOSES.getAverageTeamGSEOBetween(start_date, end_date, True)
         #print cfm_average, gseo_average
         cfm_average_list.append(cfm_average)
         gseo_average_list.append(gseo_average)
     #print cfm_average_list, gseo_average_list
     return end_dates, cfm_average_list, gseo_average_list
 
-if __name__ == "__main__":
-    query_date = datetime.date(2015, 5, 22)
-    end_dates, cfm_quality_data, gseo_quality_data = getQualityData(query_date)
+def plotQualityHistoricGraph(query_date, period=None)
+    if query_date is None:
+        query_date = datetime.date.today()
+    if period is None:
+        period = 15 # working days ago.
+    query_date = datetime.date(2015, 5, 28)
+    end_dates, cfm_quality_data, gseo_quality_data = getQualityData(query_date, period)
 
     week_names = ["Week of\n%s"%date_ for date_ in end_dates]
     #print cfm_quality_data, gseo_quality_data
