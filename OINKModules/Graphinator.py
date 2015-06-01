@@ -285,7 +285,7 @@ def plotQualityHistoricGraph(query_date, period=None):
         query_date = datetime.date.today()
     if period is None:
         period = 15 # working days ago.
-    query_date = datetime.date(2015, 5, 28)
+    #query_date = datetime.date(2015, 5, 28)
     end_dates, cfm_quality_data, gseo_quality_data = getQualityHistoricalData(query_date, period)
 
     week_names = ["Week of\n%s"%date_ for date_ in end_dates]
