@@ -107,7 +107,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.statusLog = QtGui.QTextEdit()
         self.piggybank = PiggyBank()
         
-        self.graphite = Graphite()
+        self.graphite = Graphite(self.userID, self.password)
         self.rawdata = QtGui.QWidget()
         self.summary_progress = QtGui.QProgressBar()
         progress_bar_style = """
@@ -337,9 +337,9 @@ class Vindaloo(QtGui.QMainWindow):
             #red = QtGui.QColor(204, 50, 20)
             #green = QtGui.QColor(119, 178, 18)
             #blue = QtGui.QColor(25, 94, 255)
-            red = QtGui.QColor(255, 12, 7)
-            green = QtGui.QColor(49,255, 102)
-            blue = QtGui.QColor(86, 89, 232)
+            red = QtGui.QColor(231, 90, 83)
+            green = QtGui.QColor(60, 179, 113)
+            blue = QtGui.QColor(23, 136, 216)
 
             writer_items_list.append(QtGui.QTableWidgetItem(str(writer_article_count)))
 

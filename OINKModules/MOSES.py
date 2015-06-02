@@ -1755,6 +1755,7 @@ def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
     SELECT `target`, MAX(`Revision Date`) FROM `categorytree` WHERE `BU`=%s AND ... AND `Revision Date`<='%(date)'
 """
     import numpy
+    import pandas as pd
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
     if query_date is None:
@@ -1819,6 +1820,7 @@ def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
             #give up.
         #call the function again, without one key-value pair.
     elif len(entries) == 1:
+        #print "Only one target for query_dict."
         target = entries[0]["Target"]
     else:
         #first check if it has multiple returns for one date.
@@ -1826,17 +1828,27 @@ def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
         #Else, if it has only one date:
             #check all the probable targets and return the one with the highest frequency?
         target = -1
+        #print "Found multiple targets, jack."
+
         possible_targets = []
-        for entry in entries:
-            possible_targets.append(entry["Target"])
-            try:
-                target = numpy.bincount(possible_targets).argmax() 
-            except:
-                #print closest_date
-                #print entries
-                #print query_dict
-                target = -1
-                pass
+        targets_data_frame = pd.DataFrame(entries)
+        max_date = numpy.max(list(targets_data_frame["Revision Date"]))
+        multi_target_on_single_date = False if list(targets_data_frame["Revision Date"]).count(max_date) == 1 else True
+        if not multi_target_on_single_date:
+            target = int(targets_data_frame.loc[targets_data_frame["Revision Date"] == max_date]["Target"])
+        #print "Real Target", target, max_date
+        else:
+            for entry in entries:
+                possible_targets.append(entry["Target"])
+                try:
+                    target = numpy.bincount(possible_targets).argmax() 
+                except:
+                    #print closest_date
+                    #print entries
+                    #print query_dict
+                    target = -1
+                    pass
+        #print query_dict, target
     conn.commit()
     conn.close()
     return target

@@ -576,10 +576,10 @@ class Pork(QtGui.QMainWindow):
         self.stats_table.setRowCount(5)
         self.stats_table.setColumnCount(4)
 
-        red = QtGui.QColor(255, 12, 7)
-        green = QtGui.QColor(60,179, 113)
-        blue = QtGui.QColor(86, 89, 232)
-        blue1 = QtGui.QColor(0, 191, 255)
+        red = QtGui.QColor(231, 90, 83)
+        green = QtGui.QColor(60, 179, 113)
+        blue = QtGui.QColor(23, 136, 216)
+        blue1 = QtGui.QColor(1, 172, 218)
 
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
         self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)

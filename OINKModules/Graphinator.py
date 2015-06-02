@@ -316,6 +316,75 @@ def plotQualityHistoricGraph(query_date, period=None):
     plt.savefig(file_name, dpi=300, bbox_inches='tight')
     print "Generated the historical quality graph. Check file: %s" %file_name
 
+
+def getQualityHistoricalDataMonth(query_date = None, months = None):
+    import calendar
+    if query_date is None:
+        query_date = datetime.date.today()
+    if months is None:
+        months = 2
+    months_list = [month for month in range(query_date.month+1)][1:][-months:]
+    print months_list
+    dates_lists = []
+    end_dates = []
+    cfm_average_list = []
+    gseo_average_list = []
+    user_id, password = MOSES.getBigbrotherCredentials()
+    for month in months_list:
+        year_ = query_date.year
+        start_date = datetime.date(year_, month, 1)
+        end_date = datetime.date(year_, month, calendar.monthrange(year_, month)[1])
+        dates = MOSES.getWorkingDatesBetween(user_id, password, start_date, end_date, mode="All")
+        dates.sort()
+        start_date = min(dates)
+        end_date = max(dates)
+        cfm_average = 100.00*MOSES.getAverageTeamCFMBetween(start_date, end_date, True)
+        gseo_average = 100.00*MOSES.getAverageTeamGSEOBetween(start_date, end_date, True)
+        cfm_average_list.append(cfm_average)
+        gseo_average_list.append(gseo_average)
+        end_dates.append(end_date)
+    return end_dates, cfm_average_list, gseo_average_list
+
+
+def plotQualityHistoricGraphMonth(query_date, months=None):
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker as ticker
+    plt.clf()
+    if query_date is None:
+        query_date = datetime.date.today()
+    if months is None:
+        months = 2 # 2 months ago.
+    #query_date = datetime.date(2015, 5, 28)
+    end_dates, cfm_quality_data, gseo_quality_data = getQualityHistoricalDataMonth(query_date, months)
+
+    week_names = ["Month #%02d"%date_.month for date_ in end_dates]
+    #print cfm_quality_data, gseo_quality_data
+    x_coordinates = np.arange(len(cfm_quality_data))+1
+    #print x_coordinates
+    cfm = plt.plot(x_coordinates, cfm_quality_data, "-bo",label="CFM")
+    gseo = plt.plot(x_coordinates, gseo_quality_data, "-g^",label="GSEO")
+    plt.setp(cfm, color='b', linewidth=2.0)
+    plt.setp(gseo, color='g', linewidth=2.0)
+
+    plt.title("Team Quality For %d months till %s." %(months, query_date))
+    min_value = min([min(cfm_quality_data),min(gseo_quality_data)])
+    plt.ylim(min_value-2, 100.00)
+    plt.legend(loc="upper center", fancybox=True, shadow=True, fontsize=12)
+    plt.yticks(np.arange(min_value-2, 100.00, 0.25))
+    plt.xticks(x_coordinates)
+    plt.xlim(min(x_coordinates)-0.25,max(x_coordinates)+0.25)
+    ax = plt.axes()
+    ax.xaxis.set_major_locator(ticker.FixedLocator(x_coordinates))
+    ax.xaxis.set_major_formatter(ticker.FixedFormatter((week_names)))
+    plt.grid(True, lw=0.5, ls="--", c="0.05")
+    locs, labels = plt.xticks()
+    plt.subplots_adjust(bottom=0.3)
+    plt.setp(labels, rotation = 90.0)
+
+    file_name = "HistoricalQuality_Graph_For_Months%d%d%d.png" %(query_date.year,query_date.month, query_date.day)
+    plt.savefig(file_name, dpi=300, bbox_inches='tight')
+    print "Generated the historical quality graph. Check file: %s" %file_name
+
 def generateDailyGraphs(query_date):
     print "Generating the graphs for %s." %query_date
     print "Plotting the efficiency graph."

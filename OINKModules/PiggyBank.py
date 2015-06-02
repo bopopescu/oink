@@ -6,6 +6,7 @@ class PiggyBank(QtGui.QTableWidget):
     """Piggy Bank Class Definition."""
     def __init__(self):
         QtGui.QTableWidget.__init__(self, 0 ,0)
+        self.setStyleSheet("gridline-color: rgb(0, 0, 0)")
 
     def setData(self, data_list, targets_data):
         self.data_list = data_list
@@ -44,9 +45,11 @@ class PiggyBank(QtGui.QTableWidget):
                     self.setItem(row_index,column_index,cell_item)
                     column_index += 1
                 row_index += 1
-
+        self.resizeColumnsToContents()
+        self.resizeRowsToContents()
         self.setHorizontalHeaderLabels(header_labels)
         self.setSortingEnabled(True)
+
         #QtGui.QMessageBox.about(self, "Success", "Pulled %d entries for selected date(s)." % len(self.data_list))
         
     def setDisplayLevel(self, identity=None):
