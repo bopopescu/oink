@@ -219,22 +219,27 @@ def recursiveUploadRawDataFile(user_id, password):
         failed = csv.DictWriter(failed_file, getRawDataKeys())
         #duplicates = csv.DictWriter(duplicates_file, getRawDataKeys())
         #total = len(raw_data_file.read().split("\n"))
+        total = 0
+        for rawdata_row in rawdata:
+            total+=1
+        rawdata_file.seek(0)
         counter = 0
         success = 0
         failure = 0
+        start_time = datetime.datetime.now()
+        last_update_time = datetime.datetime.now()
         for rawdata_row in rawdata:
             counter+=1
             process_dict = rawdata_row
-            print "Processing entry #%d" %counter
             try_to_add = addToRawData(user_id, password, process_dict)
             if try_to_add == "Success":
                 success += 1
-                print "Success"
             else:
                 failure += 1
-                print "Failed"
                 failed.writerow(process_dict)
-            #print "%d/%d. ETA: %s" %(counter, total, getETA(start_time, counter, total))
+            if (counter == 1) or (datetime.datetime.now() - last_update_time) > datetime.timedelta(seconds=60):
+                print "Completed: %d. Pending: %d. Failed: %d.\nETA: %s\n*" %(counter, total-counter, failure, getETA(start_time, counter, total))
+                last_update_time = datetime.datetime.now()
         print "Run Complete. Summary:\n%d succeeded. %d failed. Total %d" %(success, failure, counter)
         print "Time spent: %s" % (datetime.datetime.now() - start_time)
         rawdata_file.close()

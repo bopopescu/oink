@@ -77,7 +77,7 @@ def populatePiggyBankWithItemID(fsn, item_id):
 	conn.commit()
 	conn.close()
 
-if __name__ == "__main__":
+def main():
 	import datetime
 	import time
 	import random
@@ -87,26 +87,30 @@ if __name__ == "__main__":
 	passed = 0
 	total = len(fsns)
 	start_time = datetime.datetime.now()
+	last_update_time = datetime.datetime.now()
 	for fsn in fsns:
 		url = "http://www.flipkart.com/search?q=" + fsn
 		try:
 			html_object = urllib2.urlopen(url, timeout=10)
 			item_id = getItemID(html_object)
-			if counter == 1 or counter%10 == 0:
-				print "Processing FSN#%d. Process started at %s, current time is %s." %(counter, start_time, datetime.datetime.now())
 			if item_id is not None:
 				populatePiggyBankWithItemID(fsn, item_id)
 				passed +=1
-				if counter == 1 or counter%10 == 0:
-					print "Processed %d FSNs successfully.\n%d failed, %d remaining.\nPossible ETA: %s" % (passed, (counter-passed), total, getETA(start_time, counter, total))
+			if (datetime.datetime.now()-last_update_time)>=datetime.timedelta(seconds=60):
+				last_update_time = datetime.datetime.now()
+				print "Processed %d FSNs successfully.\n%d failed, %d remaining.\nPossible ETA: %s" % (passed, (counter-passed), (total-counter), getETA(start_time, counter, total))
 		except Exception, e:
-			print "*"*10
-			print "Error with url:"
-			print repr(e)
-			print "*"*10
-			if counter == 1 or counter%10 == 0:
-				print "Processed %d FSNs successfully.\n%d failed, %d remaining.\nPossible ETA: %s" % (passed, (counter-passed), total, getETA(start_time, counter, total))
+			#print "*"*10
+			#print "Error with url:"
+			#print repr(e)
+			print "Processed %d FSNs successfully.\n%d failed, %d remaining.\nPossible ETA: %s" % (passed, (counter-passed), total, getETA(start_time, counter, total))
+			last_update_time = datetime.datetime.now()
+			#print "*"*10
 			pass
 		time.sleep(2)
 		counter +=1
+	print "Done"
+	#raw_input("Hit Enter to exit.")
 
+if __name__ == "__main__":
+	main()
