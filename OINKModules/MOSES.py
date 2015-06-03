@@ -3374,5 +3374,33 @@ def getLastWorkingDayOfWeek(query_date):
 
     return possible_last_date
 
+def dumpFSNsIntoFile():
+    import pandas as pd
+    user_id, password = getBigbrotherCredentials()
+    start_time = datetime.datetime.now()
+    last_update_time = datetime.datetime.now()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    print "Trying to fetch data from fsn dump and the piggybank.\nThis step could take a while."
+    sqlcmdstring = """(SELECT `FSN`,`Item ID`, `Description Type` from `fsndump` WHERE 
+        `Item ID` IS NOT NULL) UNION 
+        (SELECT `FSN`,`Item ID`, `Description Type` from `piggybank` WHERE 
+        `Item ID` IS NOT NULL);"""
+    cursor.execute(sqlcmdstring)
+    data_piggybank = cursor.fetchall()
+    conn.close()
+    print "Retrieved %d values." %len(data_piggybank)
+    print type(data_piggybank[0])
+    print type(data_piggybank[1000])
+    print type(data_piggybank)
+    print "Writing to file."
+    #print "Generating dataframe."
+    data_frame = pd.DataFrame.from_records(data_piggybank)    
+    #print data_frame.shape
+    data_frame.to_csv("[%s]_FSN Dump.csv"%start_time, sep=",")
+    print "Successfully wrote to file."
+    raw_input("Hit enter to exit.")
+    #return data_piggybank, data_frame
+
 if __name__ == "__main__":
     print "Never call Moses mainly."
