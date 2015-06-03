@@ -119,7 +119,7 @@ def plotEfficiencyGraph(query_date = None):
     plt.subplots_adjust(bottom=0.2)
     plt.ylim(min(efficiency_list))
 
-    file_name = "Efficiency_Graph_%d%d%d.png" %(query_date.year,query_date.month, query_date.day)
+    file_name = "%d%02d%02d_Efficiency_Graph.png" %(query_date.year,query_date.month, query_date.day)
     plt.savefig(file_name, dpi=300, bbox_inches='tight')
     print "Generated the efficiency graph. Check file: %s" %file_name
 
@@ -246,7 +246,7 @@ def plotCFMGSEOGraph(query_date=None):
     plt.setp(labels, rotation = 90.0)
     plt.ylim(80.00)
     plt.subplots_adjust(bottom=0.2)
-    file_name = "CFM_GSEO_Graph_%d%d%d.png" %(query_date.year,query_date.month, query_date.day)
+    file_name = "%d%02d%02d_CFM_GSEO_Graph.png" %(query_date.year,query_date.month, query_date.day)
     plt.savefig(file_name, dpi=300, bbox_inches='tight')
     #plt.show()
     print "Generated CFM and GSEO Graph. Check file %s" %file_name
@@ -312,7 +312,7 @@ def plotQualityHistoricGraph(query_date, period=None):
     plt.subplots_adjust(bottom=0.3)
     plt.setp(labels, rotation = 90.0)
 
-    file_name = "HistoricalQuality_Graph_%d%d%d.png" %(query_date.year,query_date.month, query_date.day)
+    file_name = "%d%02d%02d_HistoricalQuality_Graph.png" %(query_date.year,query_date.month, query_date.day)
     plt.savefig(file_name, dpi=300, bbox_inches='tight')
     print "Generated the historical quality graph. Check file: %s" %file_name
 
@@ -381,7 +381,7 @@ def plotQualityHistoricGraphMonth(query_date, months=None):
     plt.subplots_adjust(bottom=0.3)
     plt.setp(labels, rotation = 90.0)
 
-    file_name = "HistoricalQuality_Graph_For_Months%d%d%d.png" %(query_date.year,query_date.month, query_date.day)
+    file_name = "%d%02d%02d_HistoricalQuality_Graph_For_Months.png" %(query_date.year,query_date.month, query_date.day)
     plt.savefig(file_name, dpi=300, bbox_inches='tight')
     print "Generated the historical quality graph. Check file: %s" %file_name
 

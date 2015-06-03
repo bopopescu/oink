@@ -481,7 +481,7 @@ class Pork(QtGui.QMainWindow):
     def initForm(self):
         """PORK Window: Method to initialize the form."""
         self.buttonAddFSN.setChecked(True)
-        self.comboBoxType.setCurrentIndex(2)
+        self.comboBoxType.setCurrentIndex(3)
         self.comboBoxSource.setCurrentIndex(1)
         self.comboBoxSuperCategory.setCurrentIndex(-1)
         self.lineEditRefLink.setText("NA")

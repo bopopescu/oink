@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import MOSES
 import Graphinator
+import FileDialog
 
 class GraphiteCanvas(FigureCanvasQTAgg):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.).
