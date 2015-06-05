@@ -3390,9 +3390,9 @@ def dumpFSNsIntoFile():
     data_piggybank = cursor.fetchall()
     conn.close()
     print "Retrieved %d values." %len(data_piggybank)
-    print type(data_piggybank[0])
-    print type(data_piggybank[1000])
-    print type(data_piggybank)
+    #print type(data_piggybank[0])
+    #print type(data_piggybank[1000])
+    #print type(data_piggybank)
     print "Writing to file."
     #print "Generating dataframe."
     data_frame = pd.DataFrame.from_records(data_piggybank)    
@@ -3401,6 +3401,70 @@ def dumpFSNsIntoFile():
     print "Successfully wrote to file."
     raw_input("Hit enter to exit.")
     #return data_piggybank, data_frame
+
+def calculateAuditAssignmentSheetBetween(start_date, end_date, min_audit_percentage):
+    import pandas as pd
+    import numpy as np
+    user_id, password = getBigbrotherCredentials()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT `Description Type`, `Category`, `WriterID`, `Writer Name` FROM `piggybank` WHERE `Article Date` BETWEEN "%s" AND "%s";""" %(start_date, end_date)
+    #print sqlcmdstring
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    initial_data_frame_list = ["Description Type", "Category", "WriterID", "Writer Name"]
+    piggy_bank_data_frame = pd.DataFrame.from_records(data)
+    audit_assignment_data_frame = piggy_bank_data_frame.copy(deep=False)
+    audit_assignment_data_frame.drop_duplicates(inplace =True)
+    count_list = []
+    for index, row in audit_assignment_data_frame.iterrows():
+        description_type = row["Description Type"]
+        category = row["Category"]
+        writer_id = row["WriterID"]
+        #print "*"*10
+        #print description_type, category, writer_id
+        temp_data_frame = piggy_bank_data_frame.loc[(piggy_bank_data_frame["Description Type"] == description_type) & (piggy_bank_data_frame["Category"] == category) & (piggy_bank_data_frame["WriterID"] == writer_id)]
+        #print temp_data_frame
+        count_ = len(list(temp_data_frame["Category"]))
+        #print "Found %d"%count_
+        #print "*"*10
+        #print type(count_)
+        count_list.append(count_)
+    #print count_list
+    audit_assignment_data_frame["Article Count"] = count_list
+    audit_assignment_data_frame["Audit Count"] = 1
+    audit_assignment_data_frame["Audit Percentage"] = 0
+    categories = list(audit_assignment_data_frame["Category"])
+    print "This'll take time, Joey."
+    for category in categories:
+        description_types = list(audit_assignment_data_frame.loc[(audit_assignment_data_frame["Category"]==category),"Description Type"])
+        for description_type in description_types:
+            writers = list(audit_assignment_data_frame.loc[(audit_assignment_data_frame["Description Type"]==description_type)&(audit_assignment_data_frame["Category"]==category),"WriterID"])
+            for writer in writers:
+                row_condition = (audit_assignment_data_frame["Description Type"] == description_type) & (audit_assignment_data_frame["WriterID"] == writer) & (audit_assignment_data_frame["Category"] == category)
+                audits = audit_assignment_data_frame.loc[row_condition,"Audit Count"].values 
+                
+                #print writer
+                #print description_type, category
+                #print "Whoa!",audits
+                articles = audit_assignment_data_frame.loc[row_condition,"Article Count"].values
+                audit_percentage = round(audits/articles,4)
+                while audit_percentage < min_audit_percentage:
+                    audits = audit_assignment_data_frame.loc[row_condition,"Audit Count"].values
+                    print audits, articles
+                    if audits < articles:
+                        print "lesser!"
+                        #increase the audits by 1 and repeat.
+                        audit_assignment_data_frame.ix[row_condition,"Audit Count"] = audits + 1
+                        audit_percentage = round(audits/articles,4)
+                    else:
+                        print "No need!"
+                        #No more articles to audit.
+                        break
+
+                audit_assignment_data_frame.ix[row_condition,"Audit Percentage"] = audit_percentage
+    return audit_assignment_data_frame
 
 if __name__ == "__main__":
     print "Never call Moses mainly."
