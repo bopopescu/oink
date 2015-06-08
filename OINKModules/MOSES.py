@@ -252,61 +252,61 @@ def rebuildRawData(user_id, password):
     rawdatadbcursor = rawdatadb.cursor()
     rawdatadbcursor.execute("DROP TABLE IF EXISTS `rawdata`")
     sqlcmdstring = """CREATE TABLE `rawdata` (
-`WriterID` VARCHAR(20) NOT NULL,
-`Writer Email ID` VARCHAR(100),
-`Writer Name` VARCHAR(100),
-`Editor ID` VARCHAR(20) NOT NULL,
-`Editor Email ID` VARCHAR(100),
-`Editor Name` VARCHAR(100),
-`Category` VARCHAR(100),
-`Sub-Category` VARCHAR(100),
-`Audit Date` DATE NOT NULL,
-`WS Name` VARCHAR(200) NOT NULL,
-`WC` INT(5) NOT NULL,
-`FSN` VARCHAR(200) NOT NULL,
-`CFM01` FLOAT(5,3) NOT NULL,
-`CFM02` FLOAT(5,3) NOT NULL,
-`CFM03` FLOAT(5,3) NOT NULL,
-`CFM04` FLOAT(5,3) NOT NULL,
-`CFM05` FLOAT(5,3) NOT NULL,
-`CFM06` FLOAT(5,3) NOT NULL,
-`CFM07` FLOAT(5,3) NOT NULL,
-`CFM08` FLOAT(5,3) NOT NULL,
-`GSEO01` FLOAT(5,3) NOT NULL,
-`GSEO02` FLOAT(5,3) NOT NULL,
-`GSEO03` FLOAT(5,3) NOT NULL,
-`GSEO04` FLOAT(5,3) NOT NULL,
-`GSEO05` FLOAT(5,3) NOT NULL,
-`GSEO06` FLOAT(5,3) NOT NULL,
-`GSEO07` FLOAT(5,3) NOT NULL,
-`FAT01` ENUM("Yes", "No") DEFAULT "NO" NOT NULL,
-`FAT02` ENUM("Yes", "No") DEFAULT "NO" NOT NULL,
-`FAT03` ENUM("Yes", "No") DEFAULT "NO" NOT NULL,
-`CFM Quality` FLOAT(5,3) NOT NULL,
-`GSEO Quality` FLOAT(5,3) NOT NULL,
-`Overall Quality` FLOAT(5,3) NOT NULL,
-`Fatals Count` INT(5) NOT NULL,
-`Non Fatals Count` INT(5) NOT NULL,
-`CFM01C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`CFM02C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`CFM03C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`CFM04C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`CFM05C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`CFM06C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`CFM07C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`CFM08C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`GSEO01C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`GSEO02C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`GSEO03C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`GSEO04C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`GSEO05C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`GSEO06C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`GSEO07C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`FAT01C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`FAT02C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-`FAT03C` VARCHAR(200) DEFAULT "NA" NOT NULL,
-PRIMARY KEY (`FSN`, `Audit Date`)
-)"""
+            `WriterID` VARCHAR(20) NOT NULL,
+            `Writer Email ID` VARCHAR(100),
+            `Writer Name` VARCHAR(100),
+            `Editor ID` VARCHAR(20) NOT NULL,
+            `Editor Email ID` VARCHAR(100),
+            `Editor Name` VARCHAR(100),
+            `Category` VARCHAR(100),
+            `Sub-Category` VARCHAR(100),
+            `Audit Date` DATE NOT NULL,
+            `WS Name` VARCHAR(200) NOT NULL,
+            `WC` INT(5) NOT NULL,
+            `FSN` VARCHAR(200) NOT NULL,
+            `CFM01` FLOAT(5,3) NOT NULL,
+            `CFM02` FLOAT(5,3) NOT NULL,
+            `CFM03` FLOAT(5,3) NOT NULL,
+            `CFM04` FLOAT(5,3) NOT NULL,
+            `CFM05` FLOAT(5,3) NOT NULL,
+            `CFM06` FLOAT(5,3) NOT NULL,
+            `CFM07` FLOAT(5,3) NOT NULL,
+            `CFM08` FLOAT(5,3) NOT NULL,
+            `GSEO01` FLOAT(5,3) NOT NULL,
+            `GSEO02` FLOAT(5,3) NOT NULL,
+            `GSEO03` FLOAT(5,3) NOT NULL,
+            `GSEO04` FLOAT(5,3) NOT NULL,
+            `GSEO05` FLOAT(5,3) NOT NULL,
+            `GSEO06` FLOAT(5,3) NOT NULL,
+            `GSEO07` FLOAT(5,3) NOT NULL,
+            `FAT01` ENUM("Yes", "No") DEFAULT "NO" NOT NULL,
+            `FAT02` ENUM("Yes", "No") DEFAULT "NO" NOT NULL,
+            `FAT03` ENUM("Yes", "No") DEFAULT "NO" NOT NULL,
+            `CFM Quality` FLOAT(5,3) NOT NULL,
+            `GSEO Quality` FLOAT(5,3) NOT NULL,
+            `Overall Quality` FLOAT(5,3) NOT NULL,
+            `Fatals Count` INT(5) NOT NULL,
+            `Non Fatals Count` INT(5) NOT NULL,
+            `CFM01C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `CFM02C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `CFM03C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `CFM04C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `CFM05C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `CFM06C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `CFM07C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `CFM08C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `GSEO01C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `GSEO02C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `GSEO03C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `GSEO04C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `GSEO05C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `GSEO06C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `GSEO07C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `FAT01C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `FAT02C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            `FAT03C` VARCHAR(200) DEFAULT "NA" NOT NULL,
+            PRIMARY KEY (`FSN`, `Audit Date`)
+            )"""
     rawdatadbcursor = rawdatadb.cursor()
     #print sqlcmdstring #debug
     rawdatadbcursor.execute(sqlcmdstring)
@@ -339,33 +339,33 @@ def rebuildPiggyBank(user_id, password):
     sqlcmdstring = "DROP TABLE IF EXISTS `piggybank`;"
     piggycursor.execute(sqlcmdstring)
     sqlcmdstring = """CREATE TABLE `piggybank` (
-`Article Date` DATE,
-`WriterID` VARCHAR(20) NOT NULL,
-`Writer Email ID` VARCHAR(100),
-`Writer Name` VARCHAR(100),
-`FSN` VARCHAR(200) NOT NULL,
-`Description Type` ENUM('Regular Description','Rich Product Description','Rich Product Description Plan A', 'Rich Product Description Plan B','SEO Big', 'SEO Small', 'SEO Project','RPD Updation','RPD Variant') NOT NULL DEFAULT "Regular Description",
-`Source` ENUM('Inhouse','Crowdsourced') DEFAULT "Inhouse",
-`BU` VARCHAR(50),
-`Super-Category` VARCHAR(50),
-`Category` VARCHAR(50),
-`Sub-Category` VARCHAR(50),
-`Vertical` VARCHAR(50),
-`Brand` VARCHAR(50),
-`Word Count` INT(5) DEFAULT '0',
-`Upload Link` VARCHAR(500),
-`Reference Link` VARCHAR(500),
-`Start Time` DATETIME,
-`End Time` DATETIME,
-`Modification Time` TIMESTAMP,
-`PC User Name` VARCHAR(200),
-`Upload Date` DATE,
-`Item ID` VARCHAR(50),
-`Job Ticket` VARCHAR(50),
-`Target` INT(3),
-`Rewrite Ticket` INT(5) NOT NULL DEFAULT '0',
-PRIMARY KEY (`FSN`,`Description Type`,`Rewrite Ticket`)
-)"""
+        `Article Date` DATE,
+        `WriterID` VARCHAR(20) NOT NULL,
+        `Writer Email ID` VARCHAR(100),
+        `Writer Name` VARCHAR(100),
+        `FSN` VARCHAR(200) NOT NULL,
+        `Description Type` ENUM('Regular Description','Rich Product Description','Rich Product Description Plan A', 'Rich Product Description Plan B','SEO Big', 'SEO Small', 'SEO Project','RPD Updation','RPD Variant') NOT NULL DEFAULT "Regular Description",
+        `Source` ENUM('Inhouse','Crowdsourced') DEFAULT "Inhouse",
+        `BU` VARCHAR(50),
+        `Super-Category` VARCHAR(50),
+        `Category` VARCHAR(50),
+        `Sub-Category` VARCHAR(50),
+        `Vertical` VARCHAR(50),
+        `Brand` VARCHAR(50),
+        `Word Count` INT(5) DEFAULT '0',
+        `Upload Link` VARCHAR(500),
+        `Reference Link` VARCHAR(500),
+        `Start Time` DATETIME,
+        `End Time` DATETIME,
+        `Modification Time` TIMESTAMP,
+        `PC User Name` VARCHAR(200),
+        `Upload Date` DATE,
+        `Item ID` VARCHAR(50),
+        `Job Ticket` VARCHAR(50),
+        `Target` INT(3),
+        `Rewrite Ticket` INT(5) NOT NULL DEFAULT '0',
+        PRIMARY KEY (`FSN`,`Description Type`,`Rewrite Ticket`)
+        )"""
     piggycursor.execute(sqlcmdstring)
     piggybankdb.commit()
     piggybankdb.close()
@@ -3371,10 +3371,9 @@ def getLastWorkingDayOfWeek(query_date):
             break
         else:
             day_difference -= 1
-
     return possible_last_date
 
-def dumpFSNsIntoFile():
+def dumpFSNsIntoFile(description_type = None):
     import pandas as pd
     user_id, password = getBigbrotherCredentials()
     start_time = datetime.datetime.now()
@@ -3382,10 +3381,16 @@ def dumpFSNsIntoFile():
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
     print "Trying to fetch data from fsn dump and the piggybank.\nThis step could take a while."
-    sqlcmdstring = """(SELECT `FSN`,`Item ID`, `Description Type` from `fsndump` WHERE 
-        `Item ID` IS NOT NULL) UNION 
-        (SELECT `FSN`,`Item ID`, `Description Type` from `piggybank` WHERE 
-        `Item ID` IS NOT NULL);"""
+    if description_type is None:
+        sqlcmdstring = """(SELECT `FSN`,`Item ID`, `Description Type` from `fsndump` WHERE 
+            `Item ID` IS NOT NULL) UNION 
+            (SELECT `FSN`,`Item ID`, `Description Type` from `piggybank` WHERE 
+            `Item ID` IS NOT NULL);"""
+    else:
+        sqlcmdstring = """(SELECT `FSN`,`Item ID`, `Description Type` from `fsndump` WHERE 
+            `Item ID` IS NOT NULL AND `Description Type` = "%s") UNION 
+            (SELECT `FSN`,`Item ID`, `Description Type` from `piggybank` WHERE 
+            `Item ID` IS NOT NULL AND `Description Type` = "%s");"""%(description_type, description_type)
     cursor.execute(sqlcmdstring)
     data_piggybank = cursor.fetchall()
     conn.close()
@@ -3397,12 +3402,116 @@ def dumpFSNsIntoFile():
     #print "Generating dataframe."
     data_frame = pd.DataFrame.from_records(data_piggybank)    
     #print data_frame.shape
-    data_frame.to_csv("[%s]_FSN Dump.csv"%start_time, sep=",")
+    data_frame.to_csv("[%s]_FSN Dump.csv"%start_time.strftime("%Y%m%d"), sep=",")
     print "Successfully wrote to file."
     raw_input("Hit enter to exit.")
     #return data_piggybank, data_frame
 
+def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentage=None):
+    """
+    This function returns 4 dictionaries of dictionaries.
+    1. writer_type_category_dictionary: A cross-table that counts 
+        the "Article Count", "Audit Count" and "Audit Percentage"
+        for each writer, giving the metrics at the type x category level.
+        For example, for an employee (72062): this might return, for a particular date range,
+        "72062": { 
+                "Rich Product Description Plan A": 
+                                {
+                                    Watches":
+                                        {
+                                            "Article Count": 10,
+                                            "Audit Count": 3,
+                                            "Audit Percentage: 0.3 #This is >= the min_audit_percentage
+                                        }
+                                }
+    2. writer_dictionary: This table just contains the overall article count, 
+        article count and audit percentage for a writer.
+    3. category_type_dictionary: This table contains a similar method to #1. 
+        Watches:{
+            "Rich Product Description":
+                {
+                    "Article Count": 10,
+                    "Audit Count": 3,
+                    "Audit Percentage: 0.3 #This is >= the min_audit_percentage
+                }
+        }
+    4. category_type_writer_dictionary: This table contains the inverse of #1, where the categories, 
+        description types counts are mapped to writer_ids.
+
+    First, these four are built using the piggybank data.
+    Then, table #3 is constantly looped through.
+    For each categoryxtype, the audit count is increased till the % hits min.
+    While this is done, the same process is done for tables #4 and #1. 
+    Here, the numbers are constantly monitored, so that the article count is exceeded.
+    """
+    import pandas as pd
+    import numpy as np
+    if end_date is None:
+        end_date = start_date
+    if min_audit_percentage is None:
+        min_audit_percentage = 0.3
+    user_id, password = getBigbrotherCredentials()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT `Description Type`, `Category`, `WriterID`, `Writer Name` FROM `piggybank` WHERE `Article Date` BETWEEN "%s" AND "%s";""" %(start_date, end_date)
+    #print sqlcmdstring
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    #print data
+    #Create a dataframe that contains the piggybank.
+    piggy_bank_data_frame = pd.DataFrame.from_records(data)
+    #print piggy_bank_data_frame
+    #Create dictionaries to monitor writer audit % and writer category numbers.
+    print "Computing the writer x type x category data set and the writer data set."
+    writers_list = list(set(list(piggy_bank_data_frame["WriterID"])))
+    writer_type_category_dictionary = dict((writer, {}) for writer in writers_list)
+    writer_dictionary = dict((writer, {}) for writer in writers_list)
+    for writer in writers_list:
+        location_1 = (piggy_bank_data_frame["WriterID"] == writer)
+        description_types =  list(set(list(description_type for description_type in list(piggy_bank_data_frame.loc[location_1,"Description Type"]))))
+        articles_count = len(piggy_bank_data_frame.loc[location_1, "Description Type"].values)
+        writer_dictionary[writer] = {"Article Count": articles_count, "Audit Count": 0, "Audit Percentage": 0.0}
+        writer_type_category_dictionary[writer] = dict((description_type,{}) for description_type in description_types)
+        for description_type in description_types:
+            location_2 = (piggy_bank_data_frame["WriterID"] == writer) & (piggy_bank_data_frame["Description Type"] == description_type)
+            categories =  list(set(list(category for category in list(piggy_bank_data_frame.loc[location_2,"Category"]))))
+            writer_type_category_dictionary[writer][description_type] = dict((category,{}) for category in categories)
+            for category in categories:
+                location_3 = (piggy_bank_data_frame["WriterID"] == writer) & (piggy_bank_data_frame["Description Type"] == description_type) &(piggy_bank_data_frame["Category"] == category)
+                count_articles = len(piggy_bank_data_frame.loc[location_3, "Category"].values)
+                writer_type_category_dictionary[writer][description_type][category] = {"Article Count": count_articles, "Audit Count": 0, "Audit Percentage": 0.0}
+    print "Computing the category x type data set and the category x type x writer data set."
+    categories_list = list(piggy_bank_data_frame["Category"])
+    category_type_writer_dictionary = dict((category, {}) for category in categories_list)
+    category_type_dictionary = dict((category, {}) for category in categories_list)
+    for category in categories_list:
+        location_1 = (piggy_bank_data_frame["Category"] == category)
+        description_types = list(description_type for description_type in list(piggy_bank_data_frame.loc[location_1,"Description Type"]))
+        #print description_type
+        category_type_dictionary[category] = dict((description_type,{}) for description_type in description_types)
+        category_type_writer_dictionary[category] = dict((description_type,{}) for description_type in description_types)
+        for description_type in description_types:
+            location_2 = (piggy_bank_data_frame["Category"] == category) & (piggy_bank_data_frame["Description Type"] == description_type)
+            article_count = len(piggy_bank_data_frame.loc[location_2, "Description Type"].values)
+            category_type_dictionary[category][description_type] = {"Article Count":article_count, "Audit Count": 0, "Audit Percentage": 0}
+            writers = list(set(list(piggy_bank_data_frame.loc[location_2, "WriterID"])))
+            category_type_writer_dictionary[category][description_type] = dict((writer,{}) for writer in writers)
+
+            for writer in writers:
+                location_3 = (piggy_bank_data_frame["Category"] == category) & (piggy_bank_data_frame["Description Type"] == description_type) & (piggy_bank_data_frame["WriterID"] == writer)
+                article_count = len(piggy_bank_data_frame.loc[location_2, "WriterID"].values)
+                #print category, description_type, writer
+                #print category_type_writer_dictionary[category]
+                category_type_writer_dictionary[category][description_type][writer] = {"Article Count": article_count, "Audit Count": 0, "Audit Percentage": 0.0}
+            #Give 1 audit to all category x types.
+
+    return writer_type_category_dictionary, writer_dictionary, category_type_dictionary, category_type_writer_dictionary
+
+
+
 def calculateAuditAssignmentSheetBetween(start_date, end_date, min_audit_percentage):
+    """THIS FAILS."""
     import pandas as pd
     import numpy as np
     user_id, password = getBigbrotherCredentials()
@@ -3414,6 +3523,7 @@ def calculateAuditAssignmentSheetBetween(start_date, end_date, min_audit_percent
     data = cursor.fetchall()
     conn.close()
     initial_data_frame_list = ["Description Type", "Category", "WriterID", "Writer Name"]
+    #create a dataframe that has all the data associated with the piggybank.
     piggy_bank_data_frame = pd.DataFrame.from_records(data)
     audit_assignment_data_frame = piggy_bank_data_frame.copy(deep=False)
     audit_assignment_data_frame.drop_duplicates(inplace =True)
@@ -3444,12 +3554,11 @@ def calculateAuditAssignmentSheetBetween(start_date, end_date, min_audit_percent
             for writer in writers:
                 row_condition = (audit_assignment_data_frame["Description Type"] == description_type) & (audit_assignment_data_frame["WriterID"] == writer) & (audit_assignment_data_frame["Category"] == category)
                 audits = audit_assignment_data_frame.loc[row_condition,"Audit Count"].values 
-                
                 #print writer
                 #print description_type, category
                 #print "Whoa!",audits
                 articles = audit_assignment_data_frame.loc[row_condition,"Article Count"].values
-                audit_percentage = round(audits/articles,4)
+                audit_percentage = round(audits/articles,2)
                 while audit_percentage < min_audit_percentage:
                     audits = audit_assignment_data_frame.loc[row_condition,"Audit Count"].values
                     print audits, articles
@@ -3457,12 +3566,11 @@ def calculateAuditAssignmentSheetBetween(start_date, end_date, min_audit_percent
                         print "lesser!"
                         #increase the audits by 1 and repeat.
                         audit_assignment_data_frame.ix[row_condition,"Audit Count"] = audits + 1
-                        audit_percentage = round(audits/articles,4)
+                        audit_percentage = round(audits/articles,2)
                     else:
                         print "No need!"
                         #No more articles to audit.
                         break
-
                 audit_assignment_data_frame.ix[row_condition,"Audit Percentage"] = audit_percentage
     return audit_assignment_data_frame
 
