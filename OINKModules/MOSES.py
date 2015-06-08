@@ -3323,44 +3323,6 @@ def getColumnAverages(data_list):
     averages_list = [numpy.mean(data_array[:,column_index]) for column_index in range(data_array.shape[1])]
     return averages_list
 
-def plotBarGraphs():
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import datetime
-    n_bins = 8
-    d1 = datetime.date(2015,1,1)
-    d2 = datetime.date.today()
-    u, p = getBigbrotherCredentials()
-    
-    writer_1_cfm, writer_1_gseo = getRawDataParameterPercentagesBetween(u, p, d1, d2, "62487")
-    team_cfm, team_gseo = getRawDataParameterPercentagesBetween(u, p, d1, d2, "All")
-
-    x = np.array([
-            writer_1_cfm,
-            team_cfm])
-
-    fig, axes = plt.subplots(nrows=2, ncols=2)
-    
-    ax0, ax1, ax2, ax3 = axes.flat
-
-    labels = ["Writer","Team"]
-    colors = ['red', 'tan']
-    ax0.hist(x, n_bins, normed=1, histtype='bar', color=colors, label=labels)
-    ax0.legend(prop={'size': 8})
-    ax0.set_title('bars with legend')
-    plt.tight_layout()
-    plt.show()
-    ax1.hist(x, n_bins, normed=1, histtype='bar', stacked=True)
-    ax1.set_title('stacked bar')
-
-    ax2.hist(x, n_bins, histtype='step', stacked=True, fill=True)
-    ax2.set_title('stepfilled')
-
-    # Make a multiple-histogram of data-sets with different length.
-    x_multi = [np.random.randn(n) for n in [10000, 5000, 2000]]
-    ax3.hist(x_multi, n_bins, histtype='bar')
-    ax3.set_title('different sample sizes')
-
 def getLastWorkingDayOfWeek(query_date):
     user_id, password = getBigbrotherCredentials()
     current_day = query_date.isocalendar()[2]
@@ -3422,6 +3384,7 @@ def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentag
                                             "Article Count": 10,
                                             "Audit Count": 3,
                                             "Audit Percentage: 0.3 #This is >= the min_audit_percentage
+                                            "Audits Picked": 3 #This number is for processing.
                                         }
                                 }
     2. writer_dictionary: This table just contains the overall article count, 
@@ -3433,6 +3396,7 @@ def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentag
                     "Article Count": 10,
                     "Audit Count": 3,
                     "Audit Percentage: 0.3 #This is >= the min_audit_percentage
+                    "Audits Picked": 3 #This number is for processing.
                 }
         }
     4. category_type_writer_dictionary: This table contains the inverse of #1, where the categories, 
@@ -3471,7 +3435,7 @@ def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentag
         location_1 = (piggy_bank_data_frame["WriterID"] == writer)
         description_types =  list(set(list(description_type for description_type in list(piggy_bank_data_frame.loc[location_1,"Description Type"]))))
         articles_count = len(piggy_bank_data_frame.loc[location_1, "Description Type"].values)
-        writer_dictionary[writer] = {"Article Count": articles_count, "Audit Count": 0, "Audit Percentage": 0.0}
+        writer_dictionary[writer] = {"Article Count": articles_count, "Audit Count": 0, "Audit Percentage": 0.0, "Audits Picked": 0}
         writer_type_category_dictionary[writer] = dict((description_type,{}) for description_type in description_types)
         for description_type in description_types:
             location_2 = (piggy_bank_data_frame["WriterID"] == writer) & (piggy_bank_data_frame["Description Type"] == description_type)
@@ -3480,7 +3444,7 @@ def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentag
             for category in categories:
                 location_3 = (piggy_bank_data_frame["WriterID"] == writer) & (piggy_bank_data_frame["Description Type"] == description_type) &(piggy_bank_data_frame["Category"] == category)
                 count_articles = len(piggy_bank_data_frame.loc[location_3, "Category"].values)
-                writer_type_category_dictionary[writer][description_type][category] = {"Article Count": count_articles, "Audit Count": 0, "Audit Percentage": 0.0}
+                writer_type_category_dictionary[writer][description_type][category] = {"Article Count": count_articles, "Audit Count": 0, "Audit Percentage": 0.0, "Audits Picked": 0}
     print "Computing the category x type data set and the category x type x writer data set."
     categories_list = list(piggy_bank_data_frame["Category"])
     category_type_writer_dictionary = dict((category, {}) for category in categories_list)
@@ -3494,7 +3458,7 @@ def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentag
         for description_type in description_types:
             location_2 = (piggy_bank_data_frame["Category"] == category) & (piggy_bank_data_frame["Description Type"] == description_type)
             article_count = len(piggy_bank_data_frame.loc[location_2, "Description Type"].values)
-            category_type_dictionary[category][description_type] = {"Article Count":article_count, "Audit Count": 0, "Audit Percentage": 0}
+            category_type_dictionary[category][description_type] = {"Article Count":article_count, "Audit Count": 0, "Audit Percentage": 0, "Audits Picked": 0}
             writers = list(set(list(piggy_bank_data_frame.loc[location_2, "WriterID"])))
             category_type_writer_dictionary[category][description_type] = dict((writer,{}) for writer in writers)
 
@@ -3503,76 +3467,65 @@ def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentag
                 article_count = len(piggy_bank_data_frame.loc[location_2, "WriterID"].values)
                 #print category, description_type, writer
                 #print category_type_writer_dictionary[category]
-                category_type_writer_dictionary[category][description_type][writer] = {"Article Count": article_count, "Audit Count": 0, "Audit Percentage": 0.0}
+                category_type_writer_dictionary[category][description_type][writer] = {"Article Count": article_count, "Audit Count": 0, "Audit Percentage": 0.0, "Audits Picked": 0}
             #Give 1 audit to all category x types.
-
-    return writer_type_category_dictionary, writer_dictionary, category_type_dictionary, category_type_writer_dictionary
-
-
-
-def calculateAuditAssignmentSheetBetween(start_date, end_date, min_audit_percentage):
-    """THIS FAILS."""
-    import pandas as pd
-    import numpy as np
-    user_id, password = getBigbrotherCredentials()
-    conn = getOINKConnector(user_id, password)
-    cursor = conn.cursor()
-    sqlcmdstring = """SELECT `Description Type`, `Category`, `WriterID`, `Writer Name` FROM `piggybank` WHERE `Article Date` BETWEEN "%s" AND "%s";""" %(start_date, end_date)
-    #print sqlcmdstring
-    cursor.execute(sqlcmdstring)
-    data = cursor.fetchall()
-    conn.close()
-    initial_data_frame_list = ["Description Type", "Category", "WriterID", "Writer Name"]
-    #create a dataframe that has all the data associated with the piggybank.
-    piggy_bank_data_frame = pd.DataFrame.from_records(data)
-    audit_assignment_data_frame = piggy_bank_data_frame.copy(deep=False)
-    audit_assignment_data_frame.drop_duplicates(inplace =True)
-    count_list = []
-    for index, row in audit_assignment_data_frame.iterrows():
-        description_type = row["Description Type"]
-        category = row["Category"]
-        writer_id = row["WriterID"]
-        #print "*"*10
-        #print description_type, category, writer_id
-        temp_data_frame = piggy_bank_data_frame.loc[(piggy_bank_data_frame["Description Type"] == description_type) & (piggy_bank_data_frame["Category"] == category) & (piggy_bank_data_frame["WriterID"] == writer_id)]
-        #print temp_data_frame
-        count_ = len(list(temp_data_frame["Category"]))
-        #print "Found %d"%count_
-        #print "*"*10
-        #print type(count_)
-        count_list.append(count_)
-    #print count_list
-    audit_assignment_data_frame["Article Count"] = count_list
-    audit_assignment_data_frame["Audit Count"] = 1
-    audit_assignment_data_frame["Audit Percentage"] = 0
-    categories = list(audit_assignment_data_frame["Category"])
-    print "This'll take time, Joey."
-    for category in categories:
-        description_types = list(audit_assignment_data_frame.loc[(audit_assignment_data_frame["Category"]==category),"Description Type"])
+    print "Completed building the data sets."
+    print "Starting the process loop. Minimum Audit Percentage is %.2f" %min_audit_percentage
+    #loop through category_type_dictionary and pick out those which are zero.
+    categories_list = list(piggy_bank_data_frame["Category"]) #I can remove this, probably.
+    for category in categories_list:
+       #location_1 = (piggy_bank_data_frame["Category"] == category)
+        description_types = category_type_dictionary[category].keys()
         for description_type in description_types:
-            writers = list(audit_assignment_data_frame.loc[(audit_assignment_data_frame["Description Type"]==description_type)&(audit_assignment_data_frame["Category"]==category),"WriterID"])
-            for writer in writers:
-                row_condition = (audit_assignment_data_frame["Description Type"] == description_type) & (audit_assignment_data_frame["WriterID"] == writer) & (audit_assignment_data_frame["Category"] == category)
-                audits = audit_assignment_data_frame.loc[row_condition,"Audit Count"].values 
-                #print writer
-                #print description_type, category
-                #print "Whoa!",audits
-                articles = audit_assignment_data_frame.loc[row_condition,"Article Count"].values
-                audit_percentage = round(audits/articles,2)
-                while audit_percentage < min_audit_percentage:
-                    audits = audit_assignment_data_frame.loc[row_condition,"Audit Count"].values
-                    print audits, articles
-                    if audits < articles:
-                        print "lesser!"
-                        #increase the audits by 1 and repeat.
-                        audit_assignment_data_frame.ix[row_condition,"Audit Count"] = audits + 1
-                        audit_percentage = round(audits/articles,2)
-                    else:
-                        print "No need!"
-                        #No more articles to audit.
-                        break
-                audit_assignment_data_frame.ix[row_condition,"Audit Percentage"] = audit_percentage
-    return audit_assignment_data_frame
+            audit_percentage = category_type_dictionary[category][description_type]["Audit Percentage"]
+            article_count =  category_type_dictionary[category][description_type]["Article Count"]
+            audit_count = category_type_dictionary[category][description_type]["Audit Count"]
+            #While the audit percentage is below the minimum, increase the audit count by 1 and recalculate the aud_%.
+            while audit_percentage < min_audit_percentage:
+                    audit_count = category_type_dictionary[category][description_type]["Audit Count"]
+                    audit_count +=1
+                    category_type_dictionary[category][description_type]["Audit Count"] = audit_count
+                    audit_percentage = audit_count/article_count
+                    category_type_dictionary[category][description_type]["Audit Percentage"] = audit_percentage
+            audit_count = category_type_dictionary[category][description_type]["Audit Count"]        
+    writers_list = list(set(list(piggy_bank_data_frame["WriterID"])))
+    for writer in writers_list:
+        audit_percentage = writer_dictionary[writer]["Audit Percentage"]
+        article_count = writer_dictionary[writer]["Article Count"]
+        while audit_percentage < min_audit_percentage:
+            audit_count = writer_dictionary[writer]["Audit Count"]
+            audit_count += 1
+            writer_dictionary[writer]["Audit Count"] = audit_count
+            audit_percentage = audit_count/article_count
+            writer_dictionary[writer]["Audit Percentage"] = audit_percentage
+    print "Completed."
+    #Write a segment that checks if the total audit count is constant. If not, it should raise a ValueError.
+    total_writer_audits = sum([writer_dictionary[writer]["Audit Count"] for writer in writers_list])
+    writer_audit_percentages = [writer_dictionary[writer]["Audit Percentage"] for writer in writers_list]
+    total_category_audits = 0
+    category_audit_percentages = []
+    for category in category_type_dictionary.keys():
+        for d_type in category_type_dictionary[category].keys():
+            total_category_audits += category_type_dictionary[category][d_type]["Audit Count"]
+            category_audit_percentages.append(category_type_dictionary[category][d_type]["Audit Percentage"])
+    print "%d audits required to satisfy writer percentages. %d required for category audit percentage coverage." %(total_writer_audits, total_category_audits)
+    category_audit_percentages.sort()
+    writer_audit_percentages.sort()
+    min_writer_audit_percentage = min(writer_audit_percentages)
+    min_category_audit_percentage = min(category_audit_percentages)
+    #print "Minimum Audit Percentage: %.4f (Writers); %.4f (Category Level);" %(min_writer_audit_percentage, min_category_audit_percentage)
+    #print "Writer Percentages:", writer_audit_percentages
+    #print "Category Percentages:", category_audit_percentages
+    if total_writer_audits > total_category_audits:
+        required_audit_count = total_writer_audits
+        print "The deciding data set should be the writer cross tabulation. Thus, a total %d audits is required." %required_audit_count
+    else:
+        required_audit_count = total_category_audits
+        print "The deciding data set should be the category cross tabulation. Total %d audits required." %required_audit_count
+    #    for category in category_type_dictionary.keys():
+    #        for description_type in category_type_dictionary[category].keys():
+
+    return writer_dictionary, writer_type_category_dictionary, category_type_dictionary, category_type_writer_dictionary
 
 if __name__ == "__main__":
     print "Never call Moses mainly."
