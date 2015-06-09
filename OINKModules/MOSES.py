@@ -768,15 +768,20 @@ def getClarifications(user_id, password):
 def initWorkCalendar(user_id, password, start_date, end_date):
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
-    employeesData = getEmployeesList(user_id, password)
-    employeesList = [employee["Employee ID"] for employee in employeesData]    
+    employeesData = getEmployeesList(user_id, password, end_date)
+    employeesList = [employee["Employee ID"] for employee in employeesData]
+    total_employees = len(employeesList)
+    start_time = datetime.datetime.now()
+    last_update_time = start_time
     for employeeID in employeesList:
         for process_date in OINKM.getDatesBetween(start_date, end_date):
             if not OINKM.isWeekend(process_date):
                 sqlcmdstring = "INSERT INTO `workcalendar` (`Date`, `Employee ID`,  `Status`, `Relaxation`, `Entered By`) VALUES ('%s', '%s', 'Working', '0.00', 'Big Brother')" % (convertToMySQLDate(process_date), employeeID)
                 try:
                     dbcursor.execute(sqlcmdstring)
-                    print "Processed work information for %s for %s." %(employeeID, process_date)
+                    if ((datetime.datetime.now() - last_update_time) >= datetime.timedelta(seconds=60)):
+                        print "Processed work information for %s for %s." %(employeeID, process_date)
+                        last_update_time = datetime.datetime.now()
                 except MySQLdb.IntegrityError:
                     pass
     connectdb.commit()
@@ -1181,11 +1186,14 @@ def getEmployeeIDsList(user_id,password):
     employeesdb.close()
     return employeesList
 
-def getEmployeesList(user_id, password):
+def getEmployeesList(user_id, password, query_date=None):
     """Returns a list of dictionaries containing employee details."""
     connectdb = getOINKConnector(user_id, password)
     dbcursor=connectdb.cursor()
-    sqlcmdstring="SELECT * from `employees`;"
+    if query_date is None:
+        sqlcmdstring="SELECT * from `employees`;"
+    else:
+        sqlcmdstring = """SELECT * from `employees` WHERE `DOJ`<="%s" AND (`DOL`>"%s" OR `DOL` IS NULL); ;"""%(query_date, query_date)
     dbcursor.execute(sqlcmdstring)
     employeesData=dbcursor.fetchall()
     connectdb.commit()

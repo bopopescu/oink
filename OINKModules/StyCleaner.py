@@ -4,6 +4,7 @@ import json
 import datetime
 import csv
 from oauth2client.client import SignedJwtAssertionCredentials
+from PyQt4 import QtGui, QtCore
 import pandas as pd
 import numpy as np
 
@@ -152,10 +153,11 @@ def summarizeClarificationSheet(query_date, worksheet_names=None):
 							"Tat Met %": tat_met
 							}
 		output_data_frame = pd.DataFrame(output_dictionary)
-		output_data_frame.to_csv(summary_file_name,sep=",")
+
+		output_data_frame.transpose().to_csv(summary_file_name,sep=",")
 		print "Completed summarizing the clarification sheet for %s categories(s)." % worksheet_names[0] if len(worksheet_names) == 1 else worksheet_names
 
-if __name__ == "__main__":
+def main():
 	print "Welcome to the Clarification Tracker summarization program."
 	while True:
 		query_date_string = raw_input("Enter a date in the week you wish to summarize. (YYYY-MM-DD): ")
@@ -171,3 +173,25 @@ if __name__ == "__main__":
 		print "Trying to summarize the %s clarification sheet." %query_table
 		summarizeClarificationSheet(query_date, query_table)
 	raw_input("Completed. Hit enter to exit.>")
+
+class StyCleaner(QtGui.QWidget):
+	def __init__(self):
+		super(StyCleaner, self).__init__()
+	def createUI(self):
+		""""""
+	def mapEvents(self):
+		""""""
+	def fetchSummarySheet(self):
+		""""""
+	def populateSummarySheet(self, data_list):
+		""""""
+
+
+class StyHand(QtCore.QThread):
+	sendSummary = QtCore.pyqtSignal()
+	def __init__(self):
+		super(StyHand, self).__init__()
+
+
+if __name__ == "__main__":
+	main()
