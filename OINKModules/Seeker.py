@@ -62,13 +62,21 @@ class Seeker(QtGui.QWidget):
         self.peeves.sendData.connect(self.populateTable)
     
     def fetchData(self):
-        search_items = list(set(str(self.fsns_text_edit.toPlainText()).strip().split("\n")))
-        search_items = ",".join(search_items)
-        search_items.replace('"',"")
-        self.fsns_text_edit.setText(search_items)
-        search_items = str(self.fsns_text_edit.toPlainText()).strip().split(",")
+        text_edit_contents = str(self.fsns_text_edit.toPlainText()).strip()
+        print "Got text!"
+        if '"' in text_edit_contents:
+            text_edit_contents.replace('"',"")
+            print "Removing quotes"
+        if " " in text_edit_contents:
+            text_edit_contents.replace(' ', "")
+            print "Removing spaces"
+        search_items = list(set(text_edit_contents.split("\n")))
+        #search_items = ",".join(search_items)
+        #self.fsns_text_edit.setText(search_items)
+        #search_items = str(self.fsns_text_edit.toPlainText()).strip().split(",")
         self.mode = self.mode_combo_box.currentIndex()
         self.search_type = self.type_selector.currentIndex()
+        print 'Delegating!'
         self.peeves.fetchData(search_items, self.mode, self.search_type)
         #print len(fsns)
 
@@ -118,7 +126,8 @@ class Seeker(QtGui.QWidget):
         done, total, eta
         progress = float(done)/float(total)
         if done < total:
-            self.progress_bar.setFormat("Getting FSN Data. Finished %d of %d. ETA: %s" %(done, total, eta))
+            time_string = datetime.datetime.strftime(eta, "%d %B, %H:%M:%S")
+            self.progress_bar.setFormat("Getting FSN Data. Finished %d of %d. ETA: %s" %(done, total, time_string))
         else:
             self.progress_bar.setFormat("Completed fetching FSN Data")
         self.progress_bar.setValue(int(progress*100))

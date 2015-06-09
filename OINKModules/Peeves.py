@@ -18,12 +18,16 @@ class Peeves(QtCore.QThread):
         self.password = password
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
+        self.sent = False
+        self.search_strings = []
         if not self.isRunning():
             self.start(QtCore.QThread.LowPriority)
 
     def run(self):
         """"""
         print "Peeves is running and ready to serve the Seeker."
+        while True:
+            self.processSearchStrings()
 
     def __del__(self):
         """"""
@@ -38,7 +42,7 @@ class Peeves(QtCore.QThread):
         self.search_strings = search_strings
         self.mode = mode
         self.search_type = search_type
-        self.processSearchStrings()
+        self.sent = False
 
     def processSearchStrings(self):
         search_results = []
@@ -46,7 +50,10 @@ class Peeves(QtCore.QThread):
         start_time = datetime.datetime.now()
         total = len(self.search_strings)
         counter = 1
-        for search_string in self.search_strings:
+        last_update_time = datetime.datetime.now()
+        initial_search_strings = self.search_strings
+        for search_string in initial_search_strings:
+            #print "Looping in Peeves!"
             try:
                 search_result= self.search_function[self.search_type](self.user_id, self.password, search_string)
             except:
@@ -64,10 +71,20 @@ class Peeves(QtCore.QThread):
                         except:
                             raise                        
             search_results.append(search_result)
+            if initial_search_strings != self.search_strings:
+                #If the search string list isn't the same as we started with, stop.
+                break
+            #if ((datetime.datetime.now() - last_update_time) >= datetime.timedelta(seconds=10)) or (counter == total):
             eta = MOSES.getETA(start_time, counter, total)
             self.sendProgress.emit(counter, total, eta)
+            self.sendData.emit(search_results)
+            last_update_time = datetime.datetime.now()
+                #print "Sending Status signal!"
             counter += 1
             if self.stop_sending:
                 break
-        self.sendData.emit(search_results)
-
+        if (not self.sent) and (not self.stop_sending):
+                #If the search string list is the same as the one we started with, then emit.
+            print "Sending data!"
+            self.sendData.emit(search_results)
+            self.sent = True
