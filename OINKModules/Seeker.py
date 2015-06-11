@@ -123,7 +123,6 @@ class Seeker(QtGui.QWidget):
         #print fsn_data
     
     def displayProgress(self, done, total, eta):
-        done, total, eta
         progress = float(done)/float(total)
         if done < total:
             time_string = datetime.datetime.strftime(eta, "%d %B, %H:%M:%S")

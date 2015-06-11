@@ -25,7 +25,7 @@ class Peeves(QtCore.QThread):
 
     def run(self):
         """"""
-        print "Peeves is running and ready to serve the Seeker."
+        #print "Peeves is running and ready to serve the Seeker."
         while True:
             self.processSearchStrings()
 

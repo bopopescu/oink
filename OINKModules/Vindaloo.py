@@ -17,7 +17,7 @@ from PorkKent import PorkKent
 from OINKMethods import version
 from Seeker import Seeker
 from Graphite import Graphite
-
+from StyCleaner import StyCleaner
 class Vindaloo(QtGui.QMainWindow):
     def __init__(self, userID, password):
         super(QtGui.QMainWindow,self).__init__()
@@ -51,6 +51,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.filtersButton.setMinimumWidth(300)
         self.filtersButton.setMaximumWidth(300)
         self.seeker = Seeker(self.userID, self.password)
+        self.sty_cleaner = StyCleaner()
         #This consumes time, put them in a thread
         self.writers_filter = FilterBox("Writers:")
         #self.writers_filter.addItems(writers)
@@ -124,7 +125,9 @@ class Vindaloo(QtGui.QMainWindow):
         self.stats_tabs.addTab(self.piggybank, "Piggy Bank")
         self.stats_tabs.addTab(self.rawdata, "Quality Raw Data")
         self.stats_tabs.addTab(self.seeker, "Seeker")
+        self.stats_tabs.addTab(self.sty_cleaner, "StyCleaner")
         self.stats_tabs.addTab(self.statusLog, "Log")
+
         self.finalLayout = QtGui.QHBoxLayout()
         self.finalLayout.addLayout(self.tools_layout,1)
         self.finalLayout.addWidget(self.stats_tabs,4)

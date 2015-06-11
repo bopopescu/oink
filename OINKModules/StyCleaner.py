@@ -8,10 +8,9 @@ from oauth2client.client import SignedJwtAssertionCredentials
 from PyQt4 import QtGui, QtCore
 import pandas as pd
 import numpy as np
-
 from OpenSSL import crypto
 
-from DateSelectorWidget import DateSelectorWidget
+import MOSES
 def getWeekNum(inputDate):
     if type(inputDate) == type(datetime.date.today()):
         return inputDate.isocalendar()[1]
@@ -36,7 +35,7 @@ def getDatesInWeekOf(inputDate):
     else:
         return "Error, please input a python datetime object to getDatesInWeekOf."
 
-def summarizeClarificationSheet(gc, query_date, worksheet_names=None):
+def summarizeClarificationSheet(gc, sheet_name, query_date, worksheet_names=None):
     #import os
     #print "Loading credentials from the JSON."
     #auto_file_name = os.path.join("Data","GoogleAuthInfo.json")
@@ -60,8 +59,8 @@ def summarizeClarificationSheet(gc, query_date, worksheet_names=None):
     over_all_data = []
     counter = 0
     for work_sheet in worksheet_names:
-        print "Opening sheet: %s" %work_sheet
-        wks = gc.open("Content VAS - Clarification Tracker").worksheet(work_sheet)
+        #print "Opening sheet: %s" %work_sheet
+        wks = gc.open(sheet_name).worksheet(work_sheet)
         data = wks.get_all_values()
         for row in data[1:]:
             if counter == 0:
@@ -87,8 +86,8 @@ def summarizeClarificationSheet(gc, query_date, worksheet_names=None):
         data_frame = data_frame[pd.notnull(data_frame["Assigned Date"])]
         #data_frame.to_csv(raw_data_file_name,sep=',')
         #print data_frame
-        print "Completed fetching the data and writing to file."
-        output_headers = ["Total Pending","Raised","Closed","Within TAT","Outside TAT","Tat Met %"]
+        print "Completed fetching the data for %s." % worksheet_names[0]
+        output_headers = ["Total Pending","Raised","Closed","Closed Within TAT","Pending Outside TAT","Tat Met %"]
         week_dates = getDatesInWeekOf(query_date)
         output_dictionary = dict((week_date,{}) for week_date in week_dates)
         assigned_dates = []
@@ -117,19 +116,25 @@ def summarizeClarificationSheet(gc, query_date, worksheet_names=None):
         data_frame["Corrected Assigned Date"] = assigned_dates
         data_frame["Corrected Actioned Date"] = actioned_dates
         for week_date in week_dates:
+            #the tat is 4 working days, so for Monday to Wednesday, the TAT is 4 + 2
             if week_date.isoweekday() in [1,2,3,4]:
                 allowed_tat_gap = 6 #datetime.timedelta(days=6)
             else:
                 allowed_tat_gap = 4 #datetime.timedelta(days=4)
+            #Count all those which are pending
             pending_location = (data_frame["Corrected Assigned Date"] <= week_date) & (data_frame["Status"] != "CLOSED") & (data_frame["Assigned Date"] != np.NaN)
-            #print pending_location
+            #count all those entries which were raised on this date.
             raised_location = (data_frame["Corrected Assigned Date"] == week_date) & (data_frame["Assigned Date"] != np.NaN)
+            #count entries closed on  this date.
             closed_location = (data_frame["Corrected Actioned Date"] == week_date) & (data_frame["Status"] == "CLOSED") & (data_frame["Assigned Date"] != np.NaN)
             #print data_frame
+            #why is this in an exception catcher?
             try:
-                within_tat_location = (((data_frame["Corrected Actioned Date"]-data_frame["Corrected Assigned Date"]) > allowed_tat_gap) & (data_frame["Status"] != "CLOSED"))
+                #Count entries closed on this date within TAT date.
+                within_tat_location = ((data_frame["Corrected Actioned Date"] == week_date) & ((data_frame["Corrected Actioned Date"]-data_frame["Corrected Assigned Date"]) <= allowed_tat_gap) & (data_frame["Status"] != "CLOSED")) & (data_frame["Assigned Date"] != np.NaN)
             except:
                 #print data_frame
+                print "I should not be in this part of the code. There's a problem with the closed within tat numbers."
                 within_tat_location = []
                 for index, row in data_frame.iterrows():
                     if type(row["Corrected Actioned Date"]) != type(datetime.date.today()):
@@ -142,6 +147,8 @@ def summarizeClarificationSheet(gc, query_date, worksheet_names=None):
                             raise
                     within_tat_location.append(verdict)
 
+            #count entries that are pending and within tat as of this date.
+            pending_within_tat_location = (data_frame["Corrected Assigned Date"] <= week_date) & (data_frame["Status"] != "CLOSED") & (data_frame["Assigned Date"] != np.NaN) &((week_date-data_frame["Corrected Assigned Date"]) <= allowed_tat_gap)
             #print data_frame.loc[pending_location]
 
             total_pending = len(data_frame.loc[pending_location,"Assigned Date"].values)
@@ -149,12 +156,13 @@ def summarizeClarificationSheet(gc, query_date, worksheet_names=None):
             closed = len(data_frame.loc[closed_location,"Assigned Date"].values)
             within_tat = len(data_frame.loc[within_tat_location,"Assigned Date"].values)
             tat_met = within_tat/total_pending
+            pending_within_tat = len(data_frame.loc[pending_within_tat_location,"Assigned Date"].values)
             output_dictionary[week_date] = {
                             "Total Pending" : total_pending,
                             "Raised": total_raised,
                             "Closed": closed,
-                            "Within TAT": within_tat,
-                            "Outside TAT": total_pending - within_tat,
+                            "Closed Within TAT": within_tat,
+                            "Pending Outside TAT": total_pending - pending_within_tat,
                             "Tat Met %": "%.2f%%"%(tat_met*100)
                             }
         output_data_frame = pd.DataFrame(output_dictionary)
@@ -187,15 +195,10 @@ def main():
 class StyCleaner(QtGui.QWidget):
     def __init__(self):
         super(StyCleaner, self).__init__()
-        auto_file_name = os.path.join("Data","GoogleAuthInfo.json")
-        json_key = json.load(open(auto_file_name))
-        scope = ['https://spreadsheets.google.com/feeds']
-        credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
-        self.google_credentials = gspread.authorize(credentials)
         self.clip = QtGui.QApplication.clipboard()
         self.createUI()
+        self.sty_hand = StyHand()
         self.mapEvents()
-
 
     def createUI(self):
         """"""
@@ -216,7 +219,6 @@ class StyCleaner(QtGui.QWidget):
         self.category_selection_label = QtGui.QLabel("<b>Select Sheets to Summarize:</b>")
         self.category_selection = QtGui.QListWidget()
         self.category_selection.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.category_selection.setMaximumHeight(80)
         self.query_tables = ["SHA, PHC & CE", "FMCG & Others", "Lifestyle, Home & Furniture","MT, C/IT & LA", "Auto Acc & Others"]
         #query_tables = 
         self.query_tables.sort()
@@ -226,22 +228,30 @@ class StyCleaner(QtGui.QWidget):
         self.category_selection.addItems(self.query_tables)
         self.summary_table_tab = QtGui.QTabWidget()
 
-        self.summary_table_tab.setMaximumWidth(450)
-        self.summary_table_tab.setMinimumWidth(450)
-        self.summary_table_tab.setMaximumHeight(160)
+        self.summary_table_tab.setMinimumWidth(460)
         self.summary_table_tab.setMinimumHeight(160)
         self.summary_tables = dict((sheet, QtGui.QTableWidget()) for sheet in self.query_tables)
         for sheet in self.query_tables:
             self.summary_table_tab.addTab(self.summary_tables[sheet],"%s..."%sheet[:4])
         self.options_layout = QtGui.QVBoxLayout()
-        self.options_layout.addWidget(self.clarification_sheet_label)
-        self.options_layout.addWidget(self.clarification_sheet_line_edit)
-        self.options_layout.addWidget(self.category_selection_label)
-        self.options_layout.addWidget(self.category_selection)
-        self.options_layout.addLayout(self.dates_picker)
+        self.options_layout.addWidget(self.clarification_sheet_label,1)
+        self.options_layout.addWidget(self.clarification_sheet_line_edit,1)
+        self.options_layout.addWidget(self.category_selection_label,1)
+        self.options_layout.addWidget(self.category_selection,4)
+        self.options_layout.addLayout(self.dates_picker,1)
+        self.options_layout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        self.progress_bar = QtGui.QProgressBar()
+        progress_bar_style = """
+            .QProgressBar {
+                 text-align: center;
+             }"""
+        self.progress_bar.setStyleSheet(progress_bar_style)
+        self.tabs_layout = QtGui.QVBoxLayout()
+        self.tabs_layout.addWidget(self.summary_table_tab)
+        self.tabs_layout.addWidget(self.progress_bar)
         self.layout = QtGui.QHBoxLayout()
         self.layout.addLayout(self.options_layout, 1)
-        self.layout.addWidget(self.summary_table_tab, 4)
+        self.layout.addLayout(self.tabs_layout, 4)
         self.setWindowTitle("Sty Cleaner: We Clean the Shiz.")
         self.setLayout(self.layout)
         self.show()
@@ -249,19 +259,21 @@ class StyCleaner(QtGui.QWidget):
     def mapEvents(self):
         """"""
         self.submit_button.clicked.connect(self.fetchSummarySheet)
+        self.sty_hand.sendSummary.connect(self.populateSummaries)
+        self.sty_hand.sendProgress.connect(self.displayProgress)
+
     def fetchSummarySheet(self):
         """"""
         query_date = self.date_edit.date().toPyDate()
-
         selected_sheets = self.getSelectedSheets()
-        data_dict = dict((sheet, None) for sheet in selected_sheets)
+        sheet_name = str(self.clarification_sheet_line_edit.text()).strip()
+        self.sty_hand.restartSending(sheet_name,selected_sheets, query_date)
+
+    def populateSummaries(self, data_dict, selected_sheets, query_date, completion=False):
         for sheet in selected_sheets:
-            #print sheet
-            data_dict[sheet] = summarizeClarificationSheet(self.google_credentials,query_date, sheet)
-        for sheet in selected_sheets:
-            if data_dict[sheet] is None:
-                self.alertMessage("No Data","There is no data to fetch for the week of %s." %query_date)
-            else:   
+            if (data_dict[sheet] is None) and completion:
+                self.alertMessage("No Data","There is no data to fetch for %s the week of %s." %(sheet, query_date))
+            elif not (data_dict[sheet] is None):
                 self.summary_tables[sheet].setColumnCount(len(data_dict[sheet].columns))
                 self.summary_tables[sheet].setRowCount(len(data_dict[sheet].index))
                 self.summary_tables[sheet].setHorizontalHeaderLabels(data_dict[sheet].columns)
@@ -274,7 +286,8 @@ class StyCleaner(QtGui.QWidget):
                 self.summary_tables[sheet].resizeRowsToContents()
                 self.summary_tables[sheet].setStyleSheet("gridline-color: rgb(0, 0, 0)")
                 self.summary_table_tab.setCurrentIndex(self.query_tables.index(sheet))
-                self.alertMessage("Success","Fetched data for %s for the week of %s." %(sheet, query_date))
+                if completion:
+                    self.alertMessage("Success","Fetched data for %s for the week of %s." %(sheet, query_date))
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
@@ -282,6 +295,15 @@ class StyCleaner(QtGui.QWidget):
     def getSelectedSheets(self):
         selection = self.category_selection.selectedItems()
         return [str(selection_label.text()) for selection_label in selection]
+    
+    def displayProgress(self, status, eta, progress):
+        if status == "Completed":
+            self.progress_bar.setFormat("Completed summaries")
+            self.progress_bar.setValue(100)
+        else:
+            time_string = datetime.datetime.strftime(eta, "%d %B, %H:%M:%S")
+            self.progress_bar.setValue(int(progress))
+            self.progress_bar.setFormat("%s ETA: %s." %(status, time_string))
 
     def keyPressEvent(self, e):
         """Found this code online. Go through it and try to improve it."""
@@ -295,7 +317,7 @@ class StyCleaner(QtGui.QWidget):
                 s = s + '\n'
 
                 for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
-                    s += str(r+1) + '\t' 
+                    s += table_to_copy.verticalHeaderItem(r).text() + '\t'
                     for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
                         try:
                             s += str(table_to_copy.item(r,c).text()) + "\t"
@@ -305,9 +327,62 @@ class StyCleaner(QtGui.QWidget):
                 self.clip.setText(s)
 
 class StyHand(QtCore.QThread):
-    sendSummary = QtCore.pyqtSignal()
+    sendSummary = QtCore.pyqtSignal(dict, list, datetime.date, bool)
+    sendProgress = QtCore.pyqtSignal(str, datetime.datetime, float)
+
     def __init__(self):
         super(StyHand, self).__init__()
+        self.send = False
+        self.sheet_names = []
+        self.query_date = datetime.datetime.today()
+        self.stop_sending = False
+        auth_file_name = os.path.join("Data","GoogleAuthInfo.json")
+        json_key = json.load(open(auth_file_name))
+        scope = ['https://spreadsheets.google.com/feeds']
+        credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+        self.google_credentials = gspread.authorize(credentials)
+        self.mutex = QtCore.QMutex()
+        self.condition = QtCore.QWaitCondition()
+        if not self.isRunning():
+            self.start(QtCore.QThread.LowPriority)
+
+    def run(self):
+        while True:
+            if self.send:
+                self.process()
+
+    def process(self):
+        self.stop_sending = False
+        data_dict = dict((sheet, None) for sheet in self.sheet_list)
+        start_time = datetime.datetime.now()
+        last_update_time = datetime.datetime.now()
+        counter = 1
+        total = len(self.sheet_list)
+        for sheet in self.sheet_list:
+            progress = ((counter-1)/total)*100
+            self.sendProgress.emit("(Please Wait): Processing summary for %s." %sheet, MOSES.getETA(start_time, counter, total), progress)
+            data_dict[sheet] = summarizeClarificationSheet(self.google_credentials, self.sheet_name, self.query_date, sheet)
+            self.sendSummary.emit(data_dict, self.sheet_list, self.query_date, False)
+            counter +=1
+        if not self.stop_sending:
+            self.sendSummary.emit(data_dict, self.sheet_list, self.query_date, True)
+            self.sendProgress.emit("Completed", datetime.datetime.now(), 100)
+            self.send = False
+
+
+    def __del__(self):
+        """"""
+        self.mutex.lock()
+        self.condition.wakeOne()
+        self.mutex.unlock()
+        self.wait()
+
+    def restartSending(self, sheet_name, sheet_list, query_date):
+        self.sheet_name = sheet_name
+        self.stop_sending = True
+        self.sheet_list = sheet_list
+        self.query_date = query_date
+        self.send = True
 
 
 if __name__ == "__main__":
