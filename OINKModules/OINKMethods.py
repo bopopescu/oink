@@ -301,11 +301,13 @@ def getDateFromString(inputDate,format="YYYYMMDD"):
     return datetime.date(year,month,day)
 
 def getDatesBetween(startDate,endDate):
+    #print "Here!"
     currentDate = startDate
     dateList = []
     while currentDate <= endDate:
         dateList.append(currentDate)
-        currentDate += datetime.timedelta(1)
+        currentDate += datetime.timedelta(days=1)
+    #print dateList
     return dateList
 
 def getWriterList():

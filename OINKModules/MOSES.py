@@ -771,10 +771,19 @@ def initWorkCalendar(user_id, password, start_date, end_date):
     employeesData = getEmployeesList(user_id, password, end_date)
     employeesList = [employee["Employee ID"] for employee in employeesData]
     total_employees = len(employeesList)
+    #print total_employees
     start_time = datetime.datetime.now()
     last_update_time = start_time
-    for employeeID in employeesList:
-        for process_date in OINKM.getDatesBetween(start_date, end_date):
+    dates_ = OINKM.getDatesBetween(start_date, end_date)
+    #print dates_
+    total = len(writers_list) * len(dates_)
+    counter = 1
+    start_time = datetime.datetime.now()
+    last_update_time = datetime.datetime.now()
+    
+    for process_date in dates_:
+        #print "Trying."
+        for employeeID in employeesList:
             if not OINKM.isWeekend(process_date):
                 sqlcmdstring = "INSERT INTO `workcalendar` (`Date`, `Employee ID`,  `Status`, `Relaxation`, `Entered By`) VALUES ('%s', '%s', 'Working', '0.00', 'Big Brother')" % (convertToMySQLDate(process_date), employeeID)
                 try:
@@ -783,6 +792,7 @@ def initWorkCalendar(user_id, password, start_date, end_date):
                         print "Processed work information for %s for %s." %(employeeID, process_date)
                         last_update_time = datetime.datetime.now()
                 except MySQLdb.IntegrityError:
+                    #print "Duplicate"
                     pass
     connectdb.commit()
     connectdb.close()
@@ -1193,9 +1203,11 @@ def getEmployeesList(user_id, password, query_date=None):
     if query_date is None:
         sqlcmdstring="SELECT * from `employees`;"
     else:
-        sqlcmdstring = """SELECT * from `employees` WHERE `DOJ`<="%s" AND (`DOL`>"%s" OR `DOL` IS NULL); ;"""%(query_date, query_date)
+        sqlcmdstring = """SELECT * from `employees` WHERE `DOJ`<="%s" AND (`DOL`>"%s" OR `DOL` IS NULL);"""%(query_date, query_date)
+    #print sqlcmdstring
     dbcursor.execute(sqlcmdstring)
     employeesData=dbcursor.fetchall()
+    #print employeesData
     connectdb.commit()
     connectdb.close()
     return employeesData
@@ -3182,40 +3194,42 @@ def populateStatsInWorkCalendar():
     import itertools
     start_time = datetime.datetime.now()
     u, p = getBigbrotherCredentials()
-    conn = getOINKConnector(user_id, password)
-    sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `GSEO` is Null;"""
-    #sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `Articles` is Null` or `Audits` is Null` OR `CFM` is Null OR `GSEO` is Null or `Efficiency` is Null;"""
+    conn = getOINKConnector(u, p)
+    #sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `GSEO` is Null;"""
+    sqlcmdstring = """SELECT `Employee ID`, `Date` from `Workcalendar` where `Articles` is Null or `Audits` is Null OR `CFM` is Null OR `GSEO` is Null or `Efficiency` is Null;"""
     cursor = conn.cursor()
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
     counter = 1
     passed = 0
     total = len(data)
+    last_update_time = datetime.datetime.now()   
     for row in data:
         query_date = row["Date"]
         query_id = row["Employee ID"]
         if getUserRole(u, p, query_id) == "Content Writer":
             try:
-                #articles = getArticleCount(u, p, query_date, query_id)
-                #audits = getAuditCount(u, p, query_date, query_id)
-                #efficiency = getEfficiencyFor(u, p, query_date, query_id)
-                #cfm = getCFMFor(u, p, query_date, query_id)
+                articles = getArticleCount(u, p, query_date, query_id)
+                audits = getAuditCount(u, p, query_date, query_id)
+                efficiency = getEfficiencyFor(u, p, query_date, query_id)
+                cfm = getCFMFor(u, p, query_date, query_id)
                 gseo = getGSEOFor(u, p, query_date, query_id)
-                sqlcmdstring = """UPDATE Workcalendar set `GSEO`="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(gseo, query_id, convertToMySQLDate(query_date))
+                #sqlcmdstring = """UPDATE Workcalendar set `GSEO`="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(gseo, query_id, convertToMySQLDate(query_date))
                 #sqlcmdstring = """UPDATE Workcalendar set `Efficiency`="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(efficiency, query_id, convertToMySQLDate(query_date))
                 #sqlcmdstring = """UPDATE Workcalendar set `Efficiency`="%s", `CFM`="%s", GSEO="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(efficiency, cfm, gseo, query_id, convertToMySQLDate(query_date))
+                sqlcmdstring = """UPDATE `workcalendar` SET `efficiency`="%s", `CFM`="%s", `GSEO`="%s", `Articles`="%s", `Audits`="%s" WHERE `Employee ID` = "%s" and `Date`="%s";""" %(efficiency, cfm, gseo, articles, audits, query_id, convertToMySQLDate(query_date))
                 cursor.execute(sqlcmdstring)
                 conn.commit()
                 passed += 1
-                if counter == 1 or counter%10 == 0:
-                    print "Process started at %s, current time is %s. ETA is %s" %(start_time, datetime.datetime.now(), getETA(start_time, counter, total))
+                if (datetime.datetime.now()-last_update_time)>datetime.timedelta(seconds=60):
+                    print "%d completed of %d. ETA: %s" %(counter, total, getETA(start_time, counter, total))
+                    last_update_time = datetime.datetime.now()
             except Exception, e:
                 print "*"*25
                 print "Error trying to get data."
                 print repr(e)
                 print "Writer ID: %s, Date= %s" %(query_id, query_date)
                 print "*"*25
-
             counter += 1
     print "Passed: %d, total: %d, failed: %d" %(passed, total, total-passed)
     print "Time taken: %s" %(datetime.datetime.now()-start_time)

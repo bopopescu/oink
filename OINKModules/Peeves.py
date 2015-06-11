@@ -75,16 +75,20 @@ class Peeves(QtCore.QThread):
                 #If the search string list isn't the same as we started with, stop.
                 break
             #if ((datetime.datetime.now() - last_update_time) >= datetime.timedelta(seconds=10)) or (counter == total):
-            eta = MOSES.getETA(start_time, counter, total)
-            self.sendProgress.emit(counter, total, eta)
-            self.sendData.emit(search_results)
-            last_update_time = datetime.datetime.now()
-                #print "Sending Status signal!"
-            counter += 1
             if self.stop_sending:
                 break
-        if (not self.sent) and (not self.stop_sending):
-                #If the search string list is the same as the one we started with, then emit.
-            print "Sending data!"
-            self.sendData.emit(search_results)
-            self.sent = True
+            if total == 0:
+                break
+            if total > 0:
+                eta = MOSES.getETA(start_time, counter, total)
+                self.sendProgress.emit(counter, total, eta)
+                self.sendData.emit(search_results)
+                last_update_time = datetime.datetime.now()
+                #print "Sending Status signal!"
+            counter += 1
+        if total > 0:
+            if (not self.sent) and (not self.stop_sending):
+                    #If the search string list is the same as the one we started with, then emit.
+                print "Sending data!"
+                self.sendData.emit(search_results)
+                self.sent = True

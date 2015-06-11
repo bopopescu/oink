@@ -8,6 +8,8 @@ from PyQt4 import QtGui, QtCore
 import pandas as pd
 import numpy as np
 
+from OpenSSL import crypto
+
 def getWeekNum(inputDate):
     if type(inputDate) == type(datetime.date.today()):
         return inputDate.isocalendar()[1]
@@ -33,8 +35,10 @@ def getDatesInWeekOf(inputDate):
         return "Error, please input a python datetime object to getDatesInWeekOf."
 
 def summarizeClarificationSheet(query_date, worksheet_names=None):
+	import os
 	print "Loading credentials from the JSON."
-	json_key = json.load(open('Sty Cleaner-8e05835eff55.json'))
+	auto_file_name = os.path.join("Data","GoogleAuthInfo.json")
+	json_key = json.load(open(auto_file_name))
 	scope = ['https://spreadsheets.google.com/feeds']
 	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
 	gc = gspread.authorize(credentials)
@@ -111,7 +115,7 @@ def summarizeClarificationSheet(query_date, worksheet_names=None):
 		data_frame["Corrected Assigned Date"] = assigned_dates
 		data_frame["Corrected Actioned Date"] = actioned_dates
 		for week_date in week_dates:
-			if week_date.isoweekday() == 1:
+			if week_date.isoweekday() in [1,2,3,4]:
 				allowed_tat_gap = 6 #datetime.timedelta(days=6)
 			else:
 				allowed_tat_gap = 4 #datetime.timedelta(days=4)
