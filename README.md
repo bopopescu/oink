@@ -1,5 +1,4 @@
 # oink
-OINK
 OINK is the Flipkart Content Team's private data collection application.
 
 It runs on Python, and the database used is MySQL.
