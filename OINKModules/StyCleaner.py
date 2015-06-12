@@ -8,7 +8,7 @@ from oauth2client.client import SignedJwtAssertionCredentials
 from PyQt4 import QtGui, QtCore
 import pandas as pd
 import numpy as np
-from OpenSSL import crypto
+
 
 import MOSES
 def getWeekNum(inputDate):
