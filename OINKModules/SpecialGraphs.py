@@ -59,9 +59,9 @@ def plot3DScatter(query_date=None):
     start_time = datetime.datetime.now()
     for writer in writers_list:
         print "Processing for %s. ETA: %s" %(writer, MOSES.getETA(start_time, counter, total))
-        eff = MOSES.getEfficiencyForQuarter(user_id, password, query_date, writer)
-        cfm = MOSES.getCFMForQuarter(user_id, password, query_date, writer)
-        gseo = MOSES.getGSEOForQuarter(user_id, password, query_date, writer)
+        eff = MOSES.getEfficiencyForHalfYear(user_id, password, query_date, writer)
+        cfm = MOSES.getCFMForHalfYear(user_id, password, query_date, writer)
+        gseo = MOSES.getGSEOForHalfYear(user_id, password, query_date, writer)
         points_list.append((eff, cfm, gseo))
         counter += 1
     print "Completed."

@@ -53,7 +53,7 @@ class Pork(QtGui.QMainWindow):
         #self.populateTable()
         self.populateClarification()
         self.initForm()
-        self.porker_thread.getStatsData(self.getActiveDate())
+        #self.porker_thread.getStatsData(self.getActiveDate())
         #Final set up.
         self.currentFSNDataList = []
         #self.displayEfficiency()
@@ -873,7 +873,7 @@ class Pork(QtGui.QMainWindow):
         self.piggybanker_thread.getPiggyBank()
         self.porker_thread.setDate(new_date)
         self.porker_thread.getEfficiency()
-        self.porker_thread.getStatsData(new_date)
+        #self.porker_thread.getStatsData(new_date)
         self.mapToolTips()
         self.FSNEditFinishTriggers()
 
