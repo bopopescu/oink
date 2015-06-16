@@ -496,7 +496,7 @@ class Pork(QtGui.QMainWindow):
     def setEvents(self):
         """PORK Window."""
         self.workCalendar.clicked[QtCore.QDate].connect(self.changedDate)
-        self.workCalendar.currentPageChanged .connect(self.calendarPageChanged)
+        self.workCalendar.currentPageChanged.connect(self.calendarPageChanged)
         self.piggybank.cellClicked.connect(self.cellSelected)
         self.piggybank.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.buttonBox.accepted.connect(self.validateAndSendToPiggy)
@@ -1099,10 +1099,11 @@ class Pork(QtGui.QMainWindow):
         last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
         print "Trying to validateAndSendToPiggy. The last working date is :", last_working_date
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), last_working_date]
-        if selected_date not in dates_user_is_allowed_to_manipulate:
-            allowAddition = False
-            self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
-        elif mode == "Addition":
+        #TEMPORARILY DISABLED.
+        #if selected_date not in dates_user_is_allowed_to_manipulate:
+        #    allowAddition = False
+        #    self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
+        if mode == "Addition": #CHANGE TO ELIF LATER
             fsnData = self.getFSNDataDict()
             fsn = fsnData["FSN"]
             fsntype = fsnData["Description Type"]
