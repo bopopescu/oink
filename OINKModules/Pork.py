@@ -47,6 +47,7 @@ class Pork(QtGui.QMainWindow):
         self.createTabOrder()
         self.addMenus()
         self.setVisuals()
+        self.refreshStatsTable()
         #Initialize the application with required details.
         self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         self.populateBU()
@@ -59,7 +60,6 @@ class Pork(QtGui.QMainWindow):
         #self.displayEfficiency()
         #Ignorance is bliss.
         brotherEyeOpen()
-        self.statusBar().showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
 
     def focusInEvent(self, event):
@@ -75,13 +75,40 @@ class Pork(QtGui.QMainWindow):
         self.piggybank = PiggyBank()
         self.tabs = QtGui.QTabWidget()
         self.stats = QtGui.QWidget()
+        self.status_bar = self.statusBar()
+        self.status_bar.showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
+        self.menu = self.menuBar()
         self.stats_table = QtGui.QTableWidget(0, 0, self)
         self.stats_table.setToolTip("This report displays your statistics for the last working date.\nIf you've selected a Monday, this will show you\nyour data for last Friday, provided you weren't on leave on that day.\nIf you were, it'll search for the date\non which you last worked and show you that.")
         self.stats_table.setMinimumHeight(170)
         self.refresh_stats_button = QtGui.QPushButton("Refresh Statistics")
+        self.stats_progress_bar = QtGui.QProgressBar()
+        progressbar_style = """
+            .QProgressBar {
+                 border: 0.5px solid black;
+                 border-radius: 5px;
+                 text-align: center;
+             }
+
+            .QProgressBar::chunk {
+                 background-color: #0088D6;
+                 width: 20px;
+             }""" #05B8CC
+        self.stats_progress_message = QtGui.QLabel("Awaiting signals.")
+
+        self.stats_progress_message.setStyleSheet("QLabel { font-size: 10px }")
+        self.stats_progress = QtGui.QWidget()
+        self.stats_progress_layout = QtGui.QGridLayout()
+        self.stats_progress_layout.addWidget(self.stats_progress_bar,0,0)
+        self.stats_progress_layout.addWidget(self.stats_progress_message,0,0)
+        self.stats_progress.setLayout(self.stats_progress_layout)
+
+        self.stats_progress_bar.setRange(0,1)
+        self.stats_progress_bar.setStyleSheet(progressbar_style)
         self.stats_layout = QtGui.QVBoxLayout()
         self.stats_layout.addWidget(self.stats_table)
         self.stats_layout.addWidget(self.refresh_stats_button)
+        self.stats_layout.addWidget(self.stats_progress)
         self.stats.setLayout(self.stats_layout)
         self.tabs.addTab(self.stats, "Writer Statistics")
         self.tabs.addTab(self.piggybank, "Piggy Bank")
@@ -91,8 +118,8 @@ class Pork(QtGui.QMainWindow):
         self.hide_piggy_button = QtGui.QPushButton(">")
         self.hide_piggy_button.setStyleSheet(style)
         self.hide_piggy_button.setCheckable(True)
-        self.hide_piggy_button.setMinimumHeight(30)
-        self.hide_piggy_button.setMaximumHeight(30)
+        self.hide_piggy_button.setMinimumHeight(70)
+        self.hide_piggy_button.setMaximumHeight(70)
         self.hide_piggy_button.setMinimumWidth(30)
         self.hide_piggy_button.setMaximumWidth(30)
         self.hide_piggy_button.clicked.connect(self.hide_piggy)
@@ -100,8 +127,8 @@ class Pork(QtGui.QMainWindow):
         self.hide_form_button = QtGui.QPushButton("<")
         self.hide_form_button.setStyleSheet(style)
         self.hide_form_button.setCheckable(True)
-        self.hide_form_button.setMinimumHeight(30)
-        self.hide_form_button.setMaximumHeight(30)
+        self.hide_form_button.setMinimumHeight(70)
+        self.hide_form_button.setMaximumHeight(70)
         self.hide_form_button.setMinimumWidth(30)
         self.hide_form_button.setMaximumWidth(30)
         self.hide_form_button.clicked.connect(self.hide_form)
@@ -115,9 +142,7 @@ class Pork(QtGui.QMainWindow):
         #initialize Calendar
         self.workCalendar = WeekCalendar(self.userID, self.password)
         self.workCalendar.setMinimumWidth(400)
-#        self.workCalendar.setMaximumWidth(400)
         self.workCalendar.setMinimumHeight(250)
-#        self.workCalendar.setMaximumHeight(250)
         #initialize buttons to modify values
         self.buttonAddFSN = QtGui.QPushButton('Add', self)
         self.buttonAddFSN.setCheckable(True)
@@ -141,42 +166,11 @@ class Pork(QtGui.QMainWindow):
         self.formModifierButtons.addButton(self.buttonAddFSN)
         self.formModifierButtons.addButton(self.buttonModifyFSN)
 
-        #self.button_plus = QtGui.QPushButton("+")
-        #self.button_plus.setMinimumHeight(30)
-        #self.button_plus.setMaximumHeight(30)
-        #self.button_plus.setMinimumWidth(20)
-        #self.button_plus.setMaximumWidth(20)
-
-        #self.button_previous = QtGui.QPushButton("<")
-        #self.button_previous.setMinimumHeight(30)
-        #self.button_previous.setMaximumHeight(30)
-        #self.button_previous.setMinimumWidth(20)
-        #self.button_previous.setMaximumWidth(20)
-
-        #self.label_fsn_counter = QtGui.QLabel("1 of 30")
-        #self.label_fsn_counter.setStyleSheet("font: 16pt; font-family: Garamond; font-weight: bold;")
-        #self.button_next = QtGui.QPushButton(">")
-        #self.button_next.setMinimumHeight(30)
-        #self.button_next.setMaximumHeight(30)
-        #self.button_next.setMinimumWidth(20)
-        #self.button_next.setMaximumWidth(20)
-
         self.efficiencyProgress = QtGui.QProgressBar()
         self.efficiencyProgress.setRange(0,100)
         self.efficiencyProgress.setMinimumWidth(200)
 
-        efficiency_style = """
-            .QProgressBar {
-                 border: 2px solid grey;
-                 border-radius: 5px;
-                 text-align: center;
-             }
-
-            .QProgressBar::chunk {
-                 background-color: #05B8CC;
-                 width: 20px;
-             }"""
-        self.efficiencyProgress.setStyleSheet(efficiency_style)
+        self.efficiencyProgress.setStyleSheet(progressbar_style)
 
         self.efficiencyProgress.setTextVisible(True)
         #Create all the widgets associated with the form.
@@ -250,10 +244,6 @@ class Pork(QtGui.QMainWindow):
 
     def widgetLayout(self):
         """PORK Window."""
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.addWidget(self.workCalendar,2)
-        #self.horizontalLayout.addWidget(self.queue,1)
-        #End main widgets.
         #Begin the form's layout.
         self.formLayout = QtGui.QGridLayout()
         self.formLayout.addWidget(self.labelFSN,0,0)
@@ -299,31 +289,23 @@ class Pork(QtGui.QMainWindow):
         self.buttonsLayout.addWidget(self.buttonAddFSN,0,0)
         self.buttonsLayout.addWidget(self.buttonModifyFSN,0,1)
         self.buttonsLayout.addWidget(self.buttonCopyFields,0,2)
-        ###############################################################
-        #New layout to show the form navigation buttons.
-        #self.nav_form_layout = QtGui.QHBoxLayout()
-        #self.nav_form_layout.addStretch(2)
-        #self.nav_form_layout.addWidget(self.button_plus)
-        #self.nav_form_layout.addWidget(self.button_previous)
-        #self.nav_form_layout.addWidget(self.label_fsn_counter)
-        #self.nav_form_layout.addWidget(self.button_next)
-        #self.nav_form_layout.addStretch(2)
-        ###############################################################
 
         #set the buttons above the form's layout.
         self.finalFormLayout = QtGui.QVBoxLayout()
-        #self.finalFormLayout.addLayout(self.nav_form_layout)
         self.finalFormLayout.addLayout(self.buttonsLayout)
         self.finalFormLayout.addLayout(self.formLayout)
         self.finalFormLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
         self.form = QtGui.QWidget()
         self.form.setLayout(self.finalFormLayout)
         ###Set the form's layout adjacent to the QTableWidget.
+
+
+
         #Create the piggy bank widget and layout.
         self.piggyLayout = QtGui.QVBoxLayout()
-        self.piggyLayout.addLayout(self.horizontalLayout,2)
+        self.piggyLayout.addWidget(self.workCalendar,1)
         self.piggyLayout.addWidget(self.tabs,3)
-        self.piggyLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+#        self.piggyLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
         self.piggyWidget = QtGui.QWidget()
         self.piggyWidget.setLayout(self.piggyLayout)
         #Create the collapsible buttons layout
@@ -341,9 +323,14 @@ class Pork(QtGui.QMainWindow):
         self.penultimateLayout.addWidget(self.form,2)
         self.penultimateLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
         #create the final layout.
-        self.finalLayout = QtGui.QVBoxLayout()
-        self.finalLayout.addLayout(self.penultimateLayout,4)
-        self.finalLayout.addWidget(self.efficiencyProgress,1)
+        self.finalLayout = QtGui.QGridLayout()
+        self.finalLayout.addWidget(self.menu,0,0,1,5)
+        self.finalLayout.addLayout(self.penultimateLayout,1,0,5,5)
+        self.finalLayout.addWidget(self.efficiencyProgress,6,0,1,5)
+        self.finalLayout.addWidget(self.status_bar,7,0,1,5)
+
+        #self.finalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+
         #self.finalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
         #Investigate later.
         self.mainWidget.setLayout(self.finalLayout)
@@ -365,6 +352,16 @@ class Pork(QtGui.QMainWindow):
         self.lineEditUploadLink.setToolTip("If you are not using an FSN or an ISBN, please paste the appropriate upload link here.")
         self.lineEditRefLink.setToolTip("Paste the reference link(s) here.\nMultiple links can be appended by using a comma or a semi-colon.\nAvoid spaces like the plague.")
         self.lineEditClarification.setToolTip("Use the drop down menu adjacent to this box to append clarifications.\nIf a clarification is unavailable, please append it to this list by using a comma.")
+
+    def displayPorkerProgress(self, activity, eta, completed):
+        if completed:
+            #print "Completed one porker cycle."
+            self.stats_progress_bar.setRange(0,1)
+            self.stats_progress_message.setText("   Last Updated at %s" % datetime.datetime.strftime(datetime.datetime.now(),"%H:%M:%S"))
+        else:
+            #print "Porker at work. Message : ", activity
+            self.stats_progress_bar.setRange(0,0)
+            self.stats_progress_message.setText("   %s Possible ETA: %s" %(activity, datetime.datetime.strftime(eta,"%H:%M:%S")))
 
     def keyPressEvent(self, e):
         """PORK Window: Found this code online. Go through it and try to improve it."""
@@ -411,7 +408,6 @@ class Pork(QtGui.QMainWindow):
 
     def addMenus(self):
         """PORK Window."""
-        self.menu = self.menuBar()
         self.fileMenu = self.menu.addMenu("&File")
         self.toolsMenu = self.menu.addMenu("&Tools")
         self.commMenu = self.menu.addMenu("Co&mmunication")
@@ -511,6 +507,7 @@ class Pork(QtGui.QMainWindow):
         self.buttonBox.rejected.connect(self.clearAll)
         self.buttonAddClarification.clicked.connect(self.addClarification)
         self.buttonCopyFields.clicked.connect(self.copyCommonFields)
+        self.refresh_stats_button.clicked.connect(self.refreshStatsTable)
 
     def notify(self,title,message):
         """PORK Window: Method to show a tray notification"""
@@ -873,9 +870,16 @@ class Pork(QtGui.QMainWindow):
         self.piggybanker_thread.getPiggyBank()
         self.porker_thread.setDate(new_date)
         self.porker_thread.getEfficiency()
-        #self.porker_thread.getStatsData(new_date)
         self.mapToolTips()
         self.FSNEditFinishTriggers()
+        self.refreshStatsTable()
+
+    def refreshStatsTable(self):
+        self.porker_thread.stats_date = self.getActiveDate()
+        self.porker_thread.sentStatsData = False
+        self.porker_thread.sentDatesData = False
+        self.porker_thread.mode = 3
+        
 
     def populateTableThreaded(self, data, efficiencies):
         #print "Got %d Articles from the piggybanker_thread." %len(data)
@@ -925,7 +929,7 @@ class Pork(QtGui.QMainWindow):
         elif 99 <= efficiency <= 100:
             new_style = """
             .QProgressBar {
-                 border: 2px solid grey;
+                 border: 0.5px solid black;
                  border-radius: 5px;
                  text-align: center;
              }
@@ -938,7 +942,7 @@ class Pork(QtGui.QMainWindow):
         else:
             new_style = """
             .QProgressBar {
-                 border: 2px solid grey;
+                 border: 0.5px solid black;
                  border-radius: 5px;
                  text-align: center;
              }
@@ -1462,7 +1466,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
 
     def updateStatusBar(self, message):
         #print "Received ", message
-        self.statusBar().showMessage(message)
+        self.status_bar.showMessage(message)
 
     def mapThreads(self):
         init_date = datetime.date.today()
@@ -1472,6 +1476,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
         self.porker_thread.sendEfficiency.connect(self.displayEfficiencyThreaded)
         self.porker_thread.sendDatesData.connect(self.sendDatesDataToCalendar)
         self.porker_thread.sendStatsData.connect(self.updateStatsTable)
+        self.porker_thread.sendActivity.connect(self.displayPorkerProgress)
         self.swine_herd = SwineHerd()
         self.swine_herd.gotData.connect(self.useScrapedData)
 
@@ -1482,6 +1487,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
         """When the calendar page is changed, this triggers the porker method which
         fetches the efficiency values for the entire month."""
         self.porker_thread.setVisibleDates(datetime.date(year, month, 15))
+        self.porker_thread.sentDatesData = False
 
     def sendDatesDataToCalendar(self, dates_data):
         self.workCalendar.setDatesData(dates_data)
@@ -1491,8 +1497,10 @@ the existing data in the form with the data in the cell and modify that cell?"""
         form_is_hidden = self.hide_form_button.isChecked()
         if (not piggy_is_hidden):
             self.form.setVisible(not form_is_hidden)
+            self.resize(200,200)
         elif form_is_hidden:
             self.form.setVisible(form_is_hidden)
+            self.resize(800,600)
 
     def hide_piggy(self):
        #print "Hiding piggy!"
@@ -1504,6 +1512,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
         elif piggy_is_hidden:
             self.piggyWidget.setVisible(piggy_is_hidden)
 
+
         piggy_is_hidden = self.hide_piggy_button.isChecked()
         form_is_hidden = self.hide_form_button.isChecked()
         if piggy_is_hidden or form_is_hidden:
@@ -1512,13 +1521,13 @@ the existing data in the form with the data in the cell and modify that cell?"""
             self.expand()
 
     def contract(self):
-        self.resize(300, 300)
-        self.quote_thread.setWidth(100)
+        self.resize(self.centralWidget().minimumSizeHint())
+        self.quote_thread.setWidth(50)
         self.center()
 
     def expand(self):
-        self.resize(800, 600)
-        self.quote_thread.setWidth(200)
+        self.resize(self.centralWidget().minimumSizeHint())
+        self.quote_thread.setWidth(100)
         self.center()
 
     def center(self):

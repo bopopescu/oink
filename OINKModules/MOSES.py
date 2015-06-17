@@ -1695,7 +1695,12 @@ def getEfficiencyForDateRange_(user_id, password, start_date, end_date, query_us
         #print "Total efficiency: %f for %d days." % ((efficiency / days), days)
         return efficiency / days
 
-def getEfficiencyFor(user_id, password, queryDate, query_user = None):
+def getEfficiencyFor(user_id, password, query_date, query_user=None):
+    if query_user == None:
+        query_user = user_id
+    return getEfficiencyForDateRange(user_id, password, query_date, query_date, query_user)
+
+def getEfficiencyFor_(user_id, password, queryDate, query_user = None):
     """Returns the total efficiency for a user for a particular date.
     NOTE: If calculating efficiency between a range of dates, do not consider
     dates on which a writer is given a leave.
@@ -1729,7 +1734,12 @@ def getEfficiencyFor(user_id, password, queryDate, query_user = None):
             if target == 0.0:
                 efficiency += 0.0
             else:
-                efficiency += 1.0/(target*efficiencyDivisor)
+                if queryDate < datetime.date(2015,6,11):
+                    efficiency += 1.0/(target*efficiencyDivisor)
+                else:
+                    efficiency += 1.0/(target)
+        if queryDate >= datetime.date(2015, 6, 11):
+            efficiency += relaxation
     #elif status == "Leave" or status == "Company Holiday":
         #efficiency = 1.0
     #print efficiency

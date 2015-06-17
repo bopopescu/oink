@@ -13,6 +13,7 @@ class Porker(QtCore.QThread):
     sendEfficiencyNonContinous = QtCore.pyqtSignal(float)
     sendDatesData = QtCore.pyqtSignal(dict)
     sendStatsData = QtCore.pyqtSignal(dict)
+    sendActivity = QtCore.pyqtSignal(str, datetime.datetime, bool)
 
     def __init__(self, userID, password, start_date, end_date=None, query_user=None, mode=None, parent=None):
         """Modes :
@@ -32,14 +33,14 @@ class Porker(QtCore.QThread):
 
         if mode is None:
             self.mode = 0
-        elif mode in [0, 1, 2]:
+        elif mode in [0, 1, 2, 3]:
             self.mode = mode
         else:
             self.mode = 0
             print "Error with the Porker Mode."
 
         self.process_date = self.start_date
-        
+        self.stats_date = self.start_date
         if query_user is None:
             self.query_user = self.userID
         else:
@@ -57,26 +58,50 @@ class Porker(QtCore.QThread):
         self.wait()
 
     def run(self):
+        """As soon as this loads, emit everything."""
         self.mutex.unlock()
-        #work_status = MOSES.getWorkingStatus(self.userID, self.password, self.start_date, self.end_date, self.query_user) 
         #Find out if the person/company is working on the given date.
         self.modes = [self.broadcastEfficiency, self.broadcastDatesData, self.dualMode]
         self.old_efficiency = 0.0
         self.current_datesData = {}
         self.old_datesData = {}
+        self.sentDatesData = False #Allow emitting this.
+        self.sentStatsData = False #Allow emitting this.
         while True:
+            self.start_time = datetime.datetime.now()
             #print "Running some mode?"
-            self.modes[self.mode]()
+            if self.mode in [0, 1, 2]:
+                self.modes[self.mode]()
+                self.sendActivity.emit("Completed",datetime.datetime.now(), True)
+            else:
+                self.dualMode()
+                if not self.sentStatsData:
+                    self.getStatsData()
+                    self.sendActivity.emit("Completed",datetime.datetime.now(), True)
             #time.sleep(1)
         self.mutex.lock()
 
+    def dualMode(self):
+        self.broadcastEfficiency()
+        if not self.sentDatesData:
+            self.broadcastDatesData()
+
     def broadcastEfficiency(self):
-        #print "In mode 0"
+        if self.start_date == self.end_date:
+            if self.start_date in self.current_datesData.keys():
+                #If this has been already calculated, why bother?
+                self.current_efficiency = self.current_datesData[self.start_date][2]
+            else:
+                self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
+
         self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
         if self.old_efficiency != self.current_efficiency:
-            #print "Sending efficiency"
+            #Since the efficiency seems to have changed, resend all.
+            self.sentDatesData = False
+            self.sentStatsData = False
             self.sendEfficiency.emit(self.current_efficiency)
             self.old_efficiency = self.current_efficiency
+            self.sendActivity.emit("Refreshed efficiency. Moving on to next process.", MOSES.getETA(self.start_time, 2, 3), False)
             
     def broadcastDatesData(self):
         #print "Running mode 1"
@@ -92,6 +117,9 @@ class Porker(QtCore.QThread):
         #datetime.date(self.process_year, self.process_month, self.process_month_last)
 
         self.dates_list = OINKM.getDatesBetween(self.month_first, self.month_last)
+        start_time = datetime.datetime.now()
+        total = len(self.dates_list)
+        counter = 0
         for each_date in self.dates_list:
             if MOSES.isWorkingDay(self.userID, self.password, each_date):
                 status, relaxation = MOSES.getWorkingStatus(self.userID, self.password, each_date)
@@ -103,121 +131,139 @@ class Porker(QtCore.QThread):
                 status = "Holiday"
                 relaxation = "NA"
                 efficiency = 0.0
+            counter += 1
+            eta = MOSES.getETA(start_time, counter, total)
+            self.sendActivity.emit("Refreshing Current Calendar Page (%d/%d)."%(counter,total), eta, False)
             self.current_datesData.update({each_date:[status, relaxation, efficiency]})
         if self.current_datesData != self.old_datesData:
             self.sendDatesData.emit(self.current_datesData)
-    
-    def dualMode(self):
-        #print "Running mode 2"
-        self.broadcastEfficiency()
-        self.broadcastDatesData()
+            self.sendActivity.emit("Compiled Calendar Dates Data. Moving on to next process.", MOSES.getETA(self.start_time,1,3), False)
+        self.sentDatesData = True
+        if self.sentStatsData == True:
+            self.sendActivity.emit("Completed",datetime.datetime.now(), True)
 
-    def getEfficiency(self):
-        #work_status = MOSES.getWorkStatus() #Find out if the person/company is working on the given date.
-        current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
-        self.sendEfficiency.emit(current_efficiency)
-
-    def setDate(self, new_date):
-        self.start_date = new_date
-        self.end_date = new_date
-    
-    def setVisibleDates(self, new_date):
-        self.process_date = new_date
-        #self.broadcastDatesData()
-    
-    def getStatsData(self, new_date):
+    def getStatsData(self):
         """This method is used with the Writer Statistics table. It takes a date and emits a dictionary containing all the data for
         the last working date for the given user."""
-        last_working_date = MOSES.getLastWorkingDate(self.userID, self.password, new_date)
+        start_time = datetime.datetime.now()
+        self.sendActivity.emit("Refreshing stats table.", MOSES.getETA(self.start_time,2,3), False)
+        no_of_steps = 30 #There are ~17 steps in this function, but some of the later steps will take doubly as long. Hence the increased step count.
+        last_working_date = MOSES.getLastWorkingDate(self.userID, self.password, self.stats_date)
+        self.sendActivity.emit("Calculated last working date.", MOSES.getETA(start_time, 1, no_of_steps), False)
         current_week = OINKM.getWeekNum(last_working_date)
         current_month = OINKM.getMonth(last_working_date)
         current_quarter = OINKM.getQuarter(last_working_date)
         current_half_year = OINKM.getHalfYear(last_working_date)
         
-        lwd_efficiency = MOSES.getEfficiencyFor(self.userID, self.password, last_working_date)
+        if last_working_date in  self.current_datesData.keys():
+            #If this is already calculated, why bother recalculating, right?
+            lwd_efficiency = self.current_datesData[last_working_date][2]
+            #print "Found %f for %s." %(lwd_efficiency, last_working_date)
+        else:
+            lwd_efficiency = MOSES.getEfficiencyFor(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the efficiency for the last working date.", MOSES.getETA(start_time, 2, no_of_steps), False)
         if lwd_efficiency is None:
             lwd_efficiency = "-"
         else:
             lwd_efficiency *= 100.00
         lwd_gseo = MOSES.getGSEOFor(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the GSEO for the last working date.", MOSES.getETA(start_time, 3, no_of_steps), False)
+
         if lwd_gseo is None:
             lwd_gseo = "-"
         else:
             lwd_gseo *= 100.00
 
         lwd_cfm = MOSES.getCFMFor(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the CFM for the last working date.", MOSES.getETA(start_time, 4, no_of_steps), False)
         if lwd_cfm is None:
             lwd_cfm = "-"
         else:
             lwd_cfm *= 100.00
 
         cw_efficiency = MOSES.getEfficiencyForWeek(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the efficiency for the week.", MOSES.getETA(start_time, 5, no_of_steps), False)
         if cw_efficiency is None:
             cw_efficiency = "-"
         else:
             cw_efficiency *= 100.00
         
         cw_gseo = MOSES.getGSEOForWeek(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the GSEO for the week.", MOSES.getETA(start_time, 6, no_of_steps), False)
         if cw_gseo is None:
             cw_gseo = "-"
         else:
             cw_gseo *= 100.00
         
         cw_cfm = MOSES.getCFMForWeek(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the CFM for the week.", MOSES.getETA(start_time, 7, no_of_steps), False)
+
         if cw_cfm is None:
             cw_cfm = "-"
         else:
             cw_cfm *= 100.00
 
         cm_efficiency = MOSES.getEfficiencyForMonth(self.userID, self.password, last_working_date)
+        #This is where the lag starts, so increasing the counter in steps of 2
+        self.sendActivity.emit("Got the efficiency for the month.", MOSES.getETA(start_time, 9, no_of_steps), False)
+        
         if cm_efficiency is None:
             cm_efficiency = "-"
         else:
             cm_efficiency *= 100.00
 
         cm_gseo = MOSES.getGSEOForMonth(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the GSEO for the month.", MOSES.getETA(start_time, 11, no_of_steps), False)
         if cm_gseo is None:
             cm_gseo = "-"
         else:
             cm_gseo *= 100.00
 
         cm_cfm = MOSES.getCFMForMonth(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the CFM for the month.", MOSES.getETA(start_time, 13, no_of_steps), False)
+
         if cm_cfm is None:
             cm_cfm = "-"
         else:
             cm_cfm *= 100.00
 
         cq_efficiency = MOSES.getEfficiencyForQuarter(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the efficiency for the quarter.", MOSES.getETA(start_time, 15, no_of_steps), False)
         if cq_efficiency is None:
             cq_efficiency = "-"
         else:
             cq_efficiency *= 100.00
 
         cq_gseo = MOSES.getGSEOForQuarter(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the GSEO for the quarter.", MOSES.getETA(start_time, 15, no_of_steps), False)
         if cq_gseo is None:
             cq_gseo = "-"
         else:
             cq_gseo *= 100.00
 
         cq_cfm = MOSES.getCFMForQuarter(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the CFM for the quarter.", MOSES.getETA(start_time, 17, no_of_steps), False)
         if cq_cfm is None:
             cq_cfm = "-"
         else:
             cq_cfm *= 100.00
 
         chy_efficiency = MOSES.getEfficiencyForHalfYear(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the Efficiency for the half-year.", MOSES.getETA(start_time, 22, no_of_steps), False)
         if chy_efficiency is None:
             chy_efficiency = "-"
         else:
             chy_efficiency *= 100.00
 
         chy_gseo = MOSES.getGSEOForHalfYear(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the GSEO for the half-year.", MOSES.getETA(start_time, 26, no_of_steps), False)
         if chy_gseo is None:
             chy_gseo = "-"
         else:
             chy_gseo *= 100.00
 
         chy_cfm = MOSES.getCFMForHalfYear(self.userID, self.password, last_working_date)
+        self.sendActivity.emit("Got the GSEO for the half-year.", MOSES.getETA(start_time, 30, no_of_steps), False)
         if chy_cfm is None:
             chy_cfm = "-"
         else:
@@ -247,6 +293,21 @@ class Porker(QtCore.QThread):
         "CHY CFM": chy_cfm
         }
         self.sendStatsData.emit(stats_data)
+        self.sendActivity.emit("Refreshed stats data.", MOSES.getETA(self.start_time, 3, 3), False)
+        self.sentStatsData = True
+
+    def getEfficiency(self):
+        #work_status = MOSES.getWorkStatus() #Find out if the person/company is working on the given date.
+        current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
+        self.sendEfficiency.emit(current_efficiency)
+
+    def setDate(self, new_date):
+        self.start_date = new_date
+        self.end_date = new_date
+    
+    def setVisibleDates(self, new_date):
+        self.process_date = new_date
+        #self.broadcastDatesData()
 
     def setStartDate(self, new_date):
         self.start_date = new_date

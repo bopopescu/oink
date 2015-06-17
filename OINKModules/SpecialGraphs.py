@@ -43,7 +43,7 @@ def plotTeamScatter(query_date=None):
 
 def plot3DScatter(query_date=None):
     if query_date is None:
-        query_date = datetime.date.today()
+        query_date = datetime.date.today()-datetime.timedelta(days=1)
     user_id, password = MOSES.getBigbrotherCredentials()
     writers_data = MOSES.getWritersList(user_id, password, query_date)
     writers_list = [writer["Employee ID"] for writer in writers_data]
