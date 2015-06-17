@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 
+import os
 from PyQt4 import QtGui, QtCore
 import OINKMethods as OINKM
 import MOSES
@@ -21,7 +22,19 @@ class LogInDialog(QtGui.QDialog):
         self.loginLabel = QtGui.QLabel("User ID:")
         self.loginLineEdit = QtGui.QLineEdit()
         u, p = MOSES.getBigbrotherCredentials()
-        user_ids = MOSES.getUsersList(u, p)
+
+        if os.path.exists(os.path.join("cache","users_list.txt")):
+            user_ids = open(os.path.join("cache","users_list.txt")).read().split(",")
+        else:
+            user_ids = MOSES.getUsersList(u, p)
+            if os.path.exists("cache"):
+                cached_file_handler = open(os.path.join("cache","users_list.txt"),"w")
+            else:
+                os.makedirs("cache")
+                cached_file_handler = open(os.path.join("cache","users_list.txt"),"w")
+                users = ",".join(user_ids)
+                cached_file_handler.write(users)
+                cached_file_handler.close()
         user_completer = QtGui.QCompleter(user_ids)
         self.loginLineEdit.setCompleter(user_completer)
         self.loginLineEdit.setToolTip("Enter your user ID here. Your user ID is your employee ID.")
