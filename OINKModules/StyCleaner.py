@@ -2,13 +2,14 @@ from __future__ import division
 import os
 import gspread
 import json
+import time
 import datetime
 import csv
 from oauth2client.client import SignedJwtAssertionCredentials
 from PyQt4 import QtGui, QtCore
 import pandas as pd
 import numpy as np
-
+import httplib2
 
 import MOSES
 def getWeekNum(inputDate):
@@ -196,10 +197,13 @@ class StyCleaner(QtGui.QWidget):
     def __init__(self):
         super(StyCleaner, self).__init__()
         self.clip = QtGui.QApplication.clipboard()
-        self.createUI()
         self.sty_hand = StyHand()
+        self.createUI()
         self.mapEvents()
 
+    def alertMessage(self, title, message):
+        QtGui.QMessageBox.about(self, title, message)
+    
     def createUI(self):
         """"""
         self.dates_picker = QtGui.QHBoxLayout()
@@ -254,7 +258,7 @@ class StyCleaner(QtGui.QWidget):
         self.layout.addLayout(self.tabs_layout, 4)
         self.setWindowTitle("Sty Cleaner: We Clean the Shiz.")
         self.setLayout(self.layout)
-        self.show()
+
     
     def mapEvents(self):
         """"""
@@ -288,9 +292,6 @@ class StyCleaner(QtGui.QWidget):
                 self.summary_table_tab.setCurrentIndex(self.query_tables.index(sheet))
                 if completion:
                     self.alertMessage("Success","Fetched data for %s for the week of %s." %(sheet, query_date))
-
-    def alertMessage(self, title, message):
-        QtGui.QMessageBox.about(self, title, message)
 
     def getSelectedSheets(self):
         selection = self.category_selection.selectedItems()
@@ -329,7 +330,6 @@ class StyCleaner(QtGui.QWidget):
 class StyHand(QtCore.QThread):
     sendSummary = QtCore.pyqtSignal(dict, list, datetime.date, bool)
     sendProgress = QtCore.pyqtSignal(str, datetime.datetime, float)
-
     def __init__(self):
         super(StyHand, self).__init__()
         self.send = False
@@ -390,4 +390,5 @@ if __name__ == "__main__":
     import sys
     app = QtGui.QApplication([])
     sty = StyCleaner()
+    sty.show()
     sys.exit(app.exec_())

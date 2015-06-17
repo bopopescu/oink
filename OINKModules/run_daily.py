@@ -14,11 +14,9 @@ def main():
             break
         except:
             print "\nPlease enter a valid date."
-            
-
     user_id, password = MOSES.getBigbrotherCredentials()
-    #MOSES.recursiveUploadRawDataFile(user_id, password)
-    #putItemIDs_piggybank.main()
+    MOSES.recursiveUploadRawDataFile(user_id, password)
+    putItemIDs_piggybank.main()
     Graphinator.generateDailyGraphs(query_date)
     raw_input("Completed at %s. Hit Enter to exit>" %datetime.datetime.now())
 
