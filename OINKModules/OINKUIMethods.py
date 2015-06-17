@@ -20,19 +20,15 @@ def showSplashScreen(app, user_role, prank = False):
         # Create and display the splash screen
         
         userDict = {"Content Writer": 'Images\PORK.png', "Copy Editor": 'Images\Vindaloo.png', "Team Lead": 'Images\Vindaloo.png', "Manager":'Images\Vindaloo.png', "Assistant Manager": 'Images\Vindaloo.png',  "Big Brother": "Images\VINDALOO.png"}
-        image_1 = userDict[user_role]
+        image = userDict[user_role]
         
-        image = "Images\OINK.png"
+        #image = "Images\OINK.png"
         splash_pix = QtGui.QPixmap(image)
         splash = QtGui.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
         #splash.showMessage("OINK: In Pigs We Trust")
         splash.setMask(splash_pix.mask())
         splash.show()
-        time.sleep(2)
-        splash_pix_1 = QtGui.QPixmap(image_1)
-        splash.setMask(splash_pix_1.mask())
-        splash.repaint()
-        time.sleep(2)
+        time.sleep(1)
         return splash
 
 def brotherEyeOpen():

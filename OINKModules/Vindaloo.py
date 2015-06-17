@@ -25,6 +25,7 @@ class Vindaloo(QtGui.QMainWindow):
         super(QtGui.QMainWindow,self).__init__()
         self.user_id = user_id
         self.password = password
+        MOSES.createLoginStamp(self.user_id, self.password)
         self.createUI()
         self.createEvents()
 
@@ -126,3 +127,11 @@ class Vindaloo(QtGui.QMainWindow):
     def notify(self,title,message):
         """Vindaloo."""
         self.trayIcon.showMessage(title,message)
+
+    def closeEvent(self,event):
+        self.askToClose = QtGui.QMessageBox.question(self, 'Close VINDALOO?', "Are you sure you'd like to quit?\nVindaloo was developed for TLs to extract data effortlessly from the OINK database.\nKeep Vindaloo open if you want to be able to extract data from the Piggy Bank, get reports, plot daily graphs and find data in the OINK Database.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        if self.askToClose == QtGui.QMessageBox.Yes:
+            MOSES.createLogoutStamp(self.user_id, self.password)
+            super(Vindaloo, self).closeEvent(event)
+        else:
+            event.ignore()

@@ -7,7 +7,7 @@ import math
 from EfficiencyCalculator import EfficiencyCalculator
 from WeekCalendar import WeekCalendar
 from LeavePlanner import LeavePlanner
-from OINKUIMethods import brotherEyeOpen, brotherEyeClose, brotherEyeFileModified, passwordResetter
+from OINKUIMethods import passwordResetter
 from AnimalFarm import AnimalFarm
 from PiggyBanker import PiggyBanker
 from Porker import Porker
@@ -59,7 +59,6 @@ class Pork(QtGui.QMainWindow):
         self.currentFSNDataList = []
         #self.displayEfficiency()
         #Ignorance is bliss.
-        brotherEyeOpen()
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
 
     def focusInEvent(self, event):
@@ -1037,7 +1036,6 @@ class Pork(QtGui.QMainWindow):
         """PORK Window."""
         self.askToClose = QtGui.QMessageBox.question(self, 'Close P.O.R.K?', "Are you sure you'd like to quit?\nPlease keep this application open when you're working since it guides you through the process and helps you interact with your process suppliers and customers.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
         if self.askToClose == QtGui.QMessageBox.Yes:
-            brotherEyeClose()
             MOSES.createLogoutStamp(self.userID, self.password)
             super(Pork, self).closeEvent(event)
         else:

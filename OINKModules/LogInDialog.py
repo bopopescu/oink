@@ -22,7 +22,6 @@ class LogInDialog(QtGui.QDialog):
         self.loginLabel = QtGui.QLabel("User ID:")
         self.loginLineEdit = QtGui.QLineEdit()
         u, p = MOSES.getBigbrotherCredentials()
-
         if os.path.exists(os.path.join("cache","users_list.txt")):
             user_ids = open(os.path.join("cache","users_list.txt")).read().split(",")
         else:
@@ -37,7 +36,7 @@ class LogInDialog(QtGui.QDialog):
                 cached_file_handler.close()
         user_completer = QtGui.QCompleter(user_ids)
         self.loginLineEdit.setCompleter(user_completer)
-        self.loginLineEdit.setToolTip("Enter your user ID here. Your user ID is your employee ID.")
+        self.loginLineEdit.setToolTip("Enter your user ID here. Your user ID is your Flipkart employee ID.")
         self.passwordLabel = QtGui.QLabel("Password:")
         self.passwordLineEdit = QtGui.QLineEdit()
         self.passwordLineEdit.setEchoMode(QtGui.QLineEdit.Password)
@@ -98,7 +97,16 @@ class LogInDialog(QtGui.QDialog):
     def validateUserID(self):
         """Login Dialog"""
         userID, password = self.getUserDetails()
-        return MOSES.checkPassword(userID,password)[0]
+        if userID == "bigbrother":
+            self.warningMessage = QtGui.QWidget()
+            
+            continue_as_admin = QtGui.QMessageBox.question(\
+                    self.warningMessage,"Use Big Brother Credentials?",\
+                    "Are you sure you want to use the Bigbrother Credentials?",QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
+            if continue_as_admin == QtGui.QMessageBox.Yes:
+                return MOSES.checkPassword(userID,password)[0]
+            else:
+                return False
     
     def submit(self):
         """Login Dialog.
