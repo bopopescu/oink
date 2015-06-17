@@ -1397,91 +1397,6 @@ def getWorkingDatesBetween(user_id, password, start_date, end_date, query_user =
                     working_dates.append(each_date)
     return working_dates
 
-def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_user=None):
-    import numpy
-    if query_user is None:
-        query_user = user_id
-    #get all piggybank data between these dates.
-    conn = getOINKConnector(user_id, password)
-    cursor = conn.cursor()
-    sqlcmdstring = """
-    UPDATE piggybank SET piggybank.target = (
-    SELECT target
-    FROM categorytree
-    WHERE 
-    categorytree.`Revision Date` = (
-    SELECT MAX(categorytree.`Revision Date`)
-    FROM categorytree
-    WHERE
-    categorytree.`Revision Date` <= piggybank.`Article Date` AND categorytree.`Source`=piggybank.`Source` 
-    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
-    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
-    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
-    categorytree.`Description Type` = piggybank.`Description Type`
-    )  AND categorytree.`Source`=piggybank.`Source` 
-    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
-    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
-    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
-    categorytree.`Description Type` = piggybank.`Description Type`
-    ) WHERE
-    piggybank.`Article Date` BETWEEN "%s" AND "%s" AND piggybank.`WriterID` = "%s";
-    """ %(convertToMySQLDate(start_date), convertToMySQLDate(end_date), user_id)
-    cursor.execute(sqlcmdstring)
-    conn.commit()
-    sqlcmdstring = """select * from `piggybank` WHERE 
-    `WriterID`="%s" AND `Article Date` BETWEEN "%s" AND "%s";""" %(query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
-    cursor.execute(sqlcmdstring)
-    piggy_bank_data = cursor.fetchall()
-    conn.close()
-    #print "Retrieved %d entries from the piggybank." %len(piggy_bank_data)
-    #get all the dates during which a write is working.
-    working_dates = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
-    #print "Found %d working dates." %len(working_dates)
-    #build a dictionary for the writers which contains information at the date level.
-    writer_dates_data = dict((date_, {"Targets":[], "Relaxation": None, "Status": None, "Approval": None}) for date_ in working_dates)
-    for date_ in working_dates:
-        status, relaxation, approval = checkWorkStatus(user_id, password, date_, query_user)
-        writer_dates_data[date_].update({"Status": status})
-        writer_dates_data[date_].update({"Relaxation": relaxation})
-        writer_dates_data[date_].update({"Approval": approval})
-    for piggy_entry in piggy_bank_data:
-        entry_date = piggy_entry["Article Date"]
-        target = piggy_entry["Target"]
-        #target = getTargetForPiggyBankRow(user_id, password, piggy_entry)
-        writer_dates_data[entry_date]["Targets"].append(target)
-    #print writer_dates_data
-    corrected_targets = []
-    for date_ in working_dates:
-        relaxation = writer_dates_data[date_]["Relaxation"]
-        target_correction = 1 - relaxation
-        for target in writer_dates_data[date_]["Targets"]:
-            if target is None:
-                target = 0
-            corrected_targets.append(target*target_correction)
-    utilizations = [target**-1 for target in corrected_targets if target > 0]
-    efficiency = numpy.sum(utilizations)/len(working_dates)
-    return efficiency
-
-def getEfficiencyForDateRange_(user_id, password, start_date, end_date, query_user=None):
-    """Returns the efficiency for an emplyoee for all dates between two dates."""
-    #print "In getEfficiencyForDateRange"
-    #Great, I need to rewrite this too?! Wth.
-    if query_user is None:
-        query_user = user_id
-    datesList = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
-    efficiency = 0.0
-    days = 0.0
-    for each_date in datesList:
-        efficiency += getEfficiencyFor(user_id, password, each_date, query_user)
-        days += 1.0
-    #print "Leaving getEfficiencyForDateRange"
-    if days == 0:
-        print "Zero day error for the following dates:", start_date, end_date
-        return 0
-    else:
-        #print "Total efficiency: %f for %d days." % ((efficiency / days), days)
-        return efficiency / days
-
 def buildWritersDataFile():
     u, p = getBigbrotherCredentials()
     start_date = datetime.date(2015,1,1)
@@ -1661,7 +1576,124 @@ def getRawDataForDate(user_id, password, query_date, query_user=None):
     conn.close()
     return data
 
+def getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_user=None):
+    if query_user is None:
+        query_user = user_id
+    sqlcmdstring = """SELECT `Date`, `Status`,`Relaxation` from workcalendar where `Employee ID`="%s" and `Date` BETWEEN "%s" and "%s";""" %(query_user, start_date, end_date)
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return data
 
+def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_user=None):
+    """
+    For a given date range:
+    1. Update the entire piggy bank table with the appropriate targets for each.
+    2. Fetch the working dates for the query_user.
+    3. Get the date-wise relaxation for the query_user.
+    4. For all the dates before 11 May 2015, divide the total efficiency by the efficiency divisor.
+    5. For all dates on or after 11 May, add the relaxation efficiency.
+    """
+    import numpy
+    if query_user is None:
+        query_user = user_id
+    #get all piggybank data between these dates.
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """
+    UPDATE piggybank SET piggybank.target = (
+    SELECT target
+    FROM categorytree
+    WHERE 
+    categorytree.`Revision Date` = (
+    SELECT MAX(categorytree.`Revision Date`)
+    FROM categorytree
+    WHERE
+    categorytree.`Revision Date` <= piggybank.`Article Date` AND categorytree.`Source`=piggybank.`Source` 
+    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
+    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
+    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
+    categorytree.`Description Type` = piggybank.`Description Type`
+    )  AND categorytree.`Source`=piggybank.`Source` 
+    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
+    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
+    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
+    categorytree.`Description Type` = piggybank.`Description Type`
+    ) WHERE
+    piggybank.`Article Date` BETWEEN "%s" AND "%s" AND piggybank.`WriterID` = "%s";
+    """ %(convertToMySQLDate(start_date), convertToMySQLDate(end_date), user_id)
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    sqlcmdstring = """select * from `piggybank` WHERE 
+    `WriterID`="%s" AND `Article Date` BETWEEN "%s" AND "%s";""" %(query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    piggy_bank_data = cursor.fetchall()
+    conn.close()
+    #get all the dates during which a write is working.
+    working_dates = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
+    work_calendar_data = getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_user)
+    working_dates = [entry["Date"] for entry in work_calendar_data if entry["Status"] == "Working"]
+    #print "Found %d working dates." %len(working_dates)
+    #build a dictionary for the writers which contains information at the date level.
+    writer_dates_data = dict((date_,{}) for date_ in working_dates)
+    for entry in work_calendar_data:
+        if entry["Date"] in working_dates:
+            date_ = entry["Date"]
+            writer_dates_data[date_] = {
+                            "Relaxation": entry["Relaxation"],
+                            "Targets": []
+            }
+    #print writer_dates_data
+    for piggy_entry in piggy_bank_data:
+        entry_date = piggy_entry["Article Date"]
+        target = piggy_entry["Target"]
+        #target = getTargetForPiggyBankRow(user_id, password, piggy_entry)
+        writer_dates_data[entry_date]["Targets"].append(target)
+    #print writer_dates_data
+    corrected_targets = []
+    for date_ in working_dates:
+        if date_< datetime.date(2015,5,11):
+            relaxation = writer_dates_data[date_]["Relaxation"]
+            target_correction = 1 - relaxation
+            for target in writer_dates_data[date_]["Targets"]:
+                if target is None:
+                    target = 0
+                corrected_targets.append(target*target_correction)
+        else:
+            for target in writer_dates_data[date_]["Targets"]:
+                if target is None:
+                    target = 0
+                corrected_targets.append(target)
+            
+            relaxation = writer_dates_data[date_]["Relaxation"]
+            if relaxation >0.0000:
+                relaxation_factor = 1.0000/relaxation
+                corrected_targets.append(relaxation_factor)
+    utilizations = [target**-1 for target in corrected_targets if target > 0]
+    efficiency = numpy.sum(utilizations)/len(working_dates)
+    return efficiency
+
+def getEfficiencyForDateRange_(user_id, password, start_date, end_date, query_user=None):
+    """Returns the efficiency for an emplyoee for all dates between two dates."""
+    #print "In getEfficiencyForDateRange"
+    #Great, I need to rewrite this too?! Wth.
+    if query_user is None:
+        query_user = user_id
+    datesList = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
+    efficiency = 0.0
+    days = 0.0
+    for each_date in datesList:
+        efficiency += getEfficiencyFor(user_id, password, each_date, query_user)
+        days += 1.0
+    #print "Leaving getEfficiencyForDateRange"
+    if days == 0:
+        print "Zero day error for the following dates:", start_date, end_date
+        return 0
+    else:
+        #print "Total efficiency: %f for %d days." % ((efficiency / days), days)
+        return efficiency / days
 
 def getEfficiencyFor(user_id, password, queryDate, query_user = None):
     """Returns the total efficiency for a user for a particular date.
