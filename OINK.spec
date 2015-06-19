@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['.\\OINK.pyw'],
+a = Analysis(['OINK.pyw'],
              pathex=['C:\\Users\\vinay.keerthi\\Google Drive\\Projects\\WFM\\O.I.N.K Report Management System\\Admin\\OINK'],
              hiddenimports=[],
              hookspath=None,
@@ -19,7 +19,7 @@ exe = EXE(pyz,
           debug=False,
           strip=None,
           upx=True,
-          console=False , icon='Images\\PORK_Icon.ico')
+          console=False , icon='Images\\oink.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

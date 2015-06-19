@@ -99,7 +99,6 @@ class LogInDialog(QtGui.QDialog):
         userID, password = self.getUserDetails()
         if userID == "bigbrother":
             self.warningMessage = QtGui.QWidget()
-            
             continue_as_admin = QtGui.QMessageBox.question(\
                     self.warningMessage,"Use Big Brother Credentials?",\
                     "Are you sure you want to use the Bigbrother Credentials?",QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
@@ -107,6 +106,9 @@ class LogInDialog(QtGui.QDialog):
                 return MOSES.checkPassword(userID,password)[0]
             else:
                 return False
+        else:
+            return MOSES.checkPassword(userID,password)[0]
+
     
     def submit(self):
         """Login Dialog.

@@ -5,15 +5,12 @@ import datetime
 import time
 
 from PyQt4 import QtGui, QtCore
+
 from OINKModules.Pork import Pork
 from OINKModules.Vindaloo import Vindaloo
-from OINKModules.Pork2 import Pork as Pork_2
 from OINKModules.Bacon import Bacon
-#from OINKModules.Napoleon import Napoleon
-
 from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, passwordResetter
 from OINKModules import MOSES
-
 def main():
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Cleanlooks'))

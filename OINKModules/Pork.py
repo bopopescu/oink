@@ -1099,12 +1099,12 @@ class Pork(QtGui.QMainWindow):
         mode = self.getMode()
         selected_date = self.getActiveDate()
         last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
-        print "Trying to validateAndSendToPiggy. The last working date is :", last_working_date
+        #print "Trying to validateAndSendToPiggy. The last working date is :", last_working_date
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), last_working_date]
         #TEMPORARILY DISABLED.
         #if selected_date not in dates_user_is_allowed_to_manipulate:
-        #    allowAddition = False
-        #    self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
+            #allowAddition = False
+            #self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
         if mode == "Addition": #CHANGE TO ELIF LATER
             fsnData = self.getFSNDataDict()
             fsn = fsnData["FSN"]

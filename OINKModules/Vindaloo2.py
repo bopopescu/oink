@@ -3,8 +3,6 @@
 import itertools
 import math
 import datetime
-import numpy
-import matplotlib
 from PyQt4 import QtGui, QtCore
 from PassResetDialog import PassResetDialog
 from EfficiencyCalculator import EfficiencyCalculator
@@ -18,6 +16,7 @@ from OINKMethods import version
 from Seeker import Seeker
 from Graphite import Graphite
 from StyCleaner import StyCleaner
+
 class Vindaloo(QtGui.QMainWindow):
     def __init__(self, userID, password):
         super(QtGui.QMainWindow,self).__init__()
@@ -738,3 +737,11 @@ class Vindaloo(QtGui.QMainWindow):
         self.trayIcon.show()
         self.notify("Welcome to Vindaloo", "All animals are created equal.")
         self.statusBar().showMessage("Big Brother is Watching You.")
+
+
+if __name__ == "__main__":
+    import sys, MOSES
+    app = QtGui.QApplication([])
+    u, p = MOSES.getbbc()
+    vin = Vindaloo(u,p)
+    sys.exit(app.exec_())

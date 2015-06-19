@@ -118,7 +118,7 @@ def plotEfficiencyGraph(query_date = None):
     plt.setp(labels, rotation = 90.0)
     plt.subplots_adjust(bottom=0.2)
     min_efficiency = min(efficiency_list)
-    min_y_value =  min_efficiency if min_efficiency <100.00 else 70.00
+    min_y_value =  min_efficiency-5 if min_efficiency <100.00 else 70.00
     plt.ylim(min_y_value)
 
     file_name = "%d%02d%02d_Efficiency_Graph.png" %(query_date.year,query_date.month, query_date.day)

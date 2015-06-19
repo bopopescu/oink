@@ -2948,7 +2948,7 @@ def checkIfClarificationPosted(user_id, password, FSN, code):
         return False
 
 def version():
-    return "1.3"
+    return "1.5"
 
 def getAuditParameterName(query_parameter):
     user_id, password = getBigbrotherCredentials()
@@ -3624,6 +3624,25 @@ def computeAuditAssignmentBetween(start_date, end_date=None, min_audit_percentag
     #        for description_type in category_type_dictionary[category].keys():
 
     return writer_dictionary, writer_type_category_dictionary, category_type_dictionary, category_type_writer_dictionary
+
+
+def getAllTeamWorkingDays():
+    user_id, password = getBigbrotherCredentials()
+    start_date = datetime.date(2015,1,1)
+    end_date = datetime.date.today()
+    dates_list = []
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    working_dates = getWorkingDatesBetween(user_id, password, start_date, end_date, mode="All")
+    for date_ in working_dates:
+        sqlcmdstring = """SELECT count(*) from workcalendar WHERE `Status`="Leave" and `Date`="%s";""" %date_
+        cursor.execute(sqlcmdstring)
+        data = cursor.fetchall()
+        #print data
+        if data[0]['count(*)'] == 0:
+            dates_list.append(date_)
+    conn.close()
+    return len(dates_list), len(working_dates)
 
 if __name__ == "__main__":
     print "Never call Moses mainly."
