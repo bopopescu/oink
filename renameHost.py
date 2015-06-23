@@ -9,7 +9,7 @@ if __name__ == "__main__":
 	host_id_files = [os.path.join(location, file_name) for location in host_file_locations]
 	for host_id_file in host_id_files:
 		current_host_id = open(host_id_file, "r").read()
-		print "Current Host ID is %s" %current_host_id
+		print "Current Host ID in %s is %s" %(host_id_file,current_host_id)
 		file_handler = open(host_id_file,"w")
 		file_handler.truncate()
 		if current_host_id == local_host:
@@ -18,5 +18,6 @@ if __name__ == "__main__":
 			file_handler.write(local_host)
 		file_handler.close()
 		current_host_id = open(host_id_file, "r").read()
-		print "Host ID is %s" %current_host_id
+		print "Host ID in %s changed to %s" %(host_id_file,current_host_id)
+	raw_input("Hit ENTER to exit> ")
 		

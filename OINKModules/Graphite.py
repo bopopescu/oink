@@ -5,7 +5,7 @@ import datetime
 import numpy as np
 from PyQt4 import QtGui, QtCore
 import pandas as pd
-from matplotlib.backends import qt4_compat
+from matplotlib.backends import qt_compat #qt4_compat
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt

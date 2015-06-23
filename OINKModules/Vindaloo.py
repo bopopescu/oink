@@ -102,9 +102,9 @@ class Vindaloo(QtGui.QMainWindow):
         self.alertMessage("Piggy Bank", "This little piggy went to market...")
     
     def openDailyPorker(self):
-        self.alertMessage("The Daily Porker", "I'm a Porkitzer Prize winning journalist!")
         self.daily_porker = DailyPorker(self.user_id, self.password)
         self.daily_porker.show()
+
     def openPorklid(self):
         self.alertMessage("Porklid", "Euclid gave us geometry. Porklid gave us graphical nightmares.")
     

@@ -10,8 +10,10 @@ from PyQt4 import QtGui, QtCore
 import pandas as pd
 import numpy as np
 import httplib2
+from ctypes import *
 
 import MOSES
+
 def getWeekNum(inputDate):
     if type(inputDate) == type(datetime.date.today()):
         return inputDate.isocalendar()[1]

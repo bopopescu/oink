@@ -3,6 +3,7 @@
 import sys
 import datetime
 import time
+import ctypes
 
 from PyQt4 import QtGui, QtCore
 

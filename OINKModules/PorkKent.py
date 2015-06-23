@@ -15,6 +15,7 @@ class PorkKent(QtCore.QThread):
     processingStep = QtCore.pyqtSignal(str)
     completedSummary = QtCore.pyqtSignal(bool)
     readyForTeamReport = QtCore.pyqtSignal(list)
+    
     def __init__(self, user_id, password, start_date, end_date=None):
         super(PorkKent, self).__init__()
         self.mutex = QtCore.QMutex()
@@ -22,6 +23,7 @@ class PorkKent(QtCore.QThread):
         self.user_id = user_id
         self.password = password
         self.start_date = start_date
+    
         if end_date is None:
             self.end_date = self.start_date
         else:
