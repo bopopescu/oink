@@ -3644,5 +3644,30 @@ def getAllTeamWorkingDays():
     conn.close()
     return len(dates_list), len(working_dates)
 
+def updateUploadedTypeInPiggyBank(fsn,uploaded_type=None):
+    if uploaded_type is None:
+        uploaded_type = ""
+    u, p = getBigbrotherCredentials()
+    conn = getOINKConnector(u, p)
+    cursor = conn.cursor()
+    sqlcmdstring = """UPDATE piggybank SET `Uploaded Type`="%s" WHERE `FSN`="%s";"""%(uploaded_type,fsn)
+    print sqlcmdstring
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    conn.close()
+
+def getFSNListWithoutUploadedType():
+    import random
+    u, p = getBigbrotherCredentials()
+    conn = getOINKConnector(u, p)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT FSN FROM piggybank WHERE `Uploaded Type` IS NULL;"""
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    fsn_list = [fsn['FSN'] for fsn in data]
+    random.shuffle(fsn_list)
+    return fsn_list
+
 if __name__ == "__main__":
     print "Never call Moses mainly."

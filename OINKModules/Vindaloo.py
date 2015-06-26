@@ -135,3 +135,11 @@ class Vindaloo(QtGui.QMainWindow):
             super(Vindaloo, self).closeEvent(event)
         else:
             event.ignore()
+
+
+if __name__ == "__main__":
+    import sys, MOSES
+    app = QtGui.QApplication([])
+    u, p = MOSES.getbbc()
+    vin = Vindaloo(u,p)
+    sys.exit(app.exec_())

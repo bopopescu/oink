@@ -13,11 +13,8 @@ import numpy
 
 from PyQt4 import QtGui, QtCore, Qt
 
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    print "Using BeautifulSoup 3"
-    import BeautifulSoup
+from bs4 import BeautifulSoup
+
 
 class SWINE(QtGui.QMainWindow):
     def __init__(self):
@@ -398,6 +395,10 @@ def get_flipkart_search_url(FSN):
     "Returns the search query url for Flipkart, given an FSN or ISBN."
     return "http://www.flipkart.com/search?q=" + FSN
 
+def getFlipkarSearchURL(FSN):
+    "Returns the search query url for Flipkart, given an FSN or ISBN."
+    return "http://www.flipkart.com/search?q=" + FSN
+
 def main():
     app = QtGui.QApplication(sys.argv)
     researcher = SWINE()
@@ -654,6 +655,117 @@ def scrapeFlipkart(FSN):
         #Later, write code that catches the first product page and enters that. Then, restart the previous process.
         #data = [FSN, False]
     return data
+
+def findDescription(fsn):
+    url = get_flipkart_search_url(fsn)
+    try:
+        fk_page_code = urllib2.urlopen(url, timeout=60)
+        proceed = checkForRedirection(fk_page_code)
+    except:
+        proceed = False
+    if proceed:
+        fk_page_soup = BeautifulSoup(fk_page_code)
+        rpd_content = getRPDFromSoup(fk_page_soup).encode("utf8")
+        #print rpd_content
+        pd_content = getPDFromSoup(fk_page_soup).encode("utf8")
+        #print pd_content.encode("utf8")
+        if rpd_content == "NA":
+            isRPD = False
+        else:
+            #print rpd_content
+            isRPD = True
+        if pd_content == "NA":
+            isPD = False
+        else:
+            isPD = True
+        if isRPD and isPD:
+            return 3
+        elif isRPD:
+            return 1
+        elif isPD:
+            return 2
+        else:
+            return 0
+    else:
+        return 0
+
+def runtest():
+    import datetime
+    import MOSES
+    FSN_list = MOSES.getFSNListWithoutUploadedType()
+    counter = 1
+    total = len(FSN_list)
+    start_time = datetime.datetime.now()
+    last_update_time = datetime.datetime.now() - datetime.timedelta(seconds=60)
+    print "Received %d FSNs from the Piggy Bank. Starting process at %s." %(total, datetime.datetime.strftime(start_time,"%H:%M:%S"))
+    for fsn in FSN_list:
+        description_type = findDescription(fsn)
+        if description_type == 0:
+            MOSES.updateUploadedTypeInPiggyBank(fsn,"Not Uploaded")
+        elif description_type == 1:
+            MOSES.updateUploadedTypeInPiggyBank(fsn,"RPD")
+        elif description_type == 2:
+            MOSES.updateUploadedTypeInPiggyBank(fsn,"PD")
+        elif description_type == 3:
+            MOSES.updateUploadedTypeInPiggyBank(fsn,"RPD,PD")
+        if datetime.datetime.now() - last_update_time >= datetime.timedelta(seconds=60):
+            print "%d of %d completed. ETA : %s" %(counter, total, datetime.datetime.strftime(MOSES.getETA(start_time, counter, total),"%d-%m, %H:%M:%S"))
+            last_update_time = datetime.datetime.now()
+        counter += 1
+
+    print "Completed."
+    raw_input("Hit enter> ")
+
+def getRPDFromSoup(soup_object):
+    """
+    class="rpdSection"
+    """
+    #rpd_section = soup_object.find(class_ = "rpdSection")
+    rpd_section = soup_object.find("div", {"class": "rpdSection"})
+    if len(str(rpd_section)) > 0:
+        try:
+            rpd = rpd_section.getText()
+        except Exception, e:
+            rpd= "NA"
+            #print rpd_section
+            print repr(e)
+
+        if type(rpd) == None:
+            rpd = "NA"
+        else:
+            rpd = rpd.strip()
+            if len(rpd) == 0:
+                rpd = "NA"
+    else:
+        rpd = "NA"
+    return rpd
+
+def getPDFromSoup(soup_object):
+    """
+    <div class="description specSection">
+    class="rpdSection"
+    """
+    #rpd_section = soup_object.find(class_ = "rpdSection")
+    pd_section = soup_object.find("div", {"class": "description specSection"})
+    #print str(pd_section)
+    if len(str(pd_section)) > 0:
+        try:
+            pd = pd_section.getText()
+        except Exception, e:
+            pd= "NA"
+            #print pd_section
+            #print repr(e)
+
+        if type(pd) == None:
+            pd = "NA"
+        else:
+            pd = pd.strip()
+            if len(pd) == 0:
+                pd = "NA"
+    else:
+        pd = "NA"
+    return pd
+
 
 if __name__ == "__main__":
     #main()

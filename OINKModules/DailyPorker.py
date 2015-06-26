@@ -90,7 +90,7 @@ class PorkLane(QtCore.QThread):
                         pass
             self.summary_data.append(writer_summary)
             done = len(self.summary_data)
-            self.sendProgress.emit("Processed data for %s for %s."%(self.writer_name, self.start_date), MOSES.getETA(start_time, done, total), int(done/total), False)
+            self.sendProgress.emit("Processed data for %s for %s."%(self.writer_name, self.start_date), MOSES.getETA(start_time, done, total), int(done*100/total), False)
             if self.break_loop:
                 break
             else:
@@ -263,6 +263,7 @@ class DailyPorker(QtGui.QWidget):
         }
         """
         #self.setStyleSheet(style_string)
+        self.clip = QtGui.QApplication.clipboard()
         self.createUI()
         self.center()
         self.setAutoFillBackground(True)
@@ -285,8 +286,10 @@ class DailyPorker(QtGui.QWidget):
         self.start_date_edit.setCalendarPopup(True)
         self.instruction_label = QtGui.QLabel("Select the parameters which need to be pulled:")
         self.daily_check_box = QtGui.QCheckBox("Daily")
+        self.daily_check_box.setChecked(True)
         self.daily_check_box.setToolTip("Check this to include the daily efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
         self.weekly_check_box = QtGui.QCheckBox("Weekly")
+        self.weekly_check_box.setChecked(True)
         self.weekly_check_box.setToolTip("Check this to include the weekly efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
         self.monthly_check_box = QtGui.QCheckBox("Monthly")
         self.monthly_check_box.setToolTip("Check this to include the monthly efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
@@ -306,6 +309,11 @@ class DailyPorker(QtGui.QWidget):
 
         self.report = QtGui.QTableWidget(0, 0)
         self.progress_bar = QtGui.QProgressBar()
+        progress_bar_style = """
+            .QProgressBar {
+                 text-align: center;
+             }"""
+        self.progress_bar.setStyleSheet(progress_bar_style)
         self.build_stop_button = QtGui.QPushButton("Build Report")
         self.build_stop_button.setToolTip("Click this button to start building the report")
         self.build_stop_button.setCheckable(True)
@@ -327,6 +335,7 @@ class DailyPorker(QtGui.QWidget):
         self.layout.addWidget(self.progress_bar, 10, 0, 1, 4)
         self.layout.addWidget(self.status, 11, 0, 1, 4)
         self.setLayout(self.layout)
+        self.setWindowTitle("The Daily Porker: Straight from the Pigs")
 
     def mapEvents(self):
         self.build_stop_button.clicked.connect(self.buildStop)
@@ -382,7 +391,7 @@ class DailyPorker(QtGui.QWidget):
 
     def populateReport(self, report):
         mode = self.pork_lane.mode
-        columns = ["Report Date", "Writer ID", "Writer Name", "Writer Email ID", "Reporting Manager"]
+        columns = ["Report Date", "Writer ID", "Writer Email ID", "Writer Name", "Reporting Manager"]
         if "Daily" in mode:
             columns += ["Article Count", "Efficiency", "Audit Count", "CFM", "GSEO", "Stack Rank Index"]
         if "Weekly" in mode:
@@ -410,9 +419,9 @@ class DailyPorker(QtGui.QWidget):
             column_counter = 0
             for column_name in columns:
                 if "Efficiency" in column_name:
-                    steps = [100.00, 105.00, 110.00]
+                    steps = [1.00, 1.05, 1.10]
                 elif ("CFM" in column_name) or ("GSEO" in column_name):
-                    steps = [95.00, 97.00]
+                    steps = [0.95, 0.97]
                 else:
                     steps = []
                 parameter = writer_row[column_name]
@@ -432,36 +441,62 @@ class DailyPorker(QtGui.QWidget):
                     parameter_is_valid = True
                 
                 if parameter_is_valid:
-                     parameter_as_string = "%02.2f" %parameter
+                    if "Count" in column_name:
+                        parameter_as_string = "%d" % parameter
+                    elif "Stack Rank Index" in column_name:
+                        parameter_as_string = "%01.2f" % parameter
+                    else:
+                        parameter_as_string = "%03.2f%%" %(round(parameter*100,4))
                 elif column_name in ["Report Date", "Writer ID", "Writer Name", "Writer Email ID", "Reporting Manager"]:
                     parameter_as_string = str(parameter)
                 else:
                     parameter_as_string = "-"
 
-
                 writer_cell_item = QtGui.QTableWidgetItem(parameter_as_string)
+                writer_cell_item.setTextAlignment(QtCore.Qt.AlignCenter)
                 if parameter_is_valid:
-                    if steps != []:                    
-                        if parameter < steps[0]:
+                    if steps != []: 
+                        if round(parameter,2) < steps[0]:
                             writer_cell_item.setBackgroundColor(red)
-                        elif steps[0] <= parameter <= steps[1]:
+                        elif steps[0] <= (round(parameter,2)) <= steps[1]:
                             writer_cell_item.setBackgroundColor(green)
-                        elif parameter > steps[1]:
+                        elif (round(parameter,2)) > steps[1]:
                             writer_cell_item.setBackgroundColor(blue)
                 self.report.setItem(row_counter, column_counter, writer_cell_item)
                 column_counter += 1
             row_counter += 1 
         self.report.setSortingEnabled(True)
-
-
+        self.report.resizeColumnsToContents()
+        self.report.resizeRowsToContents()
 
     def displayProgress(self, progress_text, eta, progress, state):
         if state:
             self.pork_lane.allowRun = False
+            self.build_stop_button.setChecked(False)
             self.build_stop_button.setText("Build Report")
             self.build_stop_button.setToolTip("Click this button to start building the report")
-        print progress_text
-        print "Displaying progress."
+            self.progress_bar.setFormat("Completed at %s." %(datetime.datetime.strftime(eta,"%H:%M:%S")))        
+            self.progress_bar.setValue(progress)
+        else:
+            self.progress_bar.setFormat("%s ETA: %s" %(progress_text, datetime.datetime.strftime(eta,"%H:%M:%S")))
+            self.progress_bar.setValue(progress)
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
+
+    def keyPressEvent(self, e):
+        if (e.modifiers() & QtCore.Qt.ControlModifier):
+                table_to_copy = self.report
+                selected = table_to_copy.selectedRanges()
+                s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
+                s = s + '\n'
+
+                for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
+                    s += str(r+1) + '\t' 
+                    for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
+                        try:
+                            s += str(table_to_copy.item(r,c).text()) + "\t"
+                        except AttributeError:
+                            s += "\t"
+                    s = s[:-1] + "\n" #eliminate last '\t'
+                self.clip.setText(s)
