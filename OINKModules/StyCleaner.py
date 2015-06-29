@@ -90,7 +90,7 @@ def summarizeClarificationSheet(gc, sheet_name, query_date, worksheet_names=None
         data_frame = data_frame[pd.notnull(data_frame["Assigned Date"])]
         #data_frame.to_csv(raw_data_file_name,sep=',')
         #print data_frame
-        print "Completed fetching the data for %s." % worksheet_names[0]
+        #print "Completed fetching the data for %s." % worksheet_names[0]
         output_headers = ["Total Pending","Raised","Closed","Closed Within TAT","Pending Outside TAT","Tat Met %"]
         week_dates = getDatesInWeekOf(query_date)
         output_dictionary = dict((week_date,{}) for week_date in week_dates)
@@ -126,12 +126,6 @@ def summarizeClarificationSheet(gc, sheet_name, query_date, worksheet_names=None
             else:
                 allowed_tat_gap = 4 #datetime.timedelta(days=4)
             #Count all those which are pending
-            print "Corrected Assigned Date"
-            print data_frame["Corrected Assigned Date"]
-            print "Assigned Date"
-            print data_frame["Assigned Date"]
-            print "Status"
-            print data_frame["Status"]
             pending_location = (data_frame["Corrected Assigned Date"] <= week_date) & (data_frame["Status"] != "CLOSED") & (data_frame["Assigned Date"] != np.NaN)
             #count all those entries which were raised on this date.
             raised_location = (data_frame["Corrected Assigned Date"] == week_date) & (data_frame["Assigned Date"] != np.NaN)
@@ -165,7 +159,7 @@ def summarizeClarificationSheet(gc, sheet_name, query_date, worksheet_names=None
             total_raised = len(data_frame.loc[raised_location,"Assigned Date"].values)
             closed = len(data_frame.loc[closed_location,"Assigned Date"].values)
             within_tat = len(data_frame.loc[within_tat_location,"Assigned Date"].values)
-            tat_met = within_tat/total_pending
+            tat_met = within_tat/closed if closed > 0 else 0.0
             pending_within_tat = len(data_frame.loc[pending_within_tat_location,"Assigned Date"].values)
             output_dictionary[week_date] = {
                             "Total Pending" : total_pending,

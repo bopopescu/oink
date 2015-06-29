@@ -242,27 +242,11 @@ class DailyPorker(QtGui.QWidget):
         }
         #self.pork_kent = PorkKent(self.user_id, self.password)
         style_string = """
-        .QGridLayout, QWidget, .QPushButton, .QLabel, .QCheckBox, .QDateTimeEdit{
-            background-color: #0088D6;
-            color: white;
-            font: 8pt;
-        }
-        QWidget
-        {
-            background-color: #0088D6;
-            color: black;
-            font: 8pt;
-        }
-        .QPushButton:hover, .QCheckBox:hover {
-            background-color: #FDDE2E;
-            color: black;
-        }
-
-        .QWidget, .QPushButton{
-            font: 14pt;    
+        .QTableWidget {
+            gridline-color: rgb(0, 0, 0);
         }
         """
-        #self.setStyleSheet(style_string)
+        self.setStyleSheet(style_string)
         self.clip = QtGui.QApplication.clipboard()
         self.createUI()
         self.center()
@@ -277,6 +261,18 @@ class DailyPorker(QtGui.QWidget):
         self.move(frameGm.topLeft())
 
     def createUI(self):
+        self.reports_list = QtGui.QListWidget()
+        self.reports_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.reports_list.setMinimumSize(120,125)
+        self.reports_list.setMaximumSize(120,125)
+
+        report_names = ["Efficiency","CFM","GSEO","Stack Rank Index","Efficiency KRA","CFM KRA","GSEO KRA"]
+        report_names.sort()
+        for report_name in report_names:
+            self.reports_list.addItem(report_name)
+        #for item in self.reports_list.items:
+        #    if item.text in  ["Efficiency","CFM","GSEO","Stack Rank Index"]:
+         #       self.reports_list.setItemSelected(item,True)
         self.start_date_label = QtGui.QLabel("Select a report date:")
         self.start_date_edit = QtGui.QDateTimeEdit()
         self.start_date_edit.setToolTip("Set the date for which you want to generate the report.")
@@ -307,7 +303,18 @@ class DailyPorker(QtGui.QWidget):
         self.end_date_edit.setReadOnly(True)
         self.end_date_edit.setCalendarPopup(False)
 
+        self.graphs_check_box = QtGui.QCheckBox("Plot Required Graphs")
+        self.graphs_check_box.setChecked(True)
+        
+        self.writer_report = QtGui.QCheckBox("Build Writer(s) Report")
+        self.writer_report.setChecked(True)
+        
+        self.team_report = QtGui.QCheckBox("Build Team Report")
+        self.team_report.setChecked(False)
+        
         self.report = QtGui.QTableWidget(0, 0)
+        self.t_report = QtGui.QTableWidget(0, 0)
+        
         self.progress_bar = QtGui.QProgressBar()
         progress_bar_style = """
             .QProgressBar {
@@ -317,24 +324,42 @@ class DailyPorker(QtGui.QWidget):
         self.build_stop_button = QtGui.QPushButton("Build Report")
         self.build_stop_button.setToolTip("Click this button to start building the report")
         self.build_stop_button.setCheckable(True)
+
+        self.reports_tab = QtGui.QTabWidget()
+        self.reports_tab.addTab(self.report,"Writers' Report")
+        self.reports_tab.addTab(self.t_report,"Team Report")
+
         self.status = QtGui.QLabel("I'm a Porkitzer Prize Winning Reporter.")
 
         self.layout = QtGui.QGridLayout()
         self.layout.addWidget(self.start_date_label,0,0)
         self.layout.addWidget(self.start_date_edit,0,1)
-        self.layout.addWidget(self.instruction_label,1,0,1,3)
+        self.layout.addWidget(self.instruction_label,1,0,1,2)
         self.layout.addWidget(self.daily_check_box, 2, 0)
         self.layout.addWidget(self.weekly_check_box, 2, 1)
         self.layout.addWidget(self.monthly_check_box,2,2)
-        self.layout.addWidget(self.quarterly_check_box, 2, 3)
-        self.layout.addWidget(self.half_yearly_check_box, 3, 0)
-        self.layout.addWidget(self.end_date_check_box, 3, 1)
-        self.layout.addWidget(self.end_date_edit, 3, 2, 1, 2)
-        self.layout.addWidget(self.build_stop_button, 4, 1, 1, 2)
-        self.layout.addWidget(self.report, 5, 0, 4, 4)
-        self.layout.addWidget(self.progress_bar, 10, 0, 1, 4)
-        self.layout.addWidget(self.status, 11, 0, 1, 4)
+        self.layout.addWidget(self.reports_list,2,3,5,1)
+        self.layout.addWidget(self.quarterly_check_box, 3, 0)
+        self.layout.addWidget(self.half_yearly_check_box, 3, 1)
+        self.layout.addWidget(self.end_date_check_box, 4, 0)
+        self.layout.addWidget(self.end_date_edit, 4, 1)
+        self.layout.addWidget(self.graphs_check_box,5,0)
+        self.layout.addWidget(self.writer_report,5,1)
+        self.layout.addWidget(self.team_report,5,2)
+        self.layout.addWidget(self.build_stop_button, 6, 1)
+        self.layout.addWidget(self.reports_tab, 7, 0, 1, 4)
+        self.layout.addWidget(self.progress_bar, 8, 0, 1, 4)
+        self.layout.addWidget(self.status, 9, 0, 1, 4)
+
+        #Set stretch factors to rows.
+        for row_number in range(15):
+            self.layout.setRowStretch(row_number,0)
+
+        for column_number in range(4):
+            self.layout.setColumnStretch(column_number,0)
+       
         self.setLayout(self.layout)
+        self.resize(800, 600)
         self.setWindowTitle("The Daily Porker: Straight from the Pigs")
 
     def mapEvents(self):
@@ -500,3 +525,11 @@ class DailyPorker(QtGui.QWidget):
                             s += "\t"
                     s = s[:-1] + "\n" #eliminate last '\t'
                 self.clip.setText(s)
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication([])
+    u, p = MOSES.getBigbrotherCredentials()
+    dailyporker = DailyPorker(u,p)
+    dailyporker.show()
+    sys.exit(app.exec_())
