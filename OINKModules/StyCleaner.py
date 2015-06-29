@@ -154,13 +154,11 @@ def summarizeClarificationSheet(gc, sheet_name, query_date, worksheet_names=None
             #count entries that are pending and within tat as of this date.
             pending_within_tat_location = (data_frame["Corrected Assigned Date"] <= week_date) & (data_frame["Status"] != "CLOSED") & (data_frame["Assigned Date"] != np.NaN) &((week_date-data_frame["Corrected Assigned Date"]) <= allowed_tat_gap)
             #print data_frame.loc[pending_location]
-            closed_within_tat_location = (data_frame["Corrected Assigned Date"] <= week_date) & (data_frame["Status"] = "CLOSED") & (data_frame["Assigned Date"] != np.NaN) &((week_date-data_frame["Corrected Assigned Date"]) <= allowed_tat_gap)
             total_pending = len(data_frame.loc[pending_location,"Assigned Date"].values)
             total_raised = len(data_frame.loc[raised_location,"Assigned Date"].values)
             closed = len(data_frame.loc[closed_location,"Assigned Date"].values)
             within_tat = len(data_frame.loc[within_tat_location,"Assigned Date"].values)
-            closed_within_tat_location = en(data_frame.loc[closed_within_tat_location,"Assigned Date"].values)
-            tat_met = closed_within_tat_location/closed if closed > 0 else 1.00
+            tat_met = within_tat/closed if closed > 0 else within_tat
             pending_within_tat = len(data_frame.loc[pending_within_tat_location,"Assigned Date"].values)
             output_dictionary[week_date] = {
                             "Total Pending" : total_pending,
