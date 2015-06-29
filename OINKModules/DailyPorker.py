@@ -3,6 +3,7 @@ from __future__ import division
 import sys
 import math
 import datetime
+import os
 
 from PyQt4 import QtGui, QtCore
 
@@ -265,52 +266,70 @@ class DailyPorker(QtGui.QWidget):
         self.reports_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.reports_list.setMinimumSize(120,125)
         self.reports_list.setMaximumSize(120,125)
-
-        report_names = ["Efficiency","CFM","GSEO","Stack Rank Index","Efficiency KRA","CFM KRA","GSEO KRA"]
-        report_names.sort()
+        report_names = ["Article Count","Efficiency","Audit Count","CFM","GSEO","Stack Rank Index","Efficiency KRA","CFM KRA","GSEO KRA","Audit Percentage"]
         for report_name in report_names:
             self.reports_list.addItem(report_name)
-        #for item in self.reports_list.items:
-        #    if item.text in  ["Efficiency","CFM","GSEO","Stack Rank Index"]:
-         #       self.reports_list.setItemSelected(item,True)
-        self.start_date_label = QtGui.QLabel("Select a report date:")
+        list_box_style = """
+            QListWidget::item:selected {
+                background-color: #0088d6; /*Blue*/
+                color: #fdde2e; /*Yellow*/
+            }
+            QListWidget::item:hover {
+                color: #0088d6; /*Blue*/
+                background-color: #fdde2e; /*Yellow*/
+            }
+            QListWidget::item {
+                color: black;
+                background-color: white;
+            }
+
+            """
+        self.reports_list.setStyleSheet(list_box_style)
+        for item_index in range(self.reports_list.count()):
+            item = self.reports_list.item(item_index)
+            #print item.text()
+            if item.text() in ["Efficiency","CFM","GSEO", "Stack Rank Index"]:
+                self.reports_list.setItemSelected(item, True)
+
+        self.start_date_label = QtGui.QLabel("<b>Select a report date:</b>")
         self.start_date_edit = QtGui.QDateTimeEdit()
         self.start_date_edit.setToolTip("Set the date for which you want to generate the report.")
         self.start_date_edit.setDate(QtCore.QDate(datetime.date.today()))
         self.start_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.start_date_edit.setMinimumDate(QtCore.QDate(2015,1,1))
         self.start_date_edit.setCalendarPopup(True)
-        self.instruction_label = QtGui.QLabel("Select the parameters which need to be pulled:")
+        self.instruction_label = QtGui.QLabel("<b>Select the parameters which need to be pulled:</b>")
         self.daily_check_box = QtGui.QCheckBox("Daily")
-        self.daily_check_box.setChecked(True)
-        self.daily_check_box.setToolTip("Check this to include the daily efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
+        self.daily_check_box.setToolTip("Check this to include the daily metrics in the compiled report.")
         self.weekly_check_box = QtGui.QCheckBox("Weekly")
-        self.weekly_check_box.setChecked(True)
-        self.weekly_check_box.setToolTip("Check this to include the weekly efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
+        self.weekly_check_box.setToolTip("Check this to include the weekly metrics in the compiled report.")
         self.monthly_check_box = QtGui.QCheckBox("Monthly")
-        self.monthly_check_box.setToolTip("Check this to include the monthly efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
+        self.monthly_check_box.setToolTip("Check this to include the monthly metrics in the compiled report.")
         self.quarterly_check_box = QtGui.QCheckBox("Quarterly")
-        self.quarterly_check_box.setToolTip("Check this to include the Quarterly efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
+        self.quarterly_check_box.setToolTip("Check this to include the quarterly metrics in the compiled report.")
         self.half_yearly_check_box = QtGui.QCheckBox("Half-Yearly")
-        self.half_yearly_check_box.setToolTip("Check this to include the Half-Yearly efficiency, CFM, GSEO and Stack Rank Index in the compiled report.")
+        self.half_yearly_check_box.setToolTip("Check this to include the half-yearly metrics in the compiled report.")
         self.end_date_check_box = QtGui.QCheckBox("Until End Date")
-        self.end_date_check_box.setToolTip("Check this to include the average efficiency, CFM, GSEO and Stack Rank Index\nbetween the first date and the end date in the compiled report.")
+        self.end_date_check_box.setToolTip("Check this to include the average metrics\nbetween the first date and the end date in the compiled report.")
         self.end_date_edit = QtGui.QDateTimeEdit()
         self.end_date_edit.setToolTip("Select an end date. Only working days will be considered for the calculation.\nThis field will be disabled if the checkbox isn't marked to calculate the average statistics between dates.")
         self.end_date_edit.setDate(QtCore.QDate(datetime.date.today()))
         self.end_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.end_date_edit.setMinimumDate(QtCore.QDate(datetime.date.today()))
-        self.end_date_edit.setReadOnly(True)
-        self.end_date_edit.setCalendarPopup(False)
+        self.end_date_edit.setCalendarPopup(True)
+
+        self.sorting_filter_label = QtGui.QLabel("<b>Sort Report By:</b>")
+        self.sorting_filter_combobox = QtGui.QComboBox()
+        self.sorting_filter_combobox.setToolTip("Select the parameter you want to sort the generated reports by.")
 
         self.graphs_check_box = QtGui.QCheckBox("Plot Required Graphs")
-        self.graphs_check_box.setChecked(True)
+        self.graphs_check_box.setToolTip("Check this if you want to automatically plot the graphs.")
         
-        self.writer_report = QtGui.QCheckBox("Build Writer(s) Report")
-        self.writer_report.setChecked(True)
+        self.writer_report_check_box = QtGui.QCheckBox("Build Writer(s) Report")
+        self.writer_report_check_box.setToolTip("Check this if you want to build the report for all the writers' data.")
         
-        self.team_report = QtGui.QCheckBox("Build Team Report")
-        self.team_report.setChecked(False)
+        self.team_report_check_box = QtGui.QCheckBox("Build Team Report")
+        self.team_report_check_box.setToolTip("Check this if you want to build the report segregated by the reporting manager.")
         
         self.report = QtGui.QTableWidget(0, 0)
         self.t_report = QtGui.QTableWidget(0, 0)
@@ -327,6 +346,13 @@ class DailyPorker(QtGui.QWidget):
         self.build_stop_button.setToolTip("Click this button to start building the report")
         self.build_stop_button.setCheckable(True)
 
+        self.export_graphs_button = QtGui.QPushButton("Export Graphs")
+        self.export_graphs_button.setToolTip("Click this button to save the generated graphs in a desired location.")
+        self.export_graphs_button.setEnabled(False)
+        self.export_report_button = QtGui.QPushButton("Export Report To CSV")
+        self.export_report_button.setToolTip("Click this button to save the generated report in a desired location.")
+        self.export_report_button.setEnabled(False)
+
         self.reports_tab = QtGui.QTabWidget()
         self.reports_tab.addTab(self.report,"Writers' Report")
         self.reports_tab.addTab(self.graphs, "Writers' Graphs")
@@ -336,7 +362,7 @@ class DailyPorker(QtGui.QWidget):
 
         self.layout = QtGui.QGridLayout()
         self.layout.addWidget(self.start_date_label,0,0)
-        self.layout.addWidget(self.start_date_edit,0,1)
+        self.layout.addWidget(self.start_date_edit,0,1,1,1)
         self.layout.addWidget(self.instruction_label,1,0,1,2)
         self.layout.addWidget(self.daily_check_box, 2, 0)
         self.layout.addWidget(self.weekly_check_box, 2, 1)
@@ -345,25 +371,34 @@ class DailyPorker(QtGui.QWidget):
         self.layout.addWidget(self.quarterly_check_box, 3, 0)
         self.layout.addWidget(self.half_yearly_check_box, 3, 1)
         self.layout.addWidget(self.end_date_check_box, 4, 0)
-        self.layout.addWidget(self.end_date_edit, 4, 1)
+        self.layout.addWidget(self.end_date_edit, 4, 1,1,1)
         self.layout.addWidget(self.graphs_check_box,5,0)
-        self.layout.addWidget(self.writer_report,5,1)
-        self.layout.addWidget(self.team_report,5,2)
-        self.layout.addWidget(self.build_stop_button, 6, 1)
-        self.layout.addWidget(self.reports_tab, 7, 0, 1, 4)
-        self.layout.addWidget(self.progress_bar, 8, 0, 1, 4)
-        self.layout.addWidget(self.status, 9, 0, 1, 4)
-
+        self.layout.addWidget(self.writer_report_check_box,5,1)
+        self.layout.addWidget(self.team_report_check_box,5,2)
+        self.layout.addWidget(self.sorting_filter_label,6,0)
+        self.layout.addWidget(self.sorting_filter_combobox,6,1,1,2)
+        self.layout.addWidget(self.build_stop_button, 7, 0)
+        self.layout.addWidget(self.export_report_button,7,1)
+        self.layout.addWidget(self.export_graphs_button,7,2)
+        self.layout.addWidget(self.reports_tab, 8, 0, 1, 10)
+        self.layout.addWidget(self.progress_bar, 9, 0, 1, 10)
+        self.layout.addWidget(self.status, 10, 0, 1, 10)
+        self.resetReportSelection()
         #Set stretch factors to rows.
-        for row_number in range(15):
+        for row_number in range(10):
             self.layout.setRowStretch(row_number,0)
 
-        for column_number in range(4):
+        for column_number in range(10):
             self.layout.setColumnStretch(column_number,0)
        
         self.setLayout(self.layout)
         self.resize(800, 600)
         self.setWindowTitle("The Daily Porker: Straight from the Pigs")
+        if "OINKModules" in os.getcwd():
+            icon_file_name_path = os.path.join(os.path.join('..',"Images"),'PORK_Icon.png')
+        else:
+            icon_file_name_path = os.path.join('Images','PORK_Icon.png')
+        self.setWindowIcon(QtGui.QIcon(icon_file_name_path))
 
     def mapEvents(self):
         self.build_stop_button.clicked.connect(self.buildStop)
@@ -372,6 +407,24 @@ class DailyPorker(QtGui.QWidget):
         self.pork_lane = PorkLane(self.user_id, self.password)
         self.pork_lane.sendReport.connect(self.populateReport)
         self.pork_lane.sendProgress.connect(self.displayProgress)
+        self.daily_check_box.stateChanged.connect(self.refreshSortFilter)
+        self.weekly_check_box.stateChanged.connect(self.refreshSortFilter)
+        self.monthly_check_box.stateChanged.connect(self.refreshSortFilter)
+        self.quarterly_check_box.stateChanged.connect(self.refreshSortFilter)
+        self.half_yearly_check_box.stateChanged.connect(self.refreshSortFilter)
+        self.end_date_check_box.stateChanged.connect(self.refreshSortFilter)
+        self.reports_list.itemSelectionChanged.connect(self.refreshSortFilter)
+
+    def refreshSortFilter(self):
+        report_types = self.getRequiredReportTypes()
+        self.sorting_filter_combobox.clear()
+        if len(report_types) > 0:
+            self.sorting_filter_combobox.setEnabled(True)
+            self.sorting_filter_combobox.addItems(report_types)
+        else:
+            self.sorting_filter_combobox.setEnabled(False)
+        self.sorting_filter_combobox.setCurrentIndex(-1)
+
 
     def buildStop(self):
         if self.build_stop_button.isChecked():
@@ -396,11 +449,9 @@ class DailyPorker(QtGui.QWidget):
 
     def toggleEndDate(self, state):
         if state == 2:
-            self.end_date_edit.setReadOnly(False)
-            self.end_date_edit.setCalendarPopup(True)
+            self.end_date_edit.setEnabled(True)
         else:
-            self.end_date_edit.setReadOnly(True)
-            self.end_date_edit.setCalendarPopup(False)
+            self.end_date_edit.setEnabled(False)
 
     def limitEndDate(self):
         self.end_date_edit.setMinimumDate(self.start_date_edit.date())
@@ -415,7 +466,12 @@ class DailyPorker(QtGui.QWidget):
                     "Half-Yearly": self.half_yearly_check_box.checkState() == QtCore.Qt.Checked,
                     "Average": self.end_date_check_box.checkState() == QtCore.Qt.Checked
         }
-        return [key for key in self.report_selection_dict.keys() if self.report_selection_dict[key]]
+        time_frame_list = [key for key in self.report_selection_dict.keys() if self.report_selection_dict[key]]
+        report_type_list = [item.text() for item in self.reports_list.selectedItems()]
+        reports_list = []
+        for time_frame in time_frame_list:
+            reports_list += ["%s %s"%(time_frame, report_type) for report_type in report_type_list]
+        return reports_list
 
     def populateReport(self, report):
         mode = self.pork_lane.mode
@@ -514,6 +570,7 @@ class DailyPorker(QtGui.QWidget):
 
     def keyPressEvent(self, e):
         if (e.modifiers() & QtCore.Qt.ControlModifier):
+            if e.key() == QtCore.Qt.Key_C:
                 table_to_copy = self.report
                 selected = table_to_copy.selectedRanges()
                 s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
@@ -528,6 +585,30 @@ class DailyPorker(QtGui.QWidget):
                             s += "\t"
                     s = s[:-1] + "\n" #eliminate last '\t'
                 self.clip.setText(s)
+            elif e.key() == QtCore.Qt.Key_R:
+                print "Trying to reset?"
+                self.resetReportSelection()
+    
+    def resetReportSelection(self):
+        self.daily_check_box.setChecked(True)
+        self.weekly_check_box.setChecked(True)
+        self.monthly_check_box.setChecked(False)
+        self.quarterly_check_box.setChecked(False)
+        self.half_yearly_check_box.setChecked(False)
+        self.end_date_check_box.setChecked(False)
+        self.end_date_edit.setEnabled(False)
+        self.sorting_filter_combobox.setEnabled(True)
+        self.graphs_check_box.setChecked(True)
+        self.writer_report_check_box.setChecked(True)
+        self.team_report_check_box.setChecked(False)
+        for item_index in range(self.reports_list.count()):
+            item = self.reports_list.item(item_index)
+            if item.text() in ["Efficiency","CFM","GSEO", "Stack Rank Index", "Article Count", "Audit Count"]:
+                self.reports_list.setItemSelected(item, True)
+            else:
+                self.reports_list.setItemSelected(item, False)
+        self.refreshSortFilter()
+
 
 if __name__ == "__main__":
     import sys
