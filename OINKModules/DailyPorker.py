@@ -314,6 +314,8 @@ class DailyPorker(QtGui.QWidget):
         
         self.report = QtGui.QTableWidget(0, 0)
         self.t_report = QtGui.QTableWidget(0, 0)
+        self.graphs = QtGui.QWidget()
+        self.t_graphs = QtGui.QWidget()
         
         self.progress_bar = QtGui.QProgressBar()
         progress_bar_style = """
@@ -327,8 +329,9 @@ class DailyPorker(QtGui.QWidget):
 
         self.reports_tab = QtGui.QTabWidget()
         self.reports_tab.addTab(self.report,"Writers' Report")
+        self.reports_tab.addTab(self.graphs, "Writers' Graphs")
         self.reports_tab.addTab(self.t_report,"Team Report")
-
+        self.reports_tab.addTab(self.t_graphs, "Team Graphs")
         self.status = QtGui.QLabel("I'm a Porkitzer Prize Winning Reporter.")
 
         self.layout = QtGui.QGridLayout()
