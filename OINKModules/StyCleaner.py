@@ -79,8 +79,9 @@ def summarizeClarificationSheet(gc, sheet_name, query_date, worksheet_names=None
                 over_all_data.append({
                             "Assigned Date": assigned_date,
                             "Actioned Date": actioned_date,
-                            "Status": status.upper() if type(status) == str else status
+                            "Status": status.upper() if type(status) == str else "PENDING"
                             })
+                #print "Status is", status
             counter +=1
     data_frame = pd.DataFrame(over_all_data)
     if data_frame.shape[0] == 0:
@@ -125,6 +126,12 @@ def summarizeClarificationSheet(gc, sheet_name, query_date, worksheet_names=None
             else:
                 allowed_tat_gap = 4 #datetime.timedelta(days=4)
             #Count all those which are pending
+            print "Corrected Assigned Date"
+            print data_frame["Corrected Assigned Date"]
+            print "Assigned Date"
+            print data_frame["Assigned Date"]
+            print "Status"
+            print data_frame["Status"]
             pending_location = (data_frame["Corrected Assigned Date"] <= week_date) & (data_frame["Status"] != "CLOSED") & (data_frame["Assigned Date"] != np.NaN)
             #count all those entries which were raised on this date.
             raised_location = (data_frame["Corrected Assigned Date"] == week_date) & (data_frame["Assigned Date"] != np.NaN)
