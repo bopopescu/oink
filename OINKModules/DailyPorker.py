@@ -190,7 +190,7 @@ class PorkLane(QtCore.QThread):
             writer_summary["Weekly Article Count"] = MOSES.getArticleCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Weekly Efficiency" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly Efficiency KRA" in self.mode):
             writer_summary["Weekly Efficiency"] = MOSES.getEfficiencyForWeek(self.user_id, self.password, self.start_date, self.writer_id)
-            writer_summary["Weekly Efficiency KRA"] = self.getEffKRA(writer_summary["Writer Efficiency"])
+            writer_summary["Weekly Efficiency KRA"] = self.getEffKRA(writer_summary["Weekly Efficiency"])
         if ("Weekly Audit Count" in self.mode) or ("Weekly CFM" in self.mode) or ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly CFM KRA" in self.mode) or ("Weekly GSEO KRA" in self.mode):
             writer_summary["Weekly Audit Count"] = MOSES.getAuditCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Weekly Audit Count"] > 0:
@@ -614,7 +614,10 @@ class DailyPorker(QtGui.QWidget):
                     elif ("Stack Rank Index" in column_name) or ("KRA" in column_name):
                         parameter_as_string = "%01.2f" % parameter
                     else:
-                        parameter_as_string = "%03.2f%%" %(round(parameter*100,4))
+                        if math.isnan(parameter):
+                            parameter_as_string = "-"
+                        else:
+                            parameter_as_string = "%03.2f%%" %(round(parameter*100,4))
                 elif column_name in ["Report Date", "Writer ID", "Writer Name", "Writer Email ID", "Reporting Manager"]:
                     parameter_as_string = str(parameter)
                 else:
