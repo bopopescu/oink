@@ -121,13 +121,23 @@ class PorkLane(QtCore.QThread):
         
         keys_list = ["Report Date", "Writer ID", "Writer Name", "Writer Email ID", "Reporting Manager",
                 "Daily Article Count", "Weekly Article Count", "Monthly Article Count", 
-                "Quarterly Article Count", "Half-Yearly Article Count", "Average Article Count", "Daily Efficiency",
+                "Quarterly Article Count", "Half-Yearly Article Count", "Average Article Count", 
+                "Daily Efficiency",
                 "Weekly Efficiency", "Monthly Efficiency", "Quarterly Efficiency", "Half-Yearly Efficiency",
-                "Average Efficiency", "Daily Audit Count", "Weekly Audit Count","Monthly Audit Count",
+                "Average Efficiency", 
+                "Daily Audit Count", "Weekly Audit Count","Monthly Audit Count",
                 "Quarterly Audit Count", "Half-Yearly Audit Count", "Average Audit Count",
                 "Daily CFM", "Weekly CFM", "Monthly CFM", "Quarterly CFM", "Half-Yearly CFM",
-                "Average CFM", "Daily GSEO", "Weekly GSEO", "Monthly GSEO",
-                "Quarterly GSEO", "Half-Yearly GSEO", "Average GSEO", "Daily Stack Rank Index",
+                "Average CFM", 
+                "Daily GSEO", "Weekly GSEO", "Monthly GSEO",
+                "Quarterly GSEO", "Half-Yearly GSEO", "Average GSEO", 
+                "Daily Efficiency KRA", "Weekly Efficiency KRA", "Average Efficiency KRA", 
+                "Monthly Efficiency KRA", "Quarterly Efficiency KRA", "Half-Yearly Efficiency KRA",
+                "Daily CFM KRA", "Weekly CFM KRA", "Average CFM KRA", 
+                "Monthly CFM KRA", "Quarterly CFM KRA", "Half-Yearly CFM KRA",
+                "Daily GSEO KRA", "Weekly GSEO KRA", "Average GSEO KRA", 
+                "Monthly GSEO KRA", "Quarterly GSEO KRA", "Half-Yearly GSEO KRA",
+                "Daily Stack Rank Index",
                 "Weekly Stack Rank Index", "Monthly Stack Rank Index",
                 "Quarterly Stack Rank Index", "Half-Yearly Stack Rank Index", "Average Stack Rank Index"
                 ]
@@ -141,84 +151,107 @@ class PorkLane(QtCore.QThread):
         
         if "Daily Article Count" in self.mode:
             writer_summary["Daily Article Count"] = MOSES.getArticleCount(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Daily Efficiency" in self.mode) or ("Daily Stack Rank Index" in self.mode):
+        if ("Daily Efficiency" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily Efficiency KRA"):
             writer_summary["Daily Efficiency"] = MOSES.getEfficiencyFor(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Daily Audit Count" in self.mode) or ("Daily CFM" in self.mode) or ("Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode):
+            if type(writer_summary["Daily Efficiency"]) == float:
+                writer_summary["Daily Efficiency KRA"] = self.getEffKRA(writer_summary["Daily Efficiency"])
+        if ("Daily Audit Count" in self.mode) or ("Daily CFM" in self.mode) or ("Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily CFM KRA") or ("Daily GSEO KRA"):
             writer_summary["Daily Audit Count"] = MOSES.getAuditCount(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Daily Audit Count"] > 0:
-                if ("Daily CFM" in self.mode) or ("Daily Stack Rank Index" in self.mode):
+                if ("Daily CFM" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily CFM KRA"):
                     writer_summary["Daily CFM"] = MOSES.getCFMFor(self.user_id, self.password, self.start_date, self.writer_id)
-                if( "Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode):
+                    writer_summary["Daily CFM KRA"] = self.getQKRA(writer_summary["Daily CFM"])
+
+                if( "Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily GSEO KRA"):
                     writer_summary["Daily GSEO"] = MOSES.getGSEOFor(self.user_id, self.password, self.start_date, self.writer_id)
+                    writer_summary["Daily GSEO KRA"] = self.getQKRA(writer_summary["Daily GSEO"])
+
                 if "Daily Stack Rank Index" in self.mode:
                     writer_summary["Daily Stack Rank Index"] = self.getStackRankIndex(writer_summary["Daily Efficiency"], writer_summary["Daily CFM"], writer_summary["Daily GSEO"])        
 
         if "Average Article Count" in self.mode:
             writer_summary["Average Article Count"] = MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
-        if ("Average Efficiency" in self.mode) or ("Average Stack Rank Index" in self.mode):
+        if ("Average Efficiency" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average Efficiency KRA" in self.mode):
             writer_summary["Average Efficiency"] = MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
-        if ("Average Audit Count" in self.mode) or ("Average CFM" in self.mode) or ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode):
+            writer_summary["Average Efficiency KRA"] = self.getEffKRA(self.getEffKRA(writer_summary["Average Efficiency"]))
+        if ("Average Audit Count" in self.mode) or ("Average CFM" in self.mode) or ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average CFM KRA" in self.mode) or ("Average GSEO KRA" in self.mode):
             writer_summary["Average Audit Count"] = MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
             if writer_summary["Average Audit Count"] > 0:
-                if ("Average CFM" in self.mode) or ("Average Stack Rank Index" in self.mode):
+                if ("Average CFM" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average CFM KRA" in self.mode):
                     writer_summary["Average CFM"] = MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
-                if ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode):
+                    writer_summary["Average CFM KRA"] = MOSES.getQKRA(writer_summary["Average CFM"])
+                if ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode)  or ("Average GSEO KRA" in self.mode):
                     writer_summary["Average GSEO"] = MOSES.getGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+                    writer_summary["Average GSEO KRA"] = MOSES.getQKRA(writer_summary["Average GSEO"])
                 if ("Average Stack Rank Index" in self.mode):
                     writer_summary["Average Stack Rank Index"] = self.getStackRankIndex(writer_summary["Average Efficiency"], writer_summary["Average CFM"], writer_summary["Average GSEO"])
         
         if "Weekly Article Count" in self.mode:
             writer_summary["Weekly Article Count"] = MOSES.getArticleCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Weekly Efficiency" in self.mode) or ("Weekly Stack Rank Index" in self.mode):
+        if ("Weekly Efficiency" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly Efficiency KRA" in self.mode):
             writer_summary["Weekly Efficiency"] = MOSES.getEfficiencyForWeek(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Weekly Audit Count" in self.mode) or ("Weekly CFM" in self.mode) or ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode):
+            writer_summary["Weekly Efficiency KRA"] = self.getEffKRA(writer_summary["Writer Efficiency"])
+        if ("Weekly Audit Count" in self.mode) or ("Weekly CFM" in self.mode) or ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly CFM KRA" in self.mode) or ("Weekly GSEO KRA" in self.mode):
             writer_summary["Weekly Audit Count"] = MOSES.getAuditCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Weekly Audit Count"] > 0:
-                if ("Weekly CFM" in self.mode) or ("Weekly Stack Rank Index" in self.mode):
+                if ("Weekly CFM" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly CFM KRA" in self.mode):
                     writer_summary["Weekly CFM"] = MOSES.getCFMForWeek(self.user_id, self.password, self.start_date, self.writer_id)
-                if ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode):
+                    writer_summary["Weekly CFM KRA"] = self.getQKRA(writer_summary["Weekly CFM"])
+                if ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly GSEO KRA" in self.mode):
                     writer_summary["Weekly GSEO"] = MOSES.getGSEOForWeek(self.user_id, self.password, self.start_date, self.writer_id)
+                    writer_summary["Weekly CFM KRA"] = self.getQKRA(writer_summary["Weekly CFM"])
                 if ("Weekly Stack Rank Index" in self.mode):
                     writer_summary["Weekly Stack Rank Index"] = self.getStackRankIndex(writer_summary["Weekly Efficiency"], writer_summary["Weekly CFM"], writer_summary["Weekly GSEO"])
 
         if "Monthly Article Count" in self.mode:
             writer_summary["Monthly Article Count"] = MOSES.getArticleCountForMonth(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Monthly Efficiency" in self.mode) or ("Monthly Stack Rank Index" in self.mode):
+        if ("Monthly Efficiency" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly Efficiency KRA" in self.mode):
             writer_summary["Monthly Efficiency"] = MOSES.getEfficiencyForMonth(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Monthly Audit Count" in self.mode):
+            writer_summary["Monthly Efficiency KRA"] = self.getEffKRA(writer_summary["Monthly Efficiency"])
+        if ("Monthly Audit Count" in self.mode) or ("Monthly CFM" in self.mode) or ("Monthly GSEO" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode) or ("Monthly GSEO KRA" in self.mode):
             writer_summary["Monthly Audit Count"] = MOSES.getAuditCountForMonth(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Monthly Audit Count"] > 0:
-                if ("Monthly CFM" in self.mode) or ("Monthly Stack Rank Index" in self.mode):
+                if ("Monthly CFM" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode):
                     writer_summary["Monthly CFM"] = MOSES.getCFMForMonth(self.user_id, self.password, self.start_date, self.writer_id)
-                if ("Monthly GSEO" in self.mode) or ("Monthly Stack Rank Index" in self.mode):
+                    writer_summary["Monthly CFM KRA"] = self.getQKRA(writer_summary["Monthly CFM"])
+                if ("Monthly GSEO" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode):
                     writer_summary["Monthly GSEO"] = MOSES.getGSEOForMonth(self.user_id, self.password, self.start_date, self.writer_id)
+                    writer_summary["Monthly GSEO KRA"] = self.getQKRA(writer_summary["Monthly GSEO"])
+
                 if ("Monthly Stack Rank Index" in self.mode):
                     writer_summary["Monthly Stack Rank Index"] = self.getStackRankIndex(writer_summary["Monthly Efficiency"], writer_summary["Monthly CFM"], writer_summary["Monthly GSEO"])
+        
         if "Quarterly Article Count" in self.mode:
             writer_summary["Quarterly Article Count"] = MOSES.getArticleCountForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Quarterly Efficiency" in self.mode) or ("Quarterly Stack Rank Index" in self.mode):
+        if ("Quarterly Efficiency" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly Efficiency KRA" in self.mode):
             writer_summary["Quarterly Efficiency"] = MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Quarterly Audit Count" in self.mode) or ("Quarterly CFM" in self.mode) or ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode):
+            writer_summary["Quarterly Efficiency KRA"] = self.getEffKRA(writer_summary["Quarterly Efficiency"])
+        if ("Quarterly Audit Count" in self.mode) or ("Quarterly CFM" in self.mode) or ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly CFM KRA" in self.mode) or ("Quarterly GSEO KRA" in self.mode):
             writer_summary["Quarterly Audit Count"] = MOSES.getAuditCountForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Quarterly Audit Count"] > 0:
-                if ("Quarterly CFM" in self.mode) or ("Quarterly Stack Rank Index" in self.mode):
+                if ("Quarterly CFM" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly CFM KRA" in self.mode):
                     writer_summary["Quarterly CFM"] = MOSES.getCFMForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
-                if ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode):
+                    writer_summary["Quarterly CFM KRA"] = self.getQKRA(writer_summary["Quarterly CFM"])
+                if ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly GSEO KRA" in self.mode):
                     writer_summary["Quarterly GSEO"] = MOSES.getGSEOForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
+                    writer_summary["Quarterly GSEO KRA"] = self.getQKRA(writer_summary["Quarterly GSEO"])
                 if ("Quarterly Stack Rank Index" in self.mode):
                     writer_summary["Quarterly Stack Rank Index"] = self.getStackRankIndex(writer_summary["Quarterly Efficiency"], writer_summary["Quarterly CFM"], writer_summary["Quarterly GSEO"])
         
         if "Half-Yearly Article Count" in self.mode:
             writer_summary["Half-Yearly Article Count"] = MOSES.getArticleCountForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Half-Yearly Efficiency" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode):
+        if ("Half-Yearly Efficiency" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly Efficiency KRA" in self.mode):
             writer_summary["Half-Yearly Efficiency"] = MOSES.getEfficiencyForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
-        if ("Half-Yearly Audit Count Count" in self.mode) or ("Half-Yearly CFM" in self.mode) or ("Half-Yearly GSEO" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode):
+            writer_summary["Half-Yearly Efficiency KRA"] = self.getEffKRA(writer_summary["Half-Yearly Efficiency"])
+        if ("Half-Yearly Audit Count Count" in self.mode) or ("Half-Yearly CFM" in self.mode) or ("Half-Yearly GSEO" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly CFM KRA" in self.mode) or ("Half-Yearly GSEO KRA" in self.mode):
             writer_summary["Half-Yearly Audit Count"] = MOSES.getAuditCountForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Half-Yearly Audit Count"] > 0:
-                if ("Half-Yearly CFM" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode):
+                if ("Half-Yearly CFM" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly CFM KRA" in self.mode):
                     writer_summary["Half-Yearly CFM"] = MOSES.getCFMForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
-                if ("Half-Yearly GSEO" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode):
+                    writer_summary["Half-Yearly CFM KRA"] = self.getQKRA(writer_summary["Half-Yearly CFM"])
+                if ("Half-Yearly GSEO" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly GSEO KRA" in self.mode):
                     writer_summary["Half-Yearly GSEO"] = MOSES.getGSEOForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
+                    writer_summary["Half-Yearly GSEO KRA"] = self.getQKRA(writer_summary["Half-Yearly GSEO"])
                 if ("Half-Yearly Stack Rank Index" in self.mode):
                     writer_summary["Half-Yearly Stack Rank Index"] = self.getStackRankIndex(writer_summary["Half-Yearly Efficiency"], writer_summary["Half-Yearly CFM"], writer_summary["Half-Yearly GSEO"])
         return writer_summary
@@ -304,9 +337,9 @@ class DailyPorker(QtGui.QWidget):
     def createUI(self):
         self.reports_list = QtGui.QListWidget()
         self.reports_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.reports_list.setMinimumSize(120,125)
-        self.reports_list.setMaximumSize(120,125)
-        report_names = ["Article Count","Efficiency","Audit Count","CFM","GSEO","Stack Rank Index","Efficiency KRA","CFM KRA","GSEO KRA","Audit Percentage"]
+        self.reports_list.setMinimumSize(120,80)
+        self.reports_list.setMaximumSize(120,80)
+        report_names = ["Article Count","Efficiency","Audit Count","CFM","GSEO","Stack Rank Index","Efficiency KRA","CFM KRA","GSEO KRA"]#,"Audit Percentage"]
         for report_name in report_names:
             self.reports_list.addItem(report_name)
         list_box_style = """
@@ -409,20 +442,20 @@ class DailyPorker(QtGui.QWidget):
         self.layout.addWidget(self.monthly_check_box, 2, 2)
         self.layout.addWidget(self.quarterly_check_box, 2, 3)
         self.layout.addWidget(self.half_yearly_check_box, 2, 4)
-        self.layout.addWidget(self.reports_list,2, 5, 4, 1)
-        self.layout.addWidget(self.end_date_check_box, 3, 0)
-        self.layout.addWidget(self.end_date_edit, 3, 1)
-        self.layout.addWidget(self.graphs_check_box, 3, 2)
-        self.layout.addWidget(self.writer_report_check_box, 3, 3)
-        self.layout.addWidget(self.team_report_check_box,3,4)
-        self.layout.addWidget(self.sorting_filter_label,4,0)
-        self.layout.addWidget(self.sorting_filter_combobox,4,1,1,2)
-        self.layout.addWidget(self.build_stop_button, 5, 0)
-        self.layout.addWidget(self.export_report_button,5,1)
-        self.layout.addWidget(self.export_graphs_button,5,2)
-        self.layout.addWidget(self.reports_tab, 6, 0, 1, 10)
-        self.layout.addWidget(self.progress_bar, 7, 0, 1, 10)
-        self.layout.addWidget(self.status,8, 0, 1, 10)
+        self.layout.addWidget(self.end_date_check_box, 2, 6)
+        self.layout.addWidget(self.end_date_edit, 2, 7)
+        self.layout.addWidget(self.reports_list,2, 8, 2, 1)
+        self.layout.addWidget(self.graphs_check_box, 3, 0)
+        self.layout.addWidget(self.writer_report_check_box, 3, 1)
+        self.layout.addWidget(self.team_report_check_box,3,2)
+        self.layout.addWidget(self.sorting_filter_label,3,3)
+        self.layout.addWidget(self.sorting_filter_combobox,3,4)
+        self.layout.addWidget(self.build_stop_button, 3, 5)
+        self.layout.addWidget(self.export_report_button,3,6)
+        self.layout.addWidget(self.export_graphs_button,3,7)
+        self.layout.addWidget(self.reports_tab, 4, 0, 1, 10)
+        self.layout.addWidget(self.progress_bar, 5, 0, 1, 10)
+        self.layout.addWidget(self.status,6, 0, 1, 10)
         self.resetReportSelection()
         #Set stretch factors to rows.
         for row_number in range(10):
@@ -551,10 +584,12 @@ class DailyPorker(QtGui.QWidget):
             self.report.insertRow(row_counter)
             column_counter = 0
             for column_name in columns:
-                if "Efficiency" in column_name:
+                if ("Efficiency" in column_name) and ("KRA" not in column_name):
                     steps = [1.00, 1.05, 1.10]
-                elif ("CFM" in column_name) or ("GSEO" in column_name):
+                elif (("CFM" in column_name) or ("GSEO" in column_name)) and ("KRA" not in column_name):
                     steps = [0.95, 0.97]
+                elif ("KRA" in column_name) or ("Index" in column_name):
+                    steps = [3.0,4.0,5.0]
                 else:
                     steps = []
                 parameter = writer_row[column_name]
@@ -576,7 +611,7 @@ class DailyPorker(QtGui.QWidget):
                 if parameter_is_valid:
                     if "Count" in column_name:
                         parameter_as_string = "%d" % parameter
-                    elif "Stack Rank Index" in column_name:
+                    elif ("Stack Rank Index" in column_name) or ("KRA" in column_name):
                         parameter_as_string = "%01.2f" % parameter
                     else:
                         parameter_as_string = "%03.2f%%" %(round(parameter*100,4))
@@ -624,7 +659,6 @@ class DailyPorker(QtGui.QWidget):
                 selected = table_to_copy.selectedRanges()
                 s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
                 s = s + '\n'
-
                 for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
                     s += str(r+1) + '\t' 
                     for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):

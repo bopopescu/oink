@@ -5,8 +5,6 @@ class DailyGraphView(QtGui.QWidget):
         super(DailyGraphView, self).__init__()
         if graph_date is None:
             self.enable_plotting = False
-            self.enable_plotting = True
-            self.graph_date = datetime.date.today()
         else:
             self.enable_plotting = True
             self.graph_date = graph_date
