@@ -3337,6 +3337,11 @@ def getRawDataParameterPercentagesBetween(user_id, password, start_date, end_dat
     if query_user=="All":
         sqlcmdstring = """SELECT * FROM rawdata WHERE 
             `Audit Date` BETWEEN "%s" AND "%s";"""%(convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    elif query_user=="Team Amrita":
+        sqlcmdstring = """SELECT * FROM rawdata WHERE 
+            `Audit Date` BETWEEN "%s" AND "%s" AND (`Writer Name` Like "Vinay%%" OR `Writer Name` LIKE 'Nivedita%%' OR
+            `Writer Name` LIKE 'Ayeshwaree%%' OR `Writer Name` Like 'Sourabha%%' OR `Writer Name` LIKE 'Mridusmita%%' OR 
+            `Writer Name` LIKE 'Renata%%' OR `Writer Name` LIKE 'Ananya%%');"""%(convertToMySQLDate(start_date), convertToMySQLDate(end_date))
     else:
         sqlcmdstring = """SELECT * FROM rawdata WHERE 
                 `WriterID`="%s" 
@@ -3346,6 +3351,7 @@ def getRawDataParameterPercentagesBetween(user_id, password, start_date, end_dat
     cursor.execute(sqlcmdstring)
     raw_data = cursor.fetchall()
     conn.close()
+    #print raw_data
     cfm_score_lists = []
     gseo_score_lists = []
     #print len(raw_data)
@@ -3410,7 +3416,7 @@ def showWriterAuditPercentages():
         writer_id = writer["Employee ID"]
         writer_name = writer["Name"]
         audit_percentage = getAuditPercentageBetween(writer_id, start_date, end_date)
-        print writer_name, audit_percentage*100
+        #print writer_name, audit_percentage*100
     print "Done."
 
 def getColumnAverages(data_list):
@@ -3418,8 +3424,11 @@ def getColumnAverages(data_list):
     data_array = numpy.array(data_list)
     #print data_array
     #given an array, this should return the average of all columns.
-    averages_list = [numpy.mean(data_array[:,column_index]) for column_index in range(data_array.shape[1])]
-    return averages_list
+    try:
+        averages_list = [numpy.mean(data_array[:,column_index]) for column_index in range(data_array.shape[1])]
+        return averages_list
+    except:
+        return False
 
 def getLastWorkingDayOfWeek(query_date):
     user_id, password = getBigbrotherCredentials()
