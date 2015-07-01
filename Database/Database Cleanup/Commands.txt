@@ -1,4 +1,0 @@
-UPDATE `workcalendar` SET `Relaxation`='0.2', `Comment`="Skip Meeting with Manisha" WHERE `Date`='2015-05-04';
-UPDATE `Workcalendar` SET `Relaxation`='0.375', `Comment`="Skip Meeting with Manisha plus category shift research relaxation" WHERE `Date`='2015-05-04' AND `Employee ID`="75027";
-UPDATE `Workcalendar` SET `Relaxation`='0.375', `Comment`="Skip Meeting with Manisha plus category shift research relaxation" WHERE `Date`='2015-05-04' AND `Employee ID`="75028";
-UPDATE `workcalendar` SET `Relaxation`='0.4' , `Comment`="OINK Project Relaxation" WHERE `Date`>'2015-03-25' AND `Employee ID`="62487";
