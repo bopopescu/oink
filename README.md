@@ -11,4 +11,4 @@ OINK requires several modules for development. These include, and are not limite
 Python 2.7, PyQt4.11, numpy, pip, matplotlib, PyQtGraph, gspread, pandas and MySQL-python.
 
 
-Development on OINK started in November, 2015.
+Development on OINK started in November, 2014.
