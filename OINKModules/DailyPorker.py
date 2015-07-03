@@ -37,6 +37,7 @@ class PorkLane(QtCore.QThread):
         self.end_date = datetime.date.today()
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
+        
         if not self.isRunning():
             self.start(QtCore.QThread.LowPriority)
 
@@ -153,8 +154,11 @@ class PorkLane(QtCore.QThread):
             writer_summary["Daily Article Count"] = MOSES.getArticleCount(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Daily Efficiency" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily Efficiency KRA"):
             writer_summary["Daily Efficiency"] = MOSES.getEfficiencyFor(self.user_id, self.password, self.start_date, self.writer_id)
-            if type(writer_summary["Daily Efficiency"]) != str:
-                writer_summary["Daily Efficiency KRA"] = self.getEffKRA(writer_summary["Daily Efficiency"])
+            if (type(writer_summary["Daily Efficiency"]) != str) and (not math.isnan(writer_summary["Daily Efficiency"])):
+                try:
+                    writer_summary["Daily Efficiency KRA"] = self.getEffKRA(writer_summary["Daily Efficiency"])
+                except:
+                    print writer_summary["Daily Efficiency"]
         if ("Daily Audit Count" in self.mode) or ("Daily CFM" in self.mode) or ("Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily CFM KRA") or ("Daily GSEO KRA"):
             writer_summary["Daily Audit Count"] = MOSES.getAuditCount(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Daily Audit Count"] > 0:
@@ -175,8 +179,11 @@ class PorkLane(QtCore.QThread):
             writer_summary["Average Article Count"] = MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
         if ("Average Efficiency" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average Efficiency KRA" in self.mode):
             writer_summary["Average Efficiency"] = MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
-            if type(writer_summary["Average Efficiency"])!= str:
-                writer_summary["Average Efficiency KRA"] = self.getEffKRA(self.getEffKRA(writer_summary["Average Efficiency"]))
+            if (type(writer_summary["Average Efficiency"]) != str) and (not math.isnan(writer_summary["Average Efficiency"])):
+                try:
+                    writer_summary["Average Efficiency KRA"] = self.getEffKRA(writer_summary["Average Efficiency"])
+                except:
+                    print writer_summary["Average Efficiency"]
         if ("Average Audit Count" in self.mode) or ("Average CFM" in self.mode) or ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average CFM KRA" in self.mode) or ("Average GSEO KRA" in self.mode):
             writer_summary["Average Audit Count"] = MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
             if writer_summary["Average Audit Count"] > 0:
@@ -195,8 +202,11 @@ class PorkLane(QtCore.QThread):
             writer_summary["Weekly Article Count"] = MOSES.getArticleCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Weekly Efficiency" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly Efficiency KRA" in self.mode):
             writer_summary["Weekly Efficiency"] = MOSES.getEfficiencyForWeek(self.user_id, self.password, self.start_date, self.writer_id)
-            if type(writer_summary["Weekly Efficiency"])!= str:
-                writer_summary["Weekly Efficiency KRA"] = self.getEffKRA(writer_summary["Weekly Efficiency"])
+            if (type(writer_summary["Weekly Efficiency"]) != str) and (not math.isnan(writer_summary["Weekly Efficiency"])):
+                try:
+                    writer_summary["Weekly Efficiency KRA"] = self.getEffKRA(writer_summary["Weekly Efficiency"])
+                except:
+                    print writer_summary["Weekly Efficiency"]
         if ("Weekly Audit Count" in self.mode) or ("Weekly CFM" in self.mode) or ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly CFM KRA" in self.mode) or ("Weekly GSEO KRA" in self.mode):
             writer_summary["Weekly Audit Count"] = MOSES.getAuditCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Weekly Audit Count"] > 0:
@@ -215,8 +225,11 @@ class PorkLane(QtCore.QThread):
             writer_summary["Monthly Article Count"] = MOSES.getArticleCountForMonth(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Monthly Efficiency" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly Efficiency KRA" in self.mode):
             writer_summary["Monthly Efficiency"] = MOSES.getEfficiencyForMonth(self.user_id, self.password, self.start_date, self.writer_id)
-            if type(writer_summary["Monthly Efficiency"])!= str:
-                writer_summary["Monthly Efficiency KRA"] = self.getEffKRA(writer_summary["Monthly Efficiency"])
+            if (type(writer_summary["Monthly Efficiency"]) != str) and (not math.isnan(writer_summary["Monthly Efficiency"])):
+                try:
+                    writer_summary["Monthly Efficiency KRA"] = self.getEffKRA(writer_summary["Monthly Efficiency"])
+                except:
+                    print writer_summary["Monthly Efficiency"]
         if ("Monthly Audit Count" in self.mode) or ("Monthly CFM" in self.mode) or ("Monthly GSEO" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode) or ("Monthly GSEO KRA" in self.mode):
             writer_summary["Monthly Audit Count"] = MOSES.getAuditCountForMonth(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Monthly Audit Count"] > 0:
@@ -236,8 +249,11 @@ class PorkLane(QtCore.QThread):
             writer_summary["Quarterly Article Count"] = MOSES.getArticleCountForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Quarterly Efficiency" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly Efficiency KRA" in self.mode):
             writer_summary["Quarterly Efficiency"] = MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
-            if type(writer_summary["Quarterly Efficiency"])!= str:
-                writer_summary["Quarterly Efficiency KRA"] = self.getEffKRA(writer_summary["Quarterly Efficiency"])
+            if (type(writer_summary["Quarterly Efficiency"]) != str) and (not math.isnan(writer_summary["Quarterly Efficiency"])):
+                try:
+                    writer_summary["Quarterly Efficiency KRA"] = self.getEffKRA(writer_summary["Quarterly Efficiency"])
+                except:
+                    print writer_summary["Quarterly Efficiency"]
         if ("Quarterly Audit Count" in self.mode) or ("Quarterly CFM" in self.mode) or ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly CFM KRA" in self.mode) or ("Quarterly GSEO KRA" in self.mode):
             writer_summary["Quarterly Audit Count"] = MOSES.getAuditCountForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Quarterly Audit Count"] > 0:
@@ -256,8 +272,11 @@ class PorkLane(QtCore.QThread):
             writer_summary["Half-Yearly Article Count"] = MOSES.getArticleCountForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Half-Yearly Efficiency" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly Efficiency KRA" in self.mode):
             writer_summary["Half-Yearly Efficiency"] = MOSES.getEfficiencyForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
-            if type(writer_summary["Half-Yearly Efficiency"])!= str:
-                writer_summary["Half-Yearly Efficiency KRA"] = self.getEffKRA(writer_summary["Half-Yearly Efficiency"])
+            if (type(writer_summary["Half-Yearly Efficiency"]) != str) and (not math.isnan(writer_summary["Half-Yearly Efficiency"])):
+                try:
+                    writer_summary["Half-Yearly Efficiency KRA"] = self.getEffKRA(writer_summary["Half-Yearly Efficiency"])
+                except:
+                    print writer_summary["Half-Yearly Efficiency"]
         if ("Half-Yearly Audit Count Count" in self.mode) or ("Half-Yearly CFM" in self.mode) or ("Half-Yearly GSEO" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly CFM KRA" in self.mode) or ("Half-Yearly GSEO KRA" in self.mode):
             writer_summary["Half-Yearly Audit Count"] = MOSES.getAuditCountForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Half-Yearly Audit Count"] > 0:

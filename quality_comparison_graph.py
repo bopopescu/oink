@@ -14,13 +14,13 @@ if __name__ == "__main__":
     d1 = datetime.date(2015,6,22)
     d2 = datetime.date(2015,6,26)
     query_user = "Team Amrita"
-  #  writer_1_cfm, writer_1_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, query_user)
+ #  writer_1_cfm, writer_1_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, query_user)
     team_cfm, team_gseo = MOSES.getRawDataParameterPercentagesBetween(u, p, d1, d2, "Team Amrita")
     quality_header_codes = ["CFM0%d"%(x+1) for x in range(len(team_cfm))]+["GSEO0%d"%(x+1) for x in range(len(team_gseo))]
     #print quality_header_codes
     #print writer_1_gseo, team_gseo
- #   writer_quality = writer_1_cfm + writer_1_gseo
-    #print writer_quality
+ #  writer_quality = writer_1_cfm + writer_1_gseo
+ #  print writer_quality
     team_quality = team_cfm + team_gseo
     quality_headers = [MOSES.getAuditParameterName(parameter_code) for parameter_code in quality_header_codes]
  #   writer_quality = 100*np.array(writer_quality)

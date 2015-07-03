@@ -7,8 +7,11 @@ class PiggyBankWithFilter(QtGui.QWidget):
     def __init__(self, user_id, password):
         super(PiggyBankWithFilter, self).__init__()
         self.createUI()
+        self.user_id, self.password = user_id, password
+        self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         self.mapEvents()
-    
+        self.populateBU()
+
     def createUI(self):
         self.instruction_label = QtGui.QLabel("Select filters from the following:")
         self.filter_text_edit = QtGui.QTextEdit()
@@ -60,6 +63,12 @@ class PiggyBankWithFilter(QtGui.QWidget):
     def limitEndDate(self):
         self.end_date_edit.setMinimumDate(self.start_date_edit.date())
         self.end_date_edit.setDate(self.start_date_edit.date())
+
+    def populateBU(self):
+        self.BUs_filter_box.clear()
+        bus = list(set(self.category_tree["BU"]))
+        bus.sort()
+        self.BUs_filter_box.addItems(bus)
 
 if __name__ == "__main__":
     app = QtGui.QApplication([])

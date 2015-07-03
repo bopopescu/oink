@@ -6,11 +6,7 @@ class CheckableComboBox(QtGui.QComboBox):
         super(CheckableComboBox, self).__init__()
         self.label = label
         self.view().pressed.connect(self.handleItemPressed)
-        firstItem = QtGui.QStandardItem("----%s----"%self.label)
-        firstItem.setBackground(QtGui.QBrush(QtGui.QColor(200, 200, 200)))
-        firstItem.setSelectable(False)
-        self.setModel(QtGui.QStandardItemModel(self))
-        self.model().setItem(0, 0, firstItem)
+        self.clear()
         self.setCurrentIndex(0)
         self.installEventFilter(self)
         self.currentIndexChanged.connect(self.reset)
@@ -46,6 +42,16 @@ class CheckableComboBox(QtGui.QComboBox):
             if item.checkState() == QtCore.Qt.Checked:
                 checked_items.append(str(item.text()))
         return checked_items
+
+    def clear(self):
+        super(CheckableComboBox,self).clear()
+        firstItem = QtGui.QStandardItem("----%s----"%self.label)
+        firstItem.setBackground(QtGui.QBrush(QtGui.QColor(200, 200, 200)))
+        firstItem.setSelectable(False)
+        self.setModel(QtGui.QStandardItemModel(self))
+        self.model().setItem(0, 0, firstItem)
+
+
         
 class Dialog_01(QtGui.QMainWindow):
     def __init__(self):
