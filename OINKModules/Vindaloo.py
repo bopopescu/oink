@@ -18,6 +18,7 @@ from OINKMethods import version
 from Seeker import Seeker
 from Graphite import Graphite
 from StyCleaner import StyCleaner
+from FarmHand import FarmHand
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -38,8 +39,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.seeker_button.setToolTip("Click here to search for an FSN or ItemID in the PiggyBank and FSN Dump.")
         self.sty_cleaner_button = QtGui.QPushButton("Sty Cleaner")
         self.sty_cleaner_button.setToolTip("Click here to summarize the clarifications sheet.")
-        self.porklid_button = QtGui.QPushButton("Porklid")
-        self.porklid_button.setToolTip("Click here to generate graphical report(s).")
+        self.farmhand_button = QtGui.QPushButton("Farm Hand")
+        self.farmhand_button.setToolTip("Click here to view feedback report(s).")
         self.piggy_bank_button = QtGui.QPushButton("Piggy Bank")
         self.piggy_bank_button.setToolTip("Click here to pull Piggy Bank data.")
         self.swine_herd_button = QtGui.QPushButton("Swine Herd")
@@ -47,7 +48,7 @@ class Vindaloo(QtGui.QMainWindow):
 
         self.layout = QtGui.QGridLayout()
         self.layout.addWidget(self.daily_porker_button, 0, 0)
-        self.layout.addWidget(self.porklid_button, 0, 1)
+        self.layout.addWidget(self.farmhand_button, 0, 1)
         self.layout.addWidget(self.piggy_bank_button, 0, 2)
         self.layout.addWidget(self.swine_herd_button, 1, 0)
         self.layout.addWidget(self.seeker_button, 1, 1)
@@ -93,7 +94,7 @@ class Vindaloo(QtGui.QMainWindow):
         """Vindaloo."""
         self.piggy_bank_button.clicked.connect(self.openPiggyBank)
         self.daily_porker_button.clicked.connect(self.openDailyPorker)
-        self.porklid_button.clicked.connect(self.openPorklid)
+        self.farmhand_button.clicked.connect(self.openFarmHand)
         self.sty_cleaner_button.clicked.connect(self.openStyCleaner)
         self.swine_herd_button.clicked.connect(self.openSwineHerd)
         self.seeker_button.clicked.connect(self.openSeeker)
@@ -105,8 +106,9 @@ class Vindaloo(QtGui.QMainWindow):
         self.daily_porker = DailyPorker(self.user_id, self.password)
         self.daily_porker.show()
 
-    def openPorklid(self):
-        self.alertMessage("Porklid", "Euclid gave us geometry. Porklid gave us graphical nightmares.")
+    def openFarmHand(self):
+        self.farm_hand = FarmHand(self.user_id, self.password)
+        self.farm_hand.show()
     
     def openStyCleaner(self):
         #self.alertMessage("StyCleaner", "We clean the shiz.")

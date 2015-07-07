@@ -3678,5 +3678,42 @@ def getFSNListWithoutUploadedType():
     random.shuffle(fsn_list)
     return fsn_list
 
+def getFeedbackBetweenDates(user_id, password, start_date, end_date=None, entity_type=None):
+    if end_date is None:
+        end_date = start_date
+    if entity_type is None:
+        entity_search = ";"
+    else:
+        if (type(entity_type) == str):
+            entity_search = """ AND `entity_type` = "%s";""" %entity_type
+        elif (len(entity_type)==1):
+            entity_search = """ AND `entity_type` = "%s";""" %entity_type[0]
+        else:
+            entity_search = """ AND `entity_type` in %s;""" % str(tuple(entity_type))
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+
+    sqlcmdstring = """SELECT * FROM `feedback` WHERE `create_stamp` BETWEEN "%s" AND "%s"%s""" %(start_date, end_date,entity_search)
+    cursor.execute(sqlcmdstring)
+    all_data = cursor.fetchall()
+    if len(all_data) > 0:
+        sqlcmdstring = """SELECT count(*) FROM `feedback` WHERE `feedback`="yes" AND `create_stamp` BETWEEN "%s" AND "%s"%s""" %(start_date, end_date,entity_search)
+        #print sqlcmdstring
+        cursor.execute(sqlcmdstring)
+        yes_data = cursor.fetchall()
+        sqlcmdstring = """SELECT count(*) FROM `feedback` WHERE `create_stamp` BETWEEN "%s" AND "%s"%s""" %(start_date, end_date,entity_search)
+        cursor.execute(sqlcmdstring)
+        #print sqlcmdstring
+        total_data = cursor.fetchall()
+        #print yes_data, total_data
+        yes_count = yes_data[0]["count(*)"]
+        total_count = total_data[0]["count(*)"]
+    else:
+        yes_count = 0
+        total_count = 0
+        all_data = []
+    conn.close()
+    return {"yes":yes_count, "total":total_count, "data": all_data}
+
 if __name__ == "__main__":
     print "Never call Moses mainly."
