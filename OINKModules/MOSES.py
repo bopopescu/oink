@@ -2948,7 +2948,7 @@ def checkIfClarificationPosted(user_id, password, FSN, code):
         return False
 
 def version():
-    return "1.5"
+    return "1.7"
 
 def getAuditParameterName(query_parameter):
     user_id, password = getBigbrotherCredentials()

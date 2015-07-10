@@ -19,6 +19,7 @@ from Seeker import Seeker
 from Graphite import Graphite
 from StyCleaner import StyCleaner
 from FarmHand import FarmHand
+from PiggyBankWithFilter import PiggyBankWithFilter
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -33,6 +34,7 @@ class Vindaloo(QtGui.QMainWindow):
     def createUI(self):
         self.main_widget = QtGui.QWidget()
         self.setCentralWidget(self.main_widget)
+       
         self.daily_porker_button = QtGui.QPushButton("Daily Porker")
         self.daily_porker_button.setToolTip("Click here to pull the report.")
         self.seeker_button = QtGui.QPushButton("Seeker")
@@ -62,12 +64,12 @@ class Vindaloo(QtGui.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('Images\PORK_Icon.png'))
         self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon('Images\PORK_Icon.png'), self)
         self.trayIcon.show()
-        self.statusBar().showMessage("All animals are created equal, but some animals are created more equal than others.")
+        self.statusBar().showMessage("Send not to ask for whom the bell tolls. It tolls for thee...")
         style_string = """
         .QWidget, .QPushButton, .QStatusBar, .QMessageBox, .QLabel{
             background-color: #0088D6;
             color: white;
-            font: 8pt;
+            font: 10pt;
         }
         .QWidget, .QPushButton{
             font: 14pt;    
@@ -75,9 +77,15 @@ class Vindaloo(QtGui.QMainWindow):
         .QStatusBar {
             background-color: #FDDE2E;
             color: #0088D6;
-            font: 9pt italic;
-        
+            font: italic 10pt;
         }
+        .QPushButton:hover {
+            background-color: #FDDE2E;
+            color: #0088D6;
+            font: 14pt;
+        }
+        
+
         """
         self.setWindowFlags(QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowShadeButtonHint)
         self.setStyleSheet(style_string)
@@ -100,7 +108,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.seeker_button.clicked.connect(self.openSeeker)
 
     def openPiggyBank(self):
-        self.alertMessage("Piggy Bank", "This little piggy went to market...")
+        self.piggy_bank = PiggyBankWithFilter(self.user_id, self.password)
+        self.piggy_bank.show()
     
     def openDailyPorker(self):
         self.daily_porker = DailyPorker(self.user_id, self.password)

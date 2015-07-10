@@ -14,7 +14,7 @@ from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, p
 from OINKModules import MOSES
 def main():
     app = QtGui.QApplication(sys.argv)
-    QtGui.qApp.setStyle(QtCore.QString(u'Cleanlooks'))
+    QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))
     #Check if the program is already active or if it wasn't closed properly.
     try:
         login_details = login()

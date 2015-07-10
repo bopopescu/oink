@@ -29,6 +29,7 @@ class CheckableComboBox(QtGui.QComboBox):
         checked_items = len(self.getCheckedItems())
         if checked_items > 0:
             self.model().item(0).setText("----%s : %d options selected----"%(self.label, checked_items))
+            self.setCurrentIndex(0)
         else:
             self.model().item(0).setText("----%s----"%(self.label))
         if self.currentIndex() != 0:
@@ -50,7 +51,14 @@ class CheckableComboBox(QtGui.QComboBox):
         firstItem.setSelectable(False)
         self.setModel(QtGui.QStandardItemModel(self))
         self.model().setItem(0, 0, firstItem)
-
+    
+    def addItems(self,items_list):
+        base_index = self.__len__()
+        for item_index in range(len(items_list)):
+            self.addItem(items_list[item_index])
+            item = self.model().item(item_index+base_index, 0)
+            item.setCheckState(QtCore.Qt.Unchecked)
+        self.reset()
 
         
 class Dialog_01(QtGui.QMainWindow):
