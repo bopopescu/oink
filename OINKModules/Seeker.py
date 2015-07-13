@@ -63,20 +63,20 @@ class Seeker(QtGui.QWidget):
     
     def fetchData(self):
         text_edit_contents = str(self.fsns_text_edit.toPlainText()).strip()
-        print "Got text!"
+        #print "Got text!"
         if '"' in text_edit_contents:
             text_edit_contents.replace('"',"")
-            print "Removing quotes"
+            #print "Removing quotes"
         if " " in text_edit_contents:
             text_edit_contents.replace(' ', "")
-            print "Removing spaces"
+            #print "Removing spaces"
         search_items = list(set(text_edit_contents.split("\n")))
         #search_items = ",".join(search_items)
         #self.fsns_text_edit.setText(search_items)
         #search_items = str(self.fsns_text_edit.toPlainText()).strip().split(",")
         self.mode = self.mode_combo_box.currentIndex()
         self.search_type = self.type_selector.currentIndex()
-        print 'Delegating!'
+        #print 'Delegating!'
         self.peeves.fetchData(search_items, self.mode, self.search_type)
         #print len(fsns)
 

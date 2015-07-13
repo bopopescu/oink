@@ -31,7 +31,7 @@ class CheckableComboBox(QtGui.QComboBox):
             self.model().item(0).setText("----%s : %d options selected----"%(self.label, checked_items))
             self.setCurrentIndex(0)
         else:
-            self.model().item(0).setText("----%s----"%(self.label))
+            self.setItemText(0,"----%s----"%(self.label))
         if self.currentIndex() != 0:
             self.setCurrentIndex(0)
 
@@ -51,6 +51,7 @@ class CheckableComboBox(QtGui.QComboBox):
         firstItem.setSelectable(False)
         self.setModel(QtGui.QStandardItemModel(self))
         self.model().setItem(0, 0, firstItem)
+        self.model().item(0).setText("----%s----"%(self.label))
     
     def addItems(self,items_list):
         base_index = self.__len__()

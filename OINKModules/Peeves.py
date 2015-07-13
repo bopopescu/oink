@@ -27,7 +27,8 @@ class Peeves(QtCore.QThread):
         """"""
         #print "Peeves is running and ready to serve the Seeker."
         while True:
-            self.processSearchStrings()
+            if not self.sent:
+                self.processSearchStrings()
 
     def __del__(self):
         """"""

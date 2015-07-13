@@ -121,6 +121,10 @@ class FarmHand(QtGui.QWidget):
                 self.helpfulness_data_table.setItem(row_index,4,QtGui.QTableWidgetItem(str(data["data"][row_index]["feedback"])))
                 self.helpfulness_data_table.setItem(row_index,5,QtGui.QTableWidgetItem(str(data["data"][row_index]["metadata"])))
             self.helpfulness_data_table.setSortingEnabled(True)
+            self.helpfulness_data_table.resizeColumnsToContents()
+            self.helpfulness_data_table.setColumnWidth(5,200)
+            self.helpfulness_data_table.setWordWrap(True)
+            self.helpfulness_data_table.resizeRowsToContents()
             self.alertMessage("Completed!","Finished summarizing feedback data for the selected entity types between %s and %s" %(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))
         else:
             self.alertMessage("No Data Available!","There is no feedback available for the selected entity types between %s and %s" %(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))

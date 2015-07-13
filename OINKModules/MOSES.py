@@ -16,10 +16,13 @@ import MySQLdb.cursors
 import numpy
 import OINKMethods as OINKM
 
-def getOINKConnector(user_id, password):
+def getOINKConnector(user_id, password, mode = None):
     import MySQLdb
     import MySQLdb.cursors
-    conn = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
+    if mode is None:
+        conn = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName(), cursorclass = MySQLdb.cursors.DictCursor)
+    else:
+        conn = MySQLdb.connect(host = getHostID(), user = user_id, passwd = password, db = getDBName())
     return conn
 
 #########################################################################
@@ -1050,6 +1053,20 @@ def convertToMySQLDate(queryDate):
     Uses the OINKModule2 module's changeDatesToStrings method."""
     dateString = OINKM.changeDatesToStrings(queryDate,"YYYY-MM-DD")
     return dateString[0]
+
+
+def getPiggyBankFiltered(user_id, password, filters):
+    """For use with the new PiggyBankFiltered class."""
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    if filters["All Dates"]:
+        sqlcmdstring = """SELECT * FROM `piggybank`;"""
+    else:
+        sqlcmdstring = """SELECT * FROM `piggybank` WHERE `Article Date` BETWEEN "%s" AND "%s";""" %(filters["Start Date"], filters["End Date"])
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return data
 
 def getPiggyBankMultiQuery(queryDictList, user_id, password):
     """Method to extract Piggy Bank data from the database corresponding
@@ -3714,6 +3731,7 @@ def getFeedbackBetweenDates(user_id, password, start_date, end_date=None, entity
         all_data = []
     conn.close()
     return {"yes":yes_count, "total":total_count, "data": all_data}
+
 
 if __name__ == "__main__":
     print "Never call Moses mainly."

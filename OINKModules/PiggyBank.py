@@ -24,7 +24,7 @@ class PiggyBank(QtGui.QTableWidget):
             #print type(row)
             #print "Row %d" % row_index #debug
             if len(row) > 0:
-                self.setColumnCount(len(row))             
+                self.setColumnCount(len(row))
                 column_index = 0
                 self.insertRow(row_index)
                 #get the keys from the PiggyBank Key list.
