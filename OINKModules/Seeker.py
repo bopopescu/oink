@@ -18,6 +18,24 @@ class Seeker(QtGui.QWidget):
         self.createUI()
         self.createEvents()
 
+    def keyPressEvent(self, e):
+        if (e.modifiers() & QtCore.Qt.ControlModifier):
+            if e.key() == QtCore.Qt.Key_C: #copy
+                table_to_copy = self.output_table
+                selected = table_to_copy.selectedRanges()
+                s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
+                s = s + '\n'
+
+                for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
+                    s += str(r+1) + '\t' 
+                    for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
+                        try:
+                            s += str(table_to_copy.item(r,c).text()) + "\t"
+                        except AttributeError:
+                            s += "\t"
+                    s = s[:-1] + "\n" #eliminate last '\t'
+                self.clip.setText(s)
+
     def createUI(self):
         self.fsns_label = QtGui.QLabel("FSNs\Item IDs:")
         self.fsns_text_edit = QtGui.QTextEdit()
