@@ -353,11 +353,15 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggy_bank_data = data
         self.summarize()
 
-    def summarize(self):
-        data = self.piggy_bank_data
+    def getSummarizeParameters(self):
         summarize_parameters = self.piggybank_summary_column_chooser.getCheckedItems()
         if summarize_parameters == []:
             summarize_parameters = ["Writer Name","Category","Description Type"]
+        return summarize_parameters
+
+    def getBreakUpTableFromPiggyBank(self):
+        data = self.piggy_bank_data
+        summarize_parameters = self.getSummarizeParameters()
         #Build a summary matrix with the different types of the selected summarize parameters.
         matrix = []
         for row in data:
@@ -365,10 +369,13 @@ class PiggyBankWithFilter(QtGui.QWidget):
             for key in summarize_parameters:
                 row_qualifier[key] = row[key]
             matrix.append(row_qualifier)
-
         #Build a dictionary which the values for the selected summarize parameters.
         result = [dict(tupleized) for tupleized in set(tuple(item.items()) for item in matrix)]
+        return result, summarize_parameters
 
+
+    def summarize(self):
+        result, summarize_parameters = self.getBreakUpTableFromPiggyBank()
         #Now process for audit percentages
         #First, check if you're looking at this at a writer level
         #If writer level, check if all editors' efficiency is equalized.
@@ -395,6 +402,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
             for editor in self.editor_audit_constraints.keys():
                 if not self.editor_audit_constraints[editor]["Audit Conditions Satisfied"]:
                     self.editor_audit_constraints[editor]["Total Word Count"] = 0
+                    self.editor_audit_constraints[editor]["Audit Count"] = 0
                     print "Resetting %s's word count." %editor
 
             #For each row in the result, count the numbers from the piggy bank data set.
@@ -402,7 +410,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 if first_run:
                     qualifier_row["Article Count"] = 0
                     qualifier_row["Word Count"] = 0
-                    for row in data:
+                    for row in self.piggy_bank_data:
                         row_match = True
                         for key in qualifier_row:
                             if (key not in ["Article Count", "Word Count", "Suggested Audits","Approx. Word Count of Audits"]):
@@ -416,6 +424,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 if equalize_editors:
                     audit_percentage = self.editor_audit_constraints["All"]["Audit Percentage"]/100
                     qualifier_row["Suggested Audits"] = int(math.ceil(audit_percentage*qualifier_row["Article Count"]))
+                    self.editor_audit_constraints["All"]["Audit Count"] += qualifier_row["Suggested Audits"]
                     qualifier_row["Approx. Word Count of Audits"] = int(math.ceil(qualifier_row["Suggested Audits"]*qualifier_row["Word Count"]/qualifier_row["Article Count"]))
                     self.editor_audit_constraints["All"]["Total Word Count"] += qualifier_row["Approx. Word Count of Audits"]
                 else:
@@ -424,6 +433,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                         qualifier_row["Editor Name"] = editor_name
                         audit_percentage = self.editor_audit_constraints[editor_name]["Audit Percentage"]/100
                         qualifier_row["Suggested Audits"] = int(math.ceil(audit_percentage*qualifier_row["Article Count"]))
+                        self.editor_audit_constraints[editor_name]["Audit Count"] += qualifier_row["Suggested Audits"]
                         qualifier_row["Approx. Word Count of Audits"] = int(math.ceil(qualifier_row["Suggested Audits"]*qualifier_row["Word Count"]/qualifier_row["Article Count"]))
                         self.editor_audit_constraints[editor_name]["Total Word Count"] += qualifier_row["Approx. Word Count of Audits"]
 
@@ -467,23 +477,26 @@ class PiggyBankWithFilter(QtGui.QWidget):
                     if self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Minimum Word Count"]:
                         print "Under-utilizing %s!" %scope
                         print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
-                        self.editor_audit_constraints[scope]["Audit Percentage"] += self.piggybank_summary_audit_percentage.singleStep()
-                        if self.editor_audit_constraints[scope]["Audit Percentage"] > 100:
-                            raise Exception
+                        if self.editor_audit_constraints[scope]["Audit Percentage"] >= 100:
+                            self.alertMessage("Error Planning Audits","%s's audit percentage is out of bounds. Set to %d%%" %(scope,self.editor_audit_constraints[scope]["Audit Percentage"]))
+                            self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                         else:
                             print "Increasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                            self.editor_audit_constraints[scope]["Audit Percentage"] += self.piggybank_summary_audit_percentage.singleStep()
                     elif self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Maximum Word Count"]:
                         #Editors are over-utilized
                         print "Over-utilizing %s!" %scope
                         print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
-                        self.editor_audit_constraints[scope]["Audit Percentage"] -= self.piggybank_summary_audit_percentage.singleStep()
-                        if self.editor_audit_constraints[scope]["Audit Percentage"] <= 0:
-                            raise Exception
+                        if self.editor_audit_constraints[scope]["Audit Percentage"] <= 1:
+                            self.alertMessage("Error Planning Audits","%s's audit percentage is out of bounds. Set to %d%%" %(scope,self.editor_audit_constraints[scope]["Audit Percentage"]))
+                            self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                         else:
                             print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                            self.editor_audit_constraints[scope]["Audit Percentage"] -= self.piggybank_summary_audit_percentage.singleStep()
                     elif (self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Minimum Word Count"]) and (self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Maximum Word Count"]):
                         print "%s is well used.!" %scope
                         if self.editor_audit_constraints[scope]["Audit Percentage"] < 0:
+                            self.alertMessage("Error Planning Audits","%s's audit percentage is out of bounds. Set to %d%%" %(scope,self.editor_audit_constraints[scope]["Audit Percentage"]))
                             raise Exception
                         print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                         self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
@@ -506,7 +519,27 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary.setHorizontalHeaderLabels(headers)
         self.piggybank_summary.resizeColumnsToContents()
         self.piggybank_summary.resizeRowsToContents()
-
+        
+        self.piggybank_summary_editor_summary.setSortingEnabled(False)
+        editors = self.editor_audit_constraints.keys()
+        editors.remove("All")
+        editors.sort()
+        row_index = 0
+        self.piggybank_summary_editor_summary.setRowCount(3)
+        editor_summary_labels = ["Editor Name", "Audit Count", "Total Word Count", "Target Minimum Word Count", "Target Maximum Word Count", "Audit Percentage"]
+        self.piggybank_summary_editor_summary.setColumnCount(len(editor_summary_labels))
+        for editor in editors:
+            self.piggybank_summary_editor_summary.setItem(row_index,0,QtGui.QTableWidgetItem(editor))
+            self.piggybank_summary_editor_summary.setItem(row_index,1,QtGui.QTableWidgetItem(str(self.editor_audit_constraints[editor]["Audit Count"])))
+            self.piggybank_summary_editor_summary.setItem(row_index,2,QtGui.QTableWidgetItem(str(self.editor_audit_constraints[editor]["Total Word Count"])))
+            self.piggybank_summary_editor_summary.setItem(row_index,3,QtGui.QTableWidgetItem(str(self.editor_audit_constraints[editor]["Target Minimum Word Count"])))
+            self.piggybank_summary_editor_summary.setItem(row_index,4,QtGui.QTableWidgetItem(str(self.editor_audit_constraints[editor]["Target Maximum Word Count"])))
+            self.piggybank_summary_editor_summary.setItem(row_index,5,QtGui.QTableWidgetItem(str(self.editor_audit_constraints[editor]["Audit Percentage"])))
+            row_index +=1
+        self.piggybank_summary_editor_summary.setSortingEnabled(True)
+        self.piggybank_summary_editor_summary.setHorizontalHeaderLabels(editor_summary_labels)
+        self.piggybank_summary_editor_summary.resizeColumnsToContents()
+        self.piggybank_summary_editor_summary.resizeRowsToContents()
     def getEditorName(self, writer_name):
         editors = [name for name in self.editor_audit_constraints.keys()]
         editors.remove("All")
@@ -530,7 +563,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "Varkey": {
             "Audit Percentage":30, 
             "Minimum Word Count": 4000, 
-            "Maximum Word Count": 5000,
+            "Maximum Word Count": 4500,
             "Editor Utilization": 1.0,
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
@@ -542,7 +575,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "Varun Chhabria": {
             "Audit Percentage":30, 
             "Minimum Word Count": 2000, 
-            "Maximum Word Count": 5000,
+            "Maximum Word Count": 4500,
             "Editor Utilization": 1.0,
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
@@ -554,7 +587,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "Manasa Prabhu": {
             "Audit Percentage":30, 
             "Minimum Word Count": 4000, 
-            "Maximum Word Count": 5000,
+            "Maximum Word Count": 4500,
             "Editor Utilization": 1.0,
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
@@ -566,7 +599,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "All": {
             "Audit Percentage":30, 
             "Minimum Word Count": 4000, 
-            "Maximum Word Count": 5000,
+            "Maximum Word Count": 4500,
             "Editor Utilization": 3.0,
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
@@ -576,6 +609,9 @@ class PiggyBankWithFilter(QtGui.QWidget):
             "Writers": MOSES.getWritersListForEditor(self.user_id, self.password)
             }
         }
+    def alertMessage(self, title, message):
+        """Vindaloo."""
+        QtGui.QMessageBox.about(self, title, message)
 
 if __name__ == "__main__":
     app = QtGui.QApplication([])
