@@ -3732,6 +3732,40 @@ def getFeedbackBetweenDates(user_id, password, start_date, end_date=None, entity
     conn.close()
     return {"yes":yes_count, "total":total_count, "data": all_data}
 
-
+def getWritersListForEditor(user_id, password, editor_name=None):
+    conn = getOINKConnector(user_id, password, 1)
+    cursor = conn.cursor()
+    if editor_name is not None:
+        sqlcmdstring = """SELECT `Employee Name`
+                        FROM `managermapping`
+                        WHERE `Reporting Manager Name` = 
+                         (
+                        SELECT `Reporting Manager Name`
+                        FROM `managermapping`
+                        WHERE `Employee Name`="%s" AND `Revision Date` >= 
+                         (
+                        SELECT MAX(`Revision Date`)
+                        FROM `managermapping`
+                        WHERE `Employee Name`="%s")) AND (
+                        SELECT `Role`
+                        FROM `employees`
+                        WHERE `employees`.`Name`=`managermapping`.`Employee Name`)="Content Writer" AND `Revision Date` >= 
+                         (
+                        SELECT MAX(`Revision Date`)
+                        FROM `managermapping`
+                        WHERE `Employee Name`="%s");""" %(editor_name,editor_name,editor_name)
+    else:
+        sqlcmdstring = """SELECT `Employee Name` FROM `managermapping` WHERE `Revision Date` = 
+                    (SELECT MAX(`Revision Date`) FROM `managermapping`) AND (
+                    SELECT `Role`
+                    FROM `employees`
+                    WHERE `employees`.`Name`=`managermapping`.`Employee Name`)="Content Writer";"""
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    writers_list = [item for sublist in data for item in sublist ]
+    writers_list.sort()
+    writers_list = list(set(writers_list))
+    return writers_list
 if __name__ == "__main__":
     print "Never call Moses mainly."

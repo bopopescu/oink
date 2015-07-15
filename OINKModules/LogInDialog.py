@@ -43,6 +43,7 @@ class LogInDialog(QtGui.QDialog):
         self.passwordLineEdit.setToolTip("Enter your password here.")
         self.hostLabel = QtGui.QLabel("Host ID:")
         self.hostLineEdit = QtGui.QLineEdit()
+        self.hostLineEdit.setEnabled(False)
         hostID = MOSES.getHostID()
         self.hostLineEdit.setText(hostID)
         self.buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok|
