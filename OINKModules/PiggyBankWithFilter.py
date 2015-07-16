@@ -13,7 +13,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         self.writers_list = MOSES.getWritersList(self.user_id, self.password)
         self.brands = MOSES.getBrandValues(self.user_id, self.password)
-        self.resetEditorConstraints()
         self.createUI()
         self.piggy_bank_data = []
         self.mapEvents()
@@ -28,7 +27,10 @@ class PiggyBankWithFilter(QtGui.QWidget):
             if e.key() == QtCore.Qt.Key_C: #copy
                 current_tab = self.piggybank_tabs.currentIndex()
                 if current_tab == 0:
-                    table_to_copy = self.piggybank_summary
+                    if self.piggybank_summary_tables.currentIndex() == 0:
+                        table_to_copy = self.piggybank_summary
+                    else:
+                        table_to_copy = self.piggybank_summary_editor_summary
                 else:
                     table_to_copy = self.piggybank
                 selected = table_to_copy.selectedRanges()
@@ -83,34 +85,31 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_audit_percentage_label = QtGui.QLabel("Audit Percentage:")
         self.piggybank_summary_audit_percentage = QtGui.QSpinBox()
         self.piggybank_summary_audit_percentage.setRange(0,100)
-        self.piggybank_summary_audit_percentage.setValue(30)
         self.piggybank_summary_audit_percentage.setSuffix("%")
         self.piggybank_summary_editor_utilization = QtGui.QDoubleSpinBox()
         self.piggybank_summary_editors_label = QtGui.QLabel("Editor:")
         self.piggybank_summary_editors_list = QtGui.QComboBox()
+        self.resetEditorConstraints()
         editors_list = self.editor_audit_constraints.keys()
         editors_list.sort()
         self.piggybank_summary_editors_list.addItems(editors_list)
         self.piggybank_summary_editors_equality_checkbox = QtGui.QCheckBox("Use Equal Targets For All Editors")
         self.piggybank_summary_editors_equality_checkbox.setCheckState(False)
         self.piggybank_summary_editor_utilization_label = QtGui.QLabel("Editor Utilization:")
-        self.piggybank_summary_editor_utilization.setRange(0,3.0)
-        self.piggybank_summary_editor_utilization.setValue(1.0)
+        self.piggybank_summary_editor_utilization.setRange(0,3000.0)
         self.piggybank_summary_editor_utilization.setSingleStep(0.05)
         self.piggybank_summary_editor_minimum_wc_label = QtGui.QLabel("Minimum Word Count:")
         self.piggybank_summary_editor_minimum_wc = QtGui.QSpinBox()
         self.piggybank_summary_editor_minimum_wc.setRange(0,5000)
-        self.piggybank_summary_editor_minimum_wc.setSingleStep(100)
-        self.piggybank_summary_editor_minimum_wc.setValue(3000)        
+        self.piggybank_summary_editor_minimum_wc.setSingleStep(100)      
         self.piggybank_summary_editor_maximum_wc_label = QtGui.QLabel("Maximum Word Count:")
         self.piggybank_summary_editor_maximum_wc = QtGui.QSpinBox()
         self.piggybank_summary_editor_maximum_wc.setRange(0,5000)
         self.piggybank_summary_editor_maximum_wc.setSingleStep(100)
-        self.piggybank_summary_editor_maximum_wc.setValue(3000)
         self.piggybank_summary_editor_total_wc_label = QtGui.QLabel("Total Word Count (Auto):")
         self.piggybank_summary_editor_total_wc = QtGui.QSpinBox()
         self.piggybank_summary_editor_total_wc.setValue(0)
-        self.piggybank_summary_editor_total_wc.setRange(0,30000)
+        self.piggybank_summary_editor_total_wc.setRange(0,3000000)
         self.piggybank_summary_editor_total_wc.setEnabled(False)
         self.piggybank_summary_reset_stats = QtGui.QPushButton("Reset Editor Stats")
         self.piggybank_summary_editor_summary = QtGui.QTableWidget(0,0)
@@ -230,13 +229,13 @@ class PiggyBankWithFilter(QtGui.QWidget):
         
     def changeMaxWordCount(self):
         new_word_count = self.piggybank_summary_editor_maximum_wc.value()
-        self.piggybank_summary_editor_minimum_wc.setMaximum((new_word_count-500))
+        self.piggybank_summary_editor_minimum_wc.setMaximum((new_word_count-1000))
         current_page = str(self.piggybank_summary_editors_list.currentText())
         self.editor_audit_constraints[current_page]["Maximum Word Count"] = new_word_count
 
     def changeMinWordCount(self):
         new_word_count = self.piggybank_summary_editor_minimum_wc.value()
-        self.piggybank_summary_editor_maximum_wc.setMinimum((new_word_count+500))
+        self.piggybank_summary_editor_maximum_wc.setMinimum((new_word_count+1000))
         current_page = str(self.piggybank_summary_editors_list.currentText())
         self.editor_audit_constraints[current_page]["Minimum Word Count"] = new_word_count
 
@@ -253,6 +252,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.end_date_edit.setMinimumDate(self.start_date_edit.date())
         self.end_date_edit.setDate(self.start_date_edit.date())
         self.populateWriters()
+        self.resetEditorConstraints()
 
     def toggleDates(self,state):
         if state == 0:
@@ -306,7 +306,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.brands_filter_box.clear()
         self.brands_filter_box.addItems(self.brands)
 
-
     def populateSuperCategory(self):
         self.super_categories_filter_box.clear()
         super_categories = list(set(self.category_tree["Super-Category"]))
@@ -351,6 +350,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank.setHorizontalHeaderLabels(piggy_bank_keys)
         #populate the summary next.
         self.piggy_bank_data = data
+        self.alertMessage("Completed Pulling PiggyBank","Completed Pulling Piggy Bank between %s and %s."%(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))
+
         self.summarize()
 
     def getSummarizeParameters(self):
@@ -540,6 +541,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_editor_summary.setHorizontalHeaderLabels(editor_summary_labels)
         self.piggybank_summary_editor_summary.resizeColumnsToContents()
         self.piggybank_summary_editor_summary.resizeRowsToContents()
+
+        self.alertMessage("Completed Audit Plan","Completed Audit Plan for %s"%self.start_date_edit.date().toPyDate())
     def getEditorName(self, writer_name):
         editors = [name for name in self.editor_audit_constraints.keys()]
         editors.remove("All")
@@ -563,8 +566,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "Varkey": {
             "Audit Percentage":30, 
             "Minimum Word Count": 4000, 
-            "Maximum Word Count": 4500,
-            "Editor Utilization": 1.0,
+            "Maximum Word Count": 5000,
+            "Editor Utilization": 1.0*len(MOSES.getWorkingDatesBetween(self.user_id,self.password,self.start_date_edit.date().toPyDate(),self.end_date_edit.date().toPyDate(),mode="All")),
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
             "Total Word Count": 0,
@@ -575,8 +578,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "Varun Chhabria": {
             "Audit Percentage":30, 
             "Minimum Word Count": 2000, 
-            "Maximum Word Count": 4500,
-            "Editor Utilization": 1.0,
+            "Maximum Word Count": 5000,
+            "Editor Utilization": 1.0*len(MOSES.getWorkingDatesBetween(self.user_id,self.password,self.start_date_edit.date().toPyDate(),self.end_date_edit.date().toPyDate(),mode="All")),
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
             "Total Word Count": 0,
@@ -587,8 +590,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "Manasa Prabhu": {
             "Audit Percentage":30, 
             "Minimum Word Count": 4000, 
-            "Maximum Word Count": 4500,
-            "Editor Utilization": 1.0,
+            "Maximum Word Count": 5000,
+            "Editor Utilization": 1.0*len(MOSES.getWorkingDatesBetween(self.user_id,self.password,self.start_date_edit.date().toPyDate(),self.end_date_edit.date().toPyDate(),mode="All")),
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
             "Total Word Count": 0,
@@ -599,8 +602,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         "All": {
             "Audit Percentage":30, 
             "Minimum Word Count": 4000, 
-            "Maximum Word Count": 4500,
-            "Editor Utilization": 3.0,
+            "Maximum Word Count": 5000,
+            "Editor Utilization": 3.0*len(MOSES.getWorkingDatesBetween(self.user_id,self.password,self.start_date_edit.date().toPyDate(),self.end_date_edit.date().toPyDate(),mode="All")),
             "Target Minimum Word Count": 0,
             "Target Maximum Word Count": 0,
             "Total Word Count": 0,
