@@ -208,6 +208,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
     def mapEvents(self):
         self.start_date_edit.dateChanged.connect(self.limitEndDate)
+        self.end_date_edit.dateChanged.connect(self.changeEndDate)
         self.all_time_dates.stateChanged.connect(self.toggleDates)
         self.pull_button.clicked.connect(self.pullData)
         self.piggybank_summary_refresh_button.clicked.connect(self.summarize)
@@ -253,6 +254,11 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.end_date_edit.setDate(self.start_date_edit.date())
         self.populateWriters()
         self.resetEditorConstraints()
+        self.changePage()
+
+    def changeEndDate(self):
+        self.resetEditorConstraints()
+        self.changePage()
 
     def toggleDates(self,state):
         if state == 0:
@@ -404,7 +410,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 if not self.editor_audit_constraints[editor]["Audit Conditions Satisfied"]:
                     self.editor_audit_constraints[editor]["Total Word Count"] = 0
                     self.editor_audit_constraints[editor]["Audit Count"] = 0
-                    print "Resetting %s's word count." %editor
+                    #print "Resetting %s's word count." %editor
 
             #For each row in the result, count the numbers from the piggy bank data set.
             for qualifier_row in result:
@@ -442,27 +448,27 @@ class PiggyBankWithFilter(QtGui.QWidget):
             if equalize_editors:
                 scope = "All"
                 if self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Minimum Word Count"]:
-                    print "Under-utilizing %s!" %scope
-                    print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
+                    #print "Under-utilizing %s!" %scope
+                    #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                     self.editor_audit_constraints[scope]["Audit Percentage"] += self.piggybank_summary_audit_percentage.singleStep()
                     if self.editor_audit_constraints[scope]["Audit Percentage"] > 100:
                         raise Exception
-                    else:
-                        print "Increasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                    #else:
+                        #print "Increasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
                 elif self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Maximum Word Count"]:
                     #Editors are over-utilized
-                    print "Over-utilizing %s!" %scope
-                    print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
+                    #print "Over-utilizing %s!" %scope
+                    #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                     self.editor_audit_constraints[scope]["Audit Percentage"] -= self.piggybank_summary_audit_percentage.singleStep()
                     if self.editor_audit_constraints[scope]["Audit Percentage"] <= 0:
                         raise Exception
-                    else:
-                        print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                    #else:
+                        #print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
                 elif (self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Minimum Word Count"]) and (self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Maximum Word Count"]):
-                    print "%s is well used.!" %scope
+                    #print "%s is well used.!" %scope
                     if self.editor_audit_constraints[scope]["Audit Percentage"] < 0:
                         raise Exception
-                    print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
+                    #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                     self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                 else:
                     raise Exception
@@ -476,30 +482,30 @@ class PiggyBankWithFilter(QtGui.QWidget):
                     scope = editor
                         #Editors are under-utilized
                     if self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Minimum Word Count"]:
-                        print "Under-utilizing %s!" %scope
-                        print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
+                        #print "Under-utilizing %s!" %scope
+                        #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                         if self.editor_audit_constraints[scope]["Audit Percentage"] >= 100:
                             self.alertMessage("Error Planning Audits","%s's audit percentage is out of bounds. Set to %d%%" %(scope,self.editor_audit_constraints[scope]["Audit Percentage"]))
                             self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                         else:
-                            print "Increasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                            #print "Increasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
                             self.editor_audit_constraints[scope]["Audit Percentage"] += self.piggybank_summary_audit_percentage.singleStep()
                     elif self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Maximum Word Count"]:
                         #Editors are over-utilized
-                        print "Over-utilizing %s!" %scope
-                        print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
+                        #print "Over-utilizing %s!" %scope
+                        #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                         if self.editor_audit_constraints[scope]["Audit Percentage"] <= 1:
                             self.alertMessage("Error Planning Audits","%s's audit percentage is out of bounds. Set to %d%%" %(scope,self.editor_audit_constraints[scope]["Audit Percentage"]))
                             self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                         else:
-                            print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                            #print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
                             self.editor_audit_constraints[scope]["Audit Percentage"] -= self.piggybank_summary_audit_percentage.singleStep()
                     elif (self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Minimum Word Count"]) and (self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Maximum Word Count"]):
-                        print "%s is well used.!" %scope
+                        #print "%s is well used.!" %scope
                         if self.editor_audit_constraints[scope]["Audit Percentage"] < 0:
                             self.alertMessage("Error Planning Audits","%s's audit percentage is out of bounds. Set to %d%%" %(scope,self.editor_audit_constraints[scope]["Audit Percentage"]))
                             raise Exception
-                        print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
+                        #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                         self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                     else:
                         raise Exception
