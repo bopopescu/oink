@@ -342,6 +342,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         data = MOSES.getPiggyBankFiltered(self.user_id, self.password, filters)
         #print len(data)
         piggy_bank_keys = MOSES.getPiggyBankKeys()
+        self.piggybank.setSortingEnabled(False)
         self.piggybank.setRowCount(0)
         self.piggybank.setColumnCount(len(piggy_bank_keys))
         row_index = 0
@@ -354,6 +355,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                     column_index += 1
                 row_index += 1
         self.piggybank.setHorizontalHeaderLabels(piggy_bank_keys)
+        self.piggybank.setSortingEnabled(True)
         #populate the summary next.
         self.piggy_bank_data = data
         self.alertMessage("Completed Pulling PiggyBank","Completed Pulling Piggy Bank between %s and %s."%(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))
