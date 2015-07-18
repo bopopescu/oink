@@ -3767,5 +3767,7 @@ def getWritersListForEditor(user_id, password, editor_name=None):
     writers_list.sort()
     writers_list = list(set(writers_list))
     return writers_list
+
+    
 if __name__ == "__main__":
     print "Never call Moses mainly."

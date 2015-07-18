@@ -1,6 +1,7 @@
 from __future__ import division
 import datetime, os, sys
 import math
+import random
 from PyQt4 import QtGui, QtCore
 import MOSES
 from CheckableComboBox import CheckableComboBox
@@ -29,8 +30,10 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 if current_tab == 0:
                     if self.piggybank_summary_tables.currentIndex() == 0:
                         table_to_copy = self.piggybank_summary
-                    else:
+                    elif self.piggybank_summary_tables.currentIndex() ==1 :
                         table_to_copy = self.piggybank_summary_editor_summary
+                    else:
+                        table_to_copy = self.piggybank_summary_random_fsns
                 else:
                     table_to_copy = self.piggybank
                 selected = table_to_copy.selectedRanges()
@@ -48,76 +51,117 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
     def createUI(self):
         self.instruction_label = QtGui.QLabel("<b>Select filters from the following:</b>")
-        self.filter_text_edit = QtGui.QTextEdit()
+
         self.writers_filter_box = CheckableComboBox("Writers")
+        self.writers_filter_box.setToolTip("Select the writers whose data you'd like to extract.")
+
         self.description_types_box = CheckableComboBox("Description Types")
+        self.description_types_box.setToolTip("Select the description types you'd like to extract.")
+
         self.source_types_box = CheckableComboBox("Source")
+        self.source_types_box.setToolTip("Select the article sources you'd like to extract.")
+
         self.BUs_filter_box = CheckableComboBox("BUs")
+        self.BUs_filter_box.setToolTip("Select the Business Units you'd like to extract.")
+
         self.super_categories_filter_box = CheckableComboBox("Super-Categories")
+        self.super_categories_filter_box.setToolTip("Select the Super-Categories you'd like to extract.")
+
         self.categories_filter_box = CheckableComboBox("Categories")
+        self.categories_filter_box.setToolTip("Select the categories you'd like to extract.")
+
         self.sub_categories_filter_box = CheckableComboBox("Sub-Categories")
+        self.sub_categories_filter_box.setToolTip("Select the Sub-Categories you'd like to extract.")
+
         self.verticals_filter_box = CheckableComboBox("Verticals")
+        self.verticals_filter_box.setToolTip("Select the Verticals you'd like to extract.")
+
         self.brands_filter_box = CheckableComboBox("Brands")
+        self.brands_filter_box.setToolTip("Select the Brands you'd like to extract.")
+
         self.start_date_edit = QtGui.QDateTimeEdit()
+        self.start_date_edit.setToolTip("Select the start date for the data set you'd like to extract.")
         self.start_date_edit.setDate(QtCore.QDate(datetime.date.today()))
         self.start_date_edit.setCalendarPopup(True)
         self.start_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.start_date_edit.setMinimumDate(QtCore.QDate(2015,1,1))
         self.start_date_edit.setDate(QtCore.QDate(datetime.date.today()))
+
         self.end_date_edit = QtGui.QDateTimeEdit()
+        self.end_date_edit.setToolTip("Select the End Date for the data set you'd like to extract.")
         self.end_date_edit.setDate(QtCore.QDate(datetime.date.today()))
         self.end_date_edit.setCalendarPopup(True)
         self.end_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.end_date_edit.setMinimumDate(self.start_date_edit.date().toPyDate())
         self.end_date_edit.setMaximumDate(datetime.date.today())
+
         self.all_time_dates = QtGui.QCheckBox("Pull All Time Data")
         self.all_time_dates.setToolTip("Check this box to pull data for the selected filter from all available data.")
+
         self.piggybank = QtGui.QTableWidget(0,0)
+        self.piggybank.setToolTip("This table shows all available data for the selected filters.")
         self.piggybank.setStyleSheet("gridline-color: rgb(0, 0, 0)")
+
 
         self.piggybank_summary_widget = QtGui.QWidget()
         self.piggybank_summary_column_chooser_label = QtGui.QLabel("Select Column(s):")
         self.piggybank_summary_column_chooser = CheckableComboBox("Columns")
+        self.piggybank_summary_column_chooser.setToolTip("Select the piggy bank columns you'd like to summarize.")
         self.piggybank_summary_column_chooser.addItems(["Writer Name","Source", "Description Type", "BU","Super-Category", "Category", "Sub-Category", "Vertical", "Brand"])
         self.piggybank_summary_refresh_button = QtGui.QPushButton("Refresh Summary Table")
+        self.piggybank_summary_refresh_button.setToolTip("Click this button to recalculate the audit plan and break up for the selected parameters.")
         self.piggybank_summary = QtGui.QTableWidget(0,0)
+        self.piggybank_summary.setToolTip("This table displays a break up of all the available data between the selected dates, for the chosen filters,\nbased on the summarization columns you've picked.")
         self.piggybank_summary.setStyleSheet("gridline-color: rgb(0, 0, 0)")
+        self.piggybank_summary_random_fsns = QtGui.QTableWidget(0,0)
+        self.piggybank_summary_random_fsns.setToolTip("This table displays a list of random FSNs each editor must audit to satisfy his or her requirements for the selected duration.")
+        self.piggybank_summary_random_fsns.setStyleSheet("gridline-color: rgb(0, 0, 0)")
+        self.piggybank_summary_editor_summary = QtGui.QTableWidget(0,0)
+        self.piggybank_summary_editor_summary.setStyleSheet("gridline-color: rgb(0, 0, 0)")
         self.piggybank_summary_audit_percentage_label = QtGui.QLabel("Audit Percentage:")
         self.piggybank_summary_audit_percentage = QtGui.QSpinBox()
+        self.piggybank_summary_audit_percentage.setToolTip("This shows the audit percentage for the selected editor(s).")
         self.piggybank_summary_audit_percentage.setRange(0,100)
         self.piggybank_summary_audit_percentage.setSuffix("%")
-        self.piggybank_summary_editor_utilization = QtGui.QDoubleSpinBox()
         self.piggybank_summary_editors_label = QtGui.QLabel("Editor:")
         self.piggybank_summary_editors_list = QtGui.QComboBox()
+        self.piggybank_summary_editors_list.setToolTip("Select an editor to display his or her constraints for the chosen time frame.")
+        self.piggybank_summary_editors_list.setToolTip("Select an editor to view his or her constraints.")
         self.resetEditorConstraints()
         editors_list = self.editor_audit_constraints.keys()
         editors_list.sort()
         self.piggybank_summary_editors_list.addItems(editors_list)
         self.piggybank_summary_editors_equality_checkbox = QtGui.QCheckBox("Use Equal Targets For All Editors")
+        self.piggybank_summary_editors_equality_checkbox.setToolTip("When checked, this nullifies all the personal constraints for editors and treats them equally.\nThis is enabled by default when you purposely remove writer names' from the columns filter.\nUse this when calibrating.")
         self.piggybank_summary_editors_equality_checkbox.setCheckState(False)
         self.piggybank_summary_editor_utilization_label = QtGui.QLabel("Editor Utilization:")
+        self.piggybank_summary_editor_utilization = QtGui.QDoubleSpinBox()
+        self.piggybank_summary_editor_utilization.setToolTip("Set a utilization factor here.\n1.0 indicates 100%% for a duration of 1 day. If there are multiple working dates selected, then the utilization changes accordingly.\nNote: This doesn't accomodate for leaves taken by editors as of this version.")
         self.piggybank_summary_editor_utilization.setRange(0,3000.0)
         self.piggybank_summary_editor_utilization.setSingleStep(0.05)
         self.piggybank_summary_editor_minimum_wc_label = QtGui.QLabel("Minimum Word Count:")
         self.piggybank_summary_editor_minimum_wc = QtGui.QSpinBox()
         self.piggybank_summary_editor_minimum_wc.setRange(0,5000)
-        self.piggybank_summary_editor_minimum_wc.setSingleStep(100)      
+        self.piggybank_summary_editor_minimum_wc.setSingleStep(100)
+        self.piggybank_summary_editor_minimum_wc.setToolTip("Set the selected editors(s) minimum word count for a single day.\nNote: this will reinforce a rule that makes the maximum word count at least 1000 words more than itself.")
         self.piggybank_summary_editor_maximum_wc_label = QtGui.QLabel("Maximum Word Count:")
         self.piggybank_summary_editor_maximum_wc = QtGui.QSpinBox()
         self.piggybank_summary_editor_maximum_wc.setRange(0,5000)
         self.piggybank_summary_editor_maximum_wc.setSingleStep(100)
+        self.piggybank_summary_editor_maximum_wc.setToolTip("Set the selected editors(s) maximum word count for a single day.\nNote: When changed, it will change the minimum word count so as to satisfy a range of at least 1000 words.")
         self.piggybank_summary_editor_total_wc_label = QtGui.QLabel("Total Word Count (Auto):")
         self.piggybank_summary_editor_total_wc = QtGui.QSpinBox()
         self.piggybank_summary_editor_total_wc.setValue(0)
         self.piggybank_summary_editor_total_wc.setRange(0,3000000)
         self.piggybank_summary_editor_total_wc.setEnabled(False)
+        self.piggybank_summary_editor_total_wc.setToolTip("This is an auto-generated field which shows the optimum word count calculated by the system.")
         self.piggybank_summary_reset_stats = QtGui.QPushButton("Reset Editor Stats")
-        self.piggybank_summary_editor_summary = QtGui.QTableWidget(0,0)
+
 
         self.piggybank_summary_tables = QtGui.QTabWidget()
         self.piggybank_summary_tables.addTab(self.piggybank_summary,"Audit Break Up")
         self.piggybank_summary_tables.addTab(self.piggybank_summary_editor_summary, "Editor Summary")
-
+        self.piggybank_summary_tables.addTab(self.piggybank_summary_random_fsns,"Random FSNs")
         
         self.piggybank_summary_layout = QtGui.QGridLayout()
         self.piggybank_summary_layout.addWidget(self.piggybank_summary_column_chooser_label,0,0)
@@ -144,7 +188,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_tabs.addTab(self.piggybank_summary_widget,"Audit Planner")
         self.piggybank_tabs.addTab(self.piggybank,"Piggy Bank")
         
-        self.reset_button = QtGui.QPushButton("Reset Visible Data")
+        self.reset_button = QtGui.QPushButton("Reset Selected Filters")
+        self.reset_button.setToolTip("Click here to reset all chosen filters.")
         self.reset_button.setMinimumWidth(120)
         self.reset_button.setMinimumHeight(20)
         reset_style_string = """
@@ -219,6 +264,10 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_editor_maximum_wc.valueChanged.connect(self.changeMaxWordCount)
         self.piggybank_summary_editor_minimum_wc.valueChanged.connect(self.changeMinWordCount)
         self.piggybank_summary_reset_stats.clicked.connect(self.summaryFormReset)
+        self.reset_button.clicked.connect(self.resetFiltersAndForm)
+
+    def resetFiltersAndForm(self):
+        self.summaryFormReset()
 
     def changeUtilization(self):
         current_page = str(self.piggybank_summary_editors_list.currentText())
@@ -384,6 +433,28 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
 
     def summarize(self):
+        """
+        This is the audit planner and summarization method. It does several things.
+        1. It summarizes the piggy bank that has been pulled. 
+            By default, it summarizes by writer x description type x category. This can be changed using the filterbox provided for the summarization columns.
+        2. It also computes the optimum audit plan given a set of constraints that can be changed at will using the form. An equalized method may also be used, depending upon need. This is mainly designed for calibration at a later stage.
+            (a) Note that there are some problems with how audit numbers will be pulled up. 
+                This has nothing to do with the code, but it is rooted in the process itself.
+            (b) If a writer reports irregular numbers on a regular basis, this will increase the editors' work for a 
+                timeframe as opposed to situations where he posts regular work. 
+                The solution for this is to even out the spikes in efficiency.
+            (c) In situations where evening out the efficiency spikes is impossible, calibration of audit numbers over a timeframe is recommended. This is out of the scope of this code for the time being, and depending upon
+                feedback and feasibility, it may be incorporated at a later stage.
+            (d) Long story short, if a writer reports 0% on one day and 200% on the next, the code will decrease an editor's
+                overall audit percentage to equalize the fairness of the audit percentage. Although this solves the problem
+                for the current time frame, if repeated regularly, it will give that writer a much lesser audit percentage
+                than the rest of the team. If this is acceptable, then there's no cause for concern.
+                If this isn't acceptable, then the editor will need to generate the audit plan for a set of dates, and check
+                the difference in audit numbers. The editor will need to pick up extra audits as required, and naturally, these
+                are outside the 100% efficiency for his or her day. This will give the editor extra efficiency for the day.
+            (e) General Note:
+        3. After pulling the audit plan, it loops through the piggy bank and pulls up random fsns to satisfy the requirements pf the plan and displays this data.
+        """
         result, summarize_parameters = self.getBreakUpTableFromPiggyBank()
         #Now process for audit percentages
         #First, check if you're looking at this at a writer level
@@ -450,22 +521,24 @@ class PiggyBankWithFilter(QtGui.QWidget):
             if equalize_editors:
                 scope = "All"
                 if self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Minimum Word Count"]:
-                    #print "Under-utilizing %s!" %scope
-                    #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
                     self.editor_audit_constraints[scope]["Audit Percentage"] += self.piggybank_summary_audit_percentage.singleStep()
                     if self.editor_audit_constraints[scope]["Audit Percentage"] > 100:
-                        raise Exception
-                    #else:
+                        self.alertMessage("Error Planning Audits","Audit percentage is out of bounds. Set to %d%%" %(self.editor_audit_constraints[scope]["Audit Percentage"]))
+                        self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
+                    else:
                         #print "Increasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                        self.editor_audit_constraints[scope]["Audit Percentage"] += self.piggybank_summary_audit_percentage.singleStep()
                 elif self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Maximum Word Count"]:
                     #Editors are over-utilized
                     #print "Over-utilizing %s!" %scope
                     #print """Target Max and Min WCs : %(Target Maximum Word Count)d, %(Target Minimum Word Count)d. Total WC: %(Total Word Count)d""" %(self.editor_audit_constraints[scope])
-                    self.editor_audit_constraints[scope]["Audit Percentage"] -= self.piggybank_summary_audit_percentage.singleStep()
-                    if self.editor_audit_constraints[scope]["Audit Percentage"] <= 0:
-                        raise Exception
-                    #else:
+                    if self.editor_audit_constraints[scope]["Audit Percentage"] <= 1:
+                        #print self.editor_audit_constraints[scope]
+                        self.alertMessage("Error Planning Audits","Audit percentage is out of bounds. Set to %d%%" %(self.editor_audit_constraints[scope]["Audit Percentage"]))
+                        self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
+                    else:
                         #print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
+                        self.editor_audit_constraints[scope]["Audit Percentage"] -= self.piggybank_summary_audit_percentage.singleStep()
                 elif (self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Minimum Word Count"]) and (self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Maximum Word Count"]):
                     #print "%s is well used.!" %scope
                     if self.editor_audit_constraints[scope]["Audit Percentage"] < 0:
@@ -474,7 +547,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                     self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                 else:
                     raise Exception
-                audit_conditions_satisfied = self.editor_audit_constraints[editor]["Audit Conditions Satisfied"] and audit_conditions_satisfied
+                audit_conditions_satisfied = self.editor_audit_constraints[scope]["Audit Conditions Satisfied"]
             else:
                 editors = self.editor_audit_constraints.keys()
                 editors.remove("All")
@@ -549,8 +622,11 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_editor_summary.setHorizontalHeaderLabels(editor_summary_labels)
         self.piggybank_summary_editor_summary.resizeColumnsToContents()
         self.piggybank_summary_editor_summary.resizeRowsToContents()
-
+        self.audit_break_up = result
         self.alertMessage("Completed Audit Plan","Completed Audit Plan for %s"%self.start_date_edit.date().toPyDate())
+        self.changePage()
+        self.randomizeAudits()
+
     def getEditorName(self, writer_name):
         editors = [name for name in self.editor_audit_constraints.keys()]
         editors.remove("All")
@@ -620,6 +696,66 @@ class PiggyBankWithFilter(QtGui.QWidget):
             "Writers": MOSES.getWritersListForEditor(self.user_id, self.password)
             }
         }
+
+    def randomizeAudits(self):
+        """
+        This method:
+        1. loops through each row of the audit planner table.
+        2. extracts n FSNs from the displayed piggybank, using the data set in the audit planner as a filter. The value n is the suggested audit number.
+        3. adds these FSNs to the result table.
+        """
+        print "Randomizing audits"
+        audit_plan = self.audit_break_up
+        start_date = self.start_date_edit.date().toPyDate()
+        end_date = self.end_date_edit.date().toPyDate()
+        random_fsn_set = []
+        for row in audit_plan:
+            required_fsns = row["Suggested Audits"]
+            constraint_keys = row.keys()
+            unnecessary_keys = ["Article Count", "Word Count", "Suggested Audits","Approx. Word Count of Audits","Editor Name"]
+            for key in unnecessary_keys:
+                if key in constraint_keys:
+                    constraint_keys.remove(key)
+
+            requirement_filters = dict((key,row[key]) for key in constraint_keys)
+            pulled_fsns = self.getRandomFSNs(requirement_filters, required_fsns)
+            random_fsn_set.append(pulled_fsns)
+        final_fsn_set = [item for sublist in random_fsn_set for item in sublist]
+        self.piggybank_summary_random_fsns.setRowCount(len(final_fsn_set))
+        self.piggybank_summary_random_fsns.setSortingEnabled(False)
+        if "Editor Name" in audit_plan[0].keys():
+            random_fsn_data_set_keys = ["Editor Name"]
+        else:
+            random_fsn_data_set_keys = []
+        random_fsn_data_set_keys += (["FSN","Article Date"] + constraint_keys + ["Upload Link", "Word Count"])
+        row_index = 0
+        self.piggybank_summary_random_fsns.setColumnCount(len(random_fsn_data_set_keys))
+        for row in final_fsn_set:
+            column_index = 0
+            for key in random_fsn_data_set_keys:
+                if key == "Editor Name":
+                    self.piggybank_summary_random_fsns.setItem(row_index,column_index,QtGui.QTableWidgetItem(self.getEditorName(row["Writer Name"])))
+                else:
+                    self.piggybank_summary_random_fsns.setItem(row_index,column_index,QtGui.QTableWidgetItem(str(row[key])))
+                column_index += 1
+            row_index += 1
+        self.piggybank_summary_random_fsns.setSortingEnabled(True)
+        self.piggybank_summary_random_fsns.setHorizontalHeaderLabels(random_fsn_data_set_keys)
+        self.alertMessage("Pulled Random FSNs","Successfully pulled %d random FSNs for the selected dates." % len(final_fsn_set))
+            
+    def getRandomFSNs(self, constraints, quantity):
+        valid_rows = []
+        for row in self.piggy_bank_data:
+            valid = True
+            for key in constraints.keys():
+                if row[key] != constraints[key]:
+                    valid = False
+            if valid:
+                valid_rows.append(row)
+        random.shuffle(valid_rows)
+        random_fsns = valid_rows[0:quantity]
+        return random_fsns
+
     def alertMessage(self, title, message):
         """Vindaloo."""
         QtGui.QMessageBox.about(self, title, message)
