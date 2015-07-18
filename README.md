@@ -2,7 +2,8 @@
 
 OINK is the Flipkart Content Team's private data collection application.
 
-Check the official documentation at : http://vinay87.github.io/oink
+Check the official documentation at : http://vinay87.github.io/oink.
+
 It runs on Python, and the database used is MySQL.
 
 OINK is developed and maintained by Vinay Keerthi. You can contact him through his github account (@vinay87).
