@@ -1,772 +1,609 @@
-#!/usr/bin/python2
-#! coding: utf-8
+from __future__ import division
+import sys, os, csv, datetime, subprocess, urllib, urllib2, socket, httplib
 
-#SWINE - SWeet Information Extractor.
-
-import sys, time
-from datetime import datetime
-import os
-import csv
-import urllib2
-
-import numpy
-
-from PyQt4 import QtGui, QtCore, Qt
-
+from PIL import Image, ImageQt
+from PyQt4 import QtGui, QtCore
 from bs4 import BeautifulSoup
 
-
-class SWINE(QtGui.QMainWindow):
+class SwineThread(QtCore.QThread):
+    sendStatus = QtCore.pyqtSignal(str,int,bool,datetime.datetime)
+    #Sends a message, rough integer percentage value, boolean completion status, and the ETA\time of completion.
+    sendData = QtCore.pyqtSignal(dict)
+    sendException = QtCore.pyqtSignal(str)
     def __init__(self):
-        """Initializer function."""
-        super(SWINE, self).__init__()
-        self.styles = {
-                "Buttons" : "QPushButton {font-family: Garamond; font-size: 16px;}"
-        }
-        self.create_widgets()
-        self.create_layouts()
-        self.set_tooltips()
-        self.set_styles()
-        self.create_visuals()
-        self.create_events()
+        super(SwineThread, self).__init__()
+        self.get_images = False
+        self.image_save_location = None
+        self.get_all_images = False
+        self.image_name_mask = ["FSN"]
+        self.use_subfolders = False
+        self.image_name_mask_delimiter = "(None)"
+        self.get_data = False
+        self.required_data = []
+        self.allow_run = False
+        self.fsn_list = []
+        self.mutex = QtCore.QMutex()
+        self.condition = QtCore.QWaitCondition()
+        if not self.isRunning():
+            self.start(QtCore.QThread.LowPriority)
 
-    def create_widgets(self):
-        """Widget Generator"""
-        
-        self.FSN_Label = QtGui.QLabel("<b>FSN(s):<b>")
-        self.FSN_list = QtGui.QTextEdit()
-        self.FSN_list.setMinimumSize(QtCore.QSize(300,10))
-        self.check_button = QtGui.QPushButton("Fetch information")
-        self.open_file = QtGui.QPushButton("Get FSNs from file")
-        self.selectData_button = QtGui.QPushButton("Select Parameters")
-        self.exportData_button = QtGui.QPushButton("Fetch data and\nexport to CSVs")
-        self.data_tabulator = SWINE_data_tabulator()
-        self.central_widget = QtGui.QWidget()
+    def __del__(self):
+        self.mutex.lock()
+        self.condition.wakeOne()
+        self.mutex.unlock()
+        self.wait()
 
-    def set_styles(self):
-        self.check_button.setStyleSheet(self.styles["Buttons"])
-        self.open_file.setStyleSheet(self.styles["Buttons"])
-        self.selectData_button.setStyleSheet(self.styles["Buttons"])
-        self.exportData_button.setStyleSheet(self.styles["Buttons"])
-    
-    def create_layouts(self):
-        self.FSN_Buttons_layout = QtGui.QVBoxLayout()
-        self.FSN_Buttons_layout.addWidget(self.check_button)
-        self.FSN_Buttons_layout.addWidget(self.open_file)
-        self.FSN_Buttons_layout.addWidget(self.selectData_button)
-        self.FSN_Buttons_layout.addWidget(self.exportData_button)
+    def run(self):
+        while True:
+            if self.allow_run:
+                processed_fsns = []
+                total = len(self.fsn_list)
+                counter = 0
+                start_time = datetime.datetime.now()
+                return_data_set_keys = ["WS Name", "Brand"]
+                if self.get_images:
+                    return_data_set_keys += ["Image"]
+                if self.get_data:
+                    return_data_set_keys += self.required_data
+                self.return_data_set = {}
+                for fsn in self.fsn_list:
+                    self.return_data_set.update({fsn:dict(zip(return_data_set_keys, [None for each_value in return_data_set_keys]))})
+                for fsn in self.fsn_list:
+                    if fsn not in processed_fsns:
+                        self.fsn = fsn
+                        counter += 1
+                        status_message = "Beginning to process %d of %d fsns. Current FSN: %s." %(counter, total, fsn)
+                        process_percentage = int(counter/total*100)
+                        completion_state = False
+                        eta = self.getETA(start_time, counter, total)
+                        self.sendStatus.emit(status_message,process_percentage,completion_state,eta)
+                        fsn_soup, soup_success = self.getSoupFromFSN(fsn)
+                        if soup_success:
+                            #print "Succeeded fetching page for %s." %fsn
+                            processed_fsns.append(fsn)
+                            send_data = False
+                            self.return_data_set[fsn]["WS Name"] = self.getWSNameFromSoup(fsn_soup)
+                            self.return_data_set[fsn]["Brand"] = self.return_data_set[fsn]["WS Name"][:self.return_data_set[fsn]["WS Name"].find(" ")]
 
-        self.FSN_layout = QtGui.QHBoxLayout()
-        self.FSN_layout.addWidget(self.FSN_Label)
-        self.FSN_layout.addWidget(self.FSN_list)
-        self.FSN_layout.addLayout(self.FSN_Buttons_layout)
-        self.layout = QtGui.QVBoxLayout()
-        self.layout.addLayout(self.FSN_layout)
-        self.layout.addWidget(self.data_tabulator)
-        self.central_widget.setLayout(self.layout)
-        self.setCentralWidget(self.central_widget)
+                            if self.get_images:
+                                status_message = "Fetching images for %d of %d fsns." %(counter, total)
+                                self.sendStatus.emit(status_message,process_percentage,completion_state,eta)
+                                image_success = self.extractImages(fsn_soup)
+                                self.return_data_set[fsn]["Image"] = "Successfully Extracted Image(s)."
+                                status_message = "Finished fetching images for %d of %d fsns." %(counter, total)
+                                eta = self.getETA(start_time, counter, total)
+                                self.sendStatus.emit(status_message,process_percentage,completion_state,eta)
+                                send_data = True
 
-    def set_tooltips(self):
-        """Maps tooltips to the widgets."""
-        self.FSN_list.setToolTip("Paste FSN(s) here.")
-        self.check_button.setToolTip("Click to start pulling the data.")
-        self.open_file.setToolTip("Click to open a file and get FSNs from it.")
-        self.exportData_button.setToolTip("Click to extract data and export all the crawled data to (an) output file(s).")
-        self.selectData_button.setToolTip("Click to select what data you'd like to crawl from the site.")
+                            if self.get_data:
+                                status_message = "Fetching selected data for %d of %d fsns." %(counter, total)
+                                self.extractData(fsn_soup)
+                                status_message = "Finished fetching selected data for %d of %d fsns." %(counter, total)
+                                eta = self.getETA(start_time, counter, total)
+                                self.sendStatus.emit(status_message,process_percentage,completion_state,eta)
+                                send_data = True
+                            if send_data:
+                                self.sendData.emit(self.return_data_set)
+                        else:
+                            print "Failed fetching page for %s." %fsn
+                if len(processed_fsns) == len(self.fsn_list):
+                    self.allow_run = False
+                    status_message = "Completed"
+                    process_percentage = 100
+                    completion_state = True
+                    eta = datetime.datetime.now()
+                    self.sendStatus.emit(status_message,process_percentage,completion_state,eta)
 
-    def create_visuals(self):
-        """Creates all visual aspects."""
-        self.setWindowTitle("SWINE Flipkart Data Crawler")
-        self.move(350, 150)
-        self.resize(300, 400)
-        self.show()
+    def getSoupFromFSN(self,fsn):
+        """Improve this method at a later stage."""
+        url = "http://www.flipkart.com/search?q=" + fsn
+        while True:
+            try:
+                html = urllib2.urlopen(url, timeout=120)
+                break
+            except urllib2.HTTPError:
+                error = "Server response error for %s. Retrying" %fsn
+                self.sendException.emit(error)
+                continue
+            except socket.error:
+                error = "Socket error for %s. Retrying" %fsn
+                self.sendException.emit(error)
+                continue
+            except httplib.BadStatusLine:
+                error = "Bad status line error for %s. Retrying" %fsn
+                self.sendException.emit(error)
+                continue
 
-    def create_events(self):
-        self.check_button.clicked.connect(self.pull_information)
-        self.open_file.clicked.connect(self.processBulkFSNs)
-
-    def check_FSN(self):
-        """Checks if an input is an FSN or not."""
-        querystring = self.get_FSN()
-        isFSN = False
-        isFSNLength = len(querystring) == 16
-        isISBNLength = len(querystring) == 13
-        isAllUpper = querystring.isupper()
-        isAllNumber = querystring.isdigit()
-        hasXAtEnd = (querystring[:len(querystring)-1].isdigit()) and (querystring[len(querystring)-1:] == "X")
-        hasNoSpaces = (querystring.find(" ") == -1)
-        isFSN = ((isFSNLength and isAllUpper) or (isISBNLength and (isAllNumber or hasXAtEnd)) and hasNoSpaces)
-        return isFSN
-    
-    def processBulkFSNs(self):
-        FSNList = []
-        FSN_file = QtGui.QFileDialog.getOpenFileName(self, "Open File","/")
-        if len(FSN_file):
-            f = open(FSN_file, "r")
-            FSNList = f.read().split("\n")
-            f.close()
-            #print FSNList
-            output_file = QtGui.QFileDialog.getSaveFileName(self, "Save File", "/")
-            print "Output file is: %s" %output_file
-            if len(output_file):
-                output_file_link = open(output_file, "w")
-                dictwrite = csv.DictWriter(output_file_link, fieldnames = self.getEmptyDataList())
-                number_of_FSNs = 0
-                dictwrite.writeheader()
-                for FSN in FSNList:
-                    if len(FSN):
-                        number_of_FSNs += 1
-                        self.post_to_log("Processing FSN #%d" %number_of_FSNs, "Append")
-                        try:
-                            #thread_run = thread.Thread(target=self.getDataForFSN, args = (FSN))
-                            dictwrite.writerow(self.getDataForFSN(FSN))
-                        except Exception, e:
-                            print "Error encountered while getting data. Printing verbatim:\n%s" %repr(e)
-                output_file_link.close()
-                #self.alertMessage("Success!", "Successfully processed %d FSNs." % number_of_FSNs)
-                os.startfile(output_file)
-        return FSNList
-    
-    def getDataForFSN(self, FSN):
-        """Gets a dictionary of relevant data for a given FSN."""
-        url = "http://www.flipkart.com/search?q=" + FSN
-        html = urllib2.urlopen(url)
         soup = BeautifulSoup(html)
         try:
-            ws_name = self.get_wsname(soup)
+            item_id = self.getItemIDFromHTML(html)
+            success = True
         except:
-            ws_name = "Error retrieving WSName data"
-        
-        self.get_spectable(soup)
+            success = False
+            pass
 
-        #self.post_to_log("<b>WSName:<b> %s" % ws_name[0])
-        book_data = soup.find("div", {"class": "bookDetails unit size1of3"})
-        #self.post_to_log(str(book_data), "Append")
-        FSN_Dict = {"FSN": FSN, "WSName": ws_name}
-        print FSN_Dict
-        return FSN_Dict
-
-    def getEmptyDataList(self):
-        data_list = ["FSN", "WSName"] #, "Publishing House", "Genre(s)", "Author(s)", "Page Count", "Language", "Has Image", "Has Description", "Binding"]
-        data_dict = dict((item, item) for item in data_list)
-        return data_list
+        if item_id is None:
+            success = False
+        return soup, success
     
-    def pull_information(self):
-        """Pulls information for the FSN"""
-        isFSN = self.check_FSN()
-        isISBN = self.check_if_ISBN()
-        if isFSN:
-            url = "http://www.flipkart.com/search?q=" + self.get_FSN()
-            html = urllib2.urlopen(url)
-            soup = BeautifulSoup(html)
-            ws_name = self.get_wsname(soup)
-            self.post_to_log("<b>WSName:<b> %s" % ws_name[0])
-            if isISBN:                
-                book_data = soup.find("div", {"class": "bookDetails unit size1of3"})
-                self.post_to_log(str(book_data), "Append")
-
-#            imags = soup.findAll("div", {"class":"mainImage"})
-#            imag_list = []
-            #print type(imags)
-#            for imag in imags:
-#               print imag.img['src'].split("data-src=")
-            #print imag_list
-    
-    def post_data(self, data_dict, ):
-        """Takes a dictionary of data and feeds it to the tabulator widget."""
-
-
-
-class SWINE_data_tabulator(QtGui.QWidget):
-    def __init__(self):
-        """Initializes the entire widget."""
-        super(SWINE_data_tabulator, self).__init__()
-        self.tables = 1
-        self.create_widgets()
-        self.create_tabulator_tabs()
-        self.create_layout()
-        self.set_tooltips()
-        self.create_events()
-        self.create_visuals()
-
-    def create_visuals(self):
-        """Creates the visuals."""
-
-    def create_widgets(self):
-        """Creates the widgets."""
-        self.tables_list = [QtGui.QTableWidget()]
-        self.save_location_button = QtGui.QPushButton("Set Save Location")
-        self.export_sheet_button = QtGui.QPushButton("Export Active Sheet")
-        self.export_all_sheets_button = QtGui.QPushButton("Export All Data")
-        self.log = QtGui.QTextEdit()
-        self.tabulator_tab = QtGui.QTabWidget()
-    
-    def set_tooltips(self):
-        self.save_location_button.setToolTip("Click to set or change the save location.\nThe default save location is the folder where this application is located.")
-        self.export_sheet_button.setToolTip("Click to export the data only in the active sheet into a file.")
-        self.export_all_sheets_button.setToolTip("Click to export all the crawled data into separate files.")
-
-    def create_layout(self):
-        """Creates the layout."""
-        self.buttons_layout = QtGui.QHBoxLayout()
-        self.buttons_layout.addWidget(self.save_location_button)
-        self.buttons_layout.addWidget(self.export_sheet_button)
-        self.buttons_layout.addWidget(self.export_all_sheets_button)
-       
-        self.tabulator_layout = QtGui.QVBoxLayout()
-
-        self.tabulator_layout.addWidget(self.tabulator_tab)
-        self.tabulator_layout.addLayout(self.buttons_layout)
-        self.setLayout(self.tabulator_layout)
-
-    def create_tabulator_tabs(self):
-        """adds tabs to the tabulator based on the number of tables required."""
-        for item in range(self.tables):
-            self.tabulator_tab.addTab(self.tables_list[item], "Table #%d" %(item + 1))
-        self.tabulator_tab.addTab(self.log, "Log")
-
-    def create_events(self):
-        """Creates all related events."""
-        self.save_location_button.clicked.connect(self.set_save_location)
-        self.export_sheet_button.clicked.connect(self.save_active_sheet)
-        self.export_all_sheets_button.clicked.connect(self.save_all_sheets)
-   
-    def save_active_sheet(self):
-        """"""
-
-    def save_all_sheets(self):
-        """"""
-
-    def get_tables_as_list(self):
-        """Returns a list containing table elements."""
-
-    
-    def get_data_from_table(self, list_of_headers):
-        """Returns the data in the table as a dictionary, and returns a list which dictates the order of the keys."""
-    
-    def add_table(self, list_of_headers):
-        """Adds a new tab, and that tab will have a table corresponding to a list of headers."""
-    
-    
-    def export_data_to_csvs(self, save_location):
-        """For each table in the current instance of the tabulator, this will generate separate csvs in the specified location."""
-    
-    def generate_file_name(self, list_of_headers):
-        """Given a list of headers, returns a possible file name for cataloguing purposes."""
-    
-    def get_table_headers_list(self, table_object):
-        """Returns the list of headers of a specified table object."""
-    
-    def add_FSN_and_data(self, FSN_data_dict, headers_list_in_order):
-        """Given a dictionary of data related to an FSN. This method will pick which table that it can 
-        add this data to. In case there is no table, it will attempt to add one."""
-    def set_save_location(self):
-        """Set a save location."""
-
-    def post_to_log(self, text, mode=None):
-        """Appends a message to the log. Appends or overwrites based on the mode."""
-        if mode == None:
-            self.log.clear()
-            self.log.append(text)
-        elif mode == "Append":
-            self.log.append(text)
+    def getItemIDFromHTML(self, html_object):
+        """Takes an urllib2 html object, gets the current url from geturl and then extracts the item id."""
+        upload_link = html_object.geturl()
+        item_id_prefix_position = upload_link.find(r"/p/")
+        if item_id_prefix_position > -1:
+            item_id_start_position = item_id_prefix_position + len(r"/p/")
+            item_id_length = 16
+            item_id_end_position = item_id_start_position + item_id_length
+            item_id = upload_link[item_id_start_position: item_id_end_position]
         else:
-            print "Error. Mode %s isn't valid." %mode
-        mode = None
-        return 0
+            item_id = None
+        return item_id
 
-#####################################################################
-#########################General functions###########################
-#####################################################################
-
-def get_page_link(self, html_object):
-    """Fetches the WS Link for the given urllib2 object."""
-    return html_object.geturl()
-
-def get_FSN(self):
-    """Returns the FSN entered into the line edit, removes trailing spaces."""
-    return str(self.FSN_list.text()).strip()
-
-def check_if_ISBN(self):
-    """Checks if the FSN is an ISBN."""
-    isISBN = False
-    querystring = self.get_FSN()
-    if self.check_FSN():
-        isISBNLength = (len(querystring) == 13)
-        isAllNumber = querystring.isdigit()
-        hasXAtEnd = (querystring[:len(querystring)-1].isdigit()) and (querystring[len(querystring)-1:] == "X")
-        hasNoSpaces = (querystring.find(" ") == -1)
-        isISBN = isISBNLength and (isAllNumber or hasXAtEnd) and hasNoSpaces
-    return isISBN
-
-def get_Goodreads_link(ISBN):
-    """Given an ISBN, it generates the link for the Goodreads page."""
-
-def get_item_id(html_object):
-    """Takes an urllib2 object, gets the current url from geturl and then extracts the item id."""
-    upload_link = html_object.geturl()
-    item_id_prefix_position = upload_link.find(r"/p/")
-    if item_id_prefix_position > -1:
-        item_id_start_position = item_id_prefix_position + len(r"/p/")
-        item_id_length = 16
-        item_id_end_position = item_id_start_position + item_id_length
-        item_id = upload_link[item_id_start_position: item_id_end_position]
-    else:
-        item_id = None
-    return item_id
-
-def get_brand(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the brand name and returns it."""
-
-def check_FK_description(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the description text and returns 
-    True if it is available."""
-
-def pull_description_text(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the description text and returns it."""
-
-def get_wsname(soup_object):
-    """Takes a soup object that crawls for the WSName and returns it."""
-    #return soup_object.find("h1", {"itemprop": "name"}).contents[0] #The item is a list
-    return soup_object.find("h1", {"itemprop": "name"}).string.strip()
-
-def get_spectable(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the Specification Table and returns a dictionary of all the items in it as well as a list that maintains the order of the keys"""
-    spec_section_area = soup_object.find(class_ = "productSpecs specSection")
-    #print spec_section_area
-    specTables = spec_section_area.find_all(class_ = "specTable")
-    groupHeads_list = []
-    specsKeys_list = []
-    specsValues_list = []
-    for specTable in specTables:
-        groupHeads = specTable.find_all(class_ = "groupHead")
-        for groupHead in groupHeads:
-            groupHeads_list.append(str(groupHead.string).strip())
-        specsKeys = specTable.find_all(class_ = "specsKey")
-        for specsKey in specsKeys:
-            specsKeys_list.append(str(specsKey.string).strip())
-        
-        specsValues = specTable.find_all(class_ = "specsValue")
-        for specsValue in specsValues:
-            specsValues_list.append(str(specsValue.string).strip())
+    def getWSNameFromSoup(self, soup_object):
+        ws_name_tag = soup_object.find_all("h1",{"class":"title","itemprop":"name"})
+        return str(ws_name_tag[0].string).strip()
     
-    specifications = dict(zip(specsKeys_list, specsValues_list))
-
-    #print "Group Heads: ", groupHeads_list
-    #print "Specifications: "
-    #for key in specifications:
-    #    print "%s: %s" %(key, specifications[key])
-    return groupHeads_list, specifications
-
-def get_path_list(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the path and returns a list that contains all items in the path except "Home"."""
-    if check_if_out_of_stock(soup_object):
-        path = "Item out of stock. Path cannot be retrieved."
-    else:
+    def extractImages(self, soup_object):
+        """"""
+        success = True
+        image_urls = []
+        #First, get the current productImage
+        image_tag = soup_object.findAll("img", {"class":"productImage  current"})
+        #print image_tag
+        image_counter = 1
+        image_counter += 1 
+        image_attributes = image_tag[0].attrs
         try:
-            path_list_in_soup = soup_object.find(attrs = {"data-tracking-id": "product_breadCrumbs"})
-        #    item = path_list_in_soup.find(class_ = "fk-inline-block")
-            path = []
-            anchor_items = path_list_in_soup.find_all("a")
-            #print anchor_items
-            for tag in anchor_items:
-                path.append(str(tag.string.strip()))
-        except AttributeError, e:
-            path = "Error Retrieving Path"
-            #print repr(e)
-        #print path
-    return path
+            image_url = image_attributes["data-zoomimage"]
+        except:
+            error = "Product page doesn't have zoomed-in image. Extracting original from thumbnail."
+            self.sendException.emit(error)
+            image_url = image_attributes["data-src"]
+            image_url = image_url.replace("400x400","original")
+        image_urls.append(image_url)
 
-def check_if_out_of_stock(soup_object):
-    """Checks if a product is out of stock. Returns True if the product is not in stock, and False if it is."""
-    stock_section = soup_object.find(class_ = "out-of-stock-status")
-    out_of_stock = False
-    if stock_section != None:
-        out_of_stock = True
-    return out_of_stock
-
-def get_warranty_section_items(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the contents of the "warranty" section and returns what it finds."""
-
-def get_category_tree_from_path(soup_object):
-    """Takes a list containing the Flipkart WS path and returns a dictionary for the category tree."""
-
-def get_flipkart_search_url(FSN):
-    "Returns the search query url for Flipkart, given an FSN or ISBN."
-    return "http://www.flipkart.com/search?q=" + FSN
-
-def getFlipkarSearchURL(FSN):
-    "Returns the search query url for Flipkart, given an FSN or ISBN."
-    return "http://www.flipkart.com/search?q=" + FSN
-
-def main():
-    app = QtGui.QApplication(sys.argv)
-    researcher = SWINE()
-    sys.exit(app.exec_())
-
-def check_link_redirection(html_object):
-    item_id = get_item_id(html_object)
-    redirection = False
-    if item_id != None:
-        redirection = True
-    return redirection
-
-def save_essentials_to_csv(fsn, wsname, item_id, path_list, brand):
-    if os.path.isfile("essentials.csv"):
-        ess_file = open("essentials.csv", "a")
-        csv_link = csv.writer(ess_file)
-    else:
-        ess_file = open("essentials.csv", "wt")
-        csv_link = csv.writer(ess_file)
-        csv_link.writerow(["FSN", "WSName", "Item ID", "Path", "Brand", "Time Stamp"])
-    if type(path_list) == type(""):
-        path = path_list
-    else:
-        path = ">".join(path_list)
-    csv_link.writerow([fsn, wsname.replace(",", "+"), item_id, path, brand, "%s" % datetime.now()])
-    ess_file.close()
-
-def record_skipped_FSN(fsn, error):
-    if os.path.isfile("skipped.csv"):
-        skip_file = open("skipped.csv", "a")
-        csv_link = csv.writer(skip_file)
-    else:
-        skip_file = open("skipped.csv", "wt")
-        csv_link = csv.writer(skip_file)
-        csv_link.writerow(["FSN","Error", "Time"])
-    csv_link.writerow([fsn, error, "%s" % datetime.now()])
-
-def test():
-    print "Running trial"
-    original_start_time = datetime.now()
-    FSNs = open("fsns_dom_filtered.csv","r").read().split("\n")
-   #FSNs = ["TABDPZRVEKXBBKC7", "TABEFMVHTSEBTQBF", "TABDQSQ7FH6RXWZA", "TABDVF4WZJ27FBWF", "TABDVUTGE9RCWNUY", "TABDRBHFDH8JRXGG", "TABDFWGG86GVKFRW", "TABDTZ63H8MGGZDR", "TABDTZ63TKM7TXCY", "CBKDEKGSJTHUW59B", "CBKDEKGSKNWYQGZH", "CBKDEKGSM6XP5H88", "9781409128236"]
-    #FSNs = ["9781409128236"]
-    print "Beginning to process %d FSNs." %len(FSNs)
-    times = []
-    total_FSNS = len(FSNs)
-    counter = 1
-    errors = 0
-    for fsn in FSNs:
-        startTime = datetime.now()
-        try:
-            html = urllib2.urlopen(get_flipkart_search_url(fsn))
-            item_id = get_item_id(html)
-            if check_link_redirection(html):
-                #print "Led to %s" % html.geturl()
-                soup = BeautifulSoup(html)
-                path_list = get_path_list(soup)
-                wsname = get_wsname(soup)
-                print "******************"
-                print "Successfully processing %d of %d. Success(es): %d, Failures: %d." %(counter, total_FSNS, (counter - errors), errors)
-                print "Total time elapsed: %s" % (datetime.now() - original_start_time)
-                #print "FSN: ", fsn
-                #print "Item ID: ", item_id
-                #print "WSName: ", wsname
-                #print "Path: ", path_list
-                #print "Specification Table Items:"
-                spec_headers, specs = get_spectable(soup)
-                save_essentials_to_csv(fsn, wsname, item_id, path_list, specs["Brand"])
-                #save_essentials_to_csv(fsn, wsname, item_id, path_list, specs.keys())
-                print "******************"
-                counter += 1 
-                endTime = datetime.now()
-                times.append(endTime - startTime)
-                time.sleep(5)
+        #Next, get the remaining productImages.
+        image_tags = soup_object.findAll("img", {"class":"productImage "})
+        for image_tag in image_tags:
+            image_attributes = image_tag.attrs
+            try:
+                image_url = image_attributes["data-zoomimage"]
+            except:
+                error = "Product page doesn't have zoomed-in image. Extracting original from thumbnail."
+                self.sendException.emit(error)
+                image_url = image_attributes["data-src"]
+                image_url = image_url.replace("400x400","original")
+            image_urls.append(image_url)
+        
+        #print len(image_urls)
+        #raw_input(">")
+        image_name =""
+        counter = 0
+        #print self.image_name_mask
+        if self.image_name_mask_delimiter == "(None)":
+            delimiter = ""
+        elif self.image_name_mask_delimiter == "(Space)":
+            delimiter = " "
+        else:
+            delimiter = self.image_name_mask_delimiter
+        for mask in self.image_name_mask:
+            if counter > 0:
+                image_name += delimiter
+            if mask == "FSN":
+                image_name += self.fsn
             else:
-                print "********elseerror*********"
-                errors += 1
-                print "Failed in processing %d of %d. Success(es): %d, Failure(s): %d." %(counter, total_FSNS, (counter - errors), errors)
-                print "Total time elapsed: %s" % (datetime.now() - original_start_time)
-                error = "Redirection Error"
-                record_skipped_FSN(fsn, error)
-                counter +=1
-                print "******************"
-                time.sleep(1)
-        #except (AttributeError, urllib2.HTTPError), e:
-        except Exception, e:
-            print "******************"
-            errors += 1
-            print "Failed in processing %d of %d. Success(es): %d, Failure(s): %d." %(counter, total_FSNS, (counter - errors), errors)
-            print "Total time elapsed: %s" % (datetime.now() - original_start_time)
-            error = repr(e)
-            record_skipped_FSN(fsn, error)
+                image_name += self.return_data_set[self.fsn][mask]
             counter += 1
-            print "******************"
-            time.sleep(2)
-            #raise
-            #print "Error: ", repr(e)
-        #except Exception, e:
-            #raise
+        image_extension = ".jpeg"
+        if self.use_subfolders:
+            if self.image_name_mask[0] == "FSN":
+                sub_folder_name = self.fsn
+            else:
+                sub_folder_name = self.return_data_set[self.fsn][self.image_name_mask[0]]
+            current_save_location = os.path.join(self.image_save_location,sub_folder_name)
+        else:
+            current_save_location = self.image_save_location
+        if not(os.path.exists(current_save_location)):
+            os.makedirs(current_save_location)
+        image_save_name = os.path.join(current_save_location,image_name)
+        image_counter = 0
+        if self.get_all_images:
+            """"""
+            required_images = image_urls
+        else:
+            required_images = image_urls[:1]
+        for image_url in required_images:
+            image_counter += 1
+            trial_counter = 0
+            while True:
+                try:
+                    trial_counter += 1
+                    if self.get_all_images:
+                        image_save_final_name = image_save_name + delimiter + "%2d"%image_counter + image_extension
+                    else:
+                        image_save_final_name = image_save_name + image_extension
+                    urllib.urlretrieve(image_url, image_save_final_name)
+                    if int(os.stat(image_save_final_name).st_size)>1000:
+                        break
+                    else:
+                        error = "Extracted image is less than 1kb. Retrying again."
+                        self.sendException.emit(error)
+                        if trial_counter < 10:
+                            continue
+                        else:
+                            error = "No image available, or obtained image is too small."
+                            self.sendException.emit(error)
+                            success = False
+                            break
+                except urllib.ContentTooShortError:
+                    #print "Retrying image fetch for %s." %image_name
+                    error = "Failed retrieving the image. Retrying."
+                    self.sendException.emit(error)
+                    continue
+        return success
 
-    print "Run time diagnostics:"
-#    print times
-    print "Total Time Spent: %s" % (datetime.now() - original_start_time)
-#    print "Mean run time per FSN:", numpy.mean(times)
-#    print "Median of the run time per FSN:", numpy.median(times)
-#    print "Total run time:", numpy.sum(times)
-    print "Finished trial. Total errors: %d" %errors
+    def extractData(self, soup_object):
+        """"""
+        #find the section in this thing.
+        spec_section_area = soup_object.find(class_ = "productSpecs specSection")
+        #get model name
+        specTables = spec_section_area.find_all(class_ = "specTable")
+        groupHeads_list = []
+        specsKeys_list = []
+        specsValues_list = []
+        empty_counter = 0
+        specifications = {}
+        counter = 1
+        last_found_entity = None
+        last_found_string_value = None
+        current_group_head = None
+        for specTable in specTables:
+            #Stupid Failkart tables aren't formatted properly. There will be more than one "spectable", 
+            #and what's more, each row may or may not have a header cell. I need to circumvent all this
+            #or I need to rewrite this for the Console. Eventually, that'll be the best method.
+
+            #step 1: loop through each row.
+            spec_table_rows = specTable.find_all("tr")
+            #step 2: loop through each of these rows.
+            for spec_row in spec_table_rows:
+                #step 3: determine what that row has: a groupHead, a specKey or specValue.
+                for spec_subrow in spec_row:
+                    try:
+                        current_class = str(spec_subrow["class"][0])
+                        current_string_value = str(spec_subrow.string).strip()
+                        if counter >1:
+                            if (last_found_entity == "specsKey") and (current_class == "specsValue"):
+                                if (len(last_found_string_value) > 0) and (last_found_string_value != ""):
+                                    specifications[last_found_string_value] = current_string_value
+                                else:
+                                    specifications[current_group_head] = current_string_value
+                            elif (last_found_string_value == "groupHead") and (current_class == "specsValue"):
+                                specifications[last_found_string_value] = current_string_value
+                            elif (last_found_string_value == "specsKey") and ((current_class == "groupHead") or (current_class == "specsKey")):
+                                specifications[last_found_string_value] = None
+                            elif current_class == "groupHead":
+                                current_group_head = str(spec_subrow.string).strip()
+                        last_found_entity = current_class
+                        last_found_string_value = str(spec_subrow.string).strip()
+                        counter += 1
+                    except TypeError:
+                        pass
+        for column in self.required_data:
+            if column in specifications.keys():
+                self.return_data_set[self.fsn][column]=specifications[column]
+            elif column not in ["WS Name","Brand","Image"]:
+                #print self.return_data_set[self.fsn]
+                self.return_data_set[self.fsn][column]="NA"
+
+    def getETA(self, start_time, counter, total):
+        now = datetime.datetime.now()
+        time_spent = now - start_time
+        mean_time = time_spent.total_seconds()/counter
+        ETA = start_time + datetime.timedelta(seconds=(mean_time*total))
+        return ETA
 
 
-#Cleaned SWINE functions.
+class Swine(QtGui.QMainWindow):
+    def __init__(self):
+        super(Swine, self).__init__()
+        self.swine_thread = SwineThread()
+        self.clip = QtGui.QApplication.clipboard()
+        self.createUI()
+        self.mapEvents()
 
+    def createUI(self):
+        self.instruction_label = QtGui.QLabel("<b>Paste FSNs in the dialog below:</b>")
+        self.fsn_list_text_edit = QtGui.QTextEdit()
+        self.fsn_list_text_edit.setToolTip("Paste a list of FSNs here, separated either by a new line or by a comma.")
+        self.log = QtGui.QTextEdit()
+        self.log.setReadOnly(False)
+        self.log.setToolTip("Action log.")
+        self.get_images_check_box = QtGui.QCheckBox("Download Images")
+        self.get_images_check_box.setToolTip("Check this if you'd like to download images.")
+        self.images_types_box = QtGui.QCheckBox("Download All Product Images")
+        self.images_types_box.setToolTip("Check this if you'd like to extract all product images and not just the current image.")
+        self.images_types_box.setEnabled(False)
+        self.get_data_dump_check_box = QtGui.QCheckBox("Download Spec Table Data")
+        self.get_data_dump_types_box = QtGui.QTextEdit()
+        self.get_data_dump_types_box.setToolTip("Enter the exact name of the attribute that you'd find on a product page.\nSeparate by a semi-colon(;), no spaces required.")
+        self.get_data_dump_types_box.setEnabled(False)
+        self.pull_button = QtGui.QPushButton("Run")
+        self.pull_button.setToolTip("Click to extract data.")
+        self.progress_bar = QtGui.QProgressBar()
+        self.status_label = QtGui.QLabel("Status")
+        self.process_table = QtGui.QTableWidget(0,0)
+        style_string = """
+        .QTableWidget {
+            gridline-color: rgb(0, 0, 0);
+        }
+        """
+        self.process_table.setStyleSheet(style_string)
+        self.setStyleSheet(style_string)
+        self.tabs = QtGui.QTabWidget()
+        self.tabs.addTab(self.process_table,"Tabulated Data")
+        self.tabs.addTab(self.log,"Log")
+        self.tabs.setMinimumWidth(500)
+        self.tabs.setMinimumHeight(500)
+        self.data_dump_instruction = QtGui.QLabel("Paste the details to extract")
+        self.images_name_masks = QtGui.QHBoxLayout()
+        self.image_mask_instruction = QtGui.QLabel("Select Image Rename Pattern")
+        self.image_masks = [QtGui.QComboBox() for i in range(3)]
+        self.joiner_mask_instruction = QtGui.QLabel("Join masks by:")
+        self.joiner_mask = QtGui.QComboBox()
+        self.joiner_mask.addItems(["(Space)","-","_","(Null)"])
+        self.joiner_mask.setEnabled(False)
+        self.joiner = QtGui.QHBoxLayout()
+        self.joiner.addWidget(self.joiner_mask_instruction,0)
+        self.joiner.addWidget(self.joiner_mask,0)
+        self.image_mask_options = ["FSN","WS Name","Brand"]
+        for image_mask in self.image_masks:
+            self.images_name_masks.addWidget(image_mask,0)
+            image_mask.setEnabled(False)
+            image_mask.addItems(self.image_mask_options)
+            image_mask.setCurrentIndex(-1)
+        self.reset_masks = QtGui.QPushButton("Reset Name Pattern")
+        self.reset_masks.setToolTip("Reset the renaming guidelines.")
+        self.reset_masks.setEnabled(False)
+        self.images_name_masks.addWidget(self.reset_masks,0)
+        self.output_location_line_edit = QtGui.QLineEdit()
+        self.output_path = os.path.join(os.getcwd(),"output")
+        self.output_location_line_edit.setText(self.output_path)
+        self.output_location_line_edit.setEnabled(False)
+        self.output_location_selector = QtGui.QPushButton("...")
+        self.output_location_selector.setToolTip("Files will be saved in %s.\nClick to select a new save location."%self.output_path)
+        self.output_location_selector.setEnabled(False)
+        self.subfolder_check_box = QtGui.QCheckBox("Save Images in Sub-Folders (Using First Name Mask)")
+        self.subfolder_check_box.setToolTip("When checked, all images are downloaded into sub folders, based on the first name mask that you've selected.")
+        self.subfolder_check_box.setEnabled(False)
+        self.output_location_layout = QtGui.QHBoxLayout()
+        self.output_location_layout.addWidget(self.output_location_line_edit,2)
+        self.output_location_layout.addWidget(self.output_location_selector,0)
+        self.open_output_location = QtGui.QPushButton("Open saved location")
+        self.open_output_location.setEnabled(False)
+        self.options = QtGui.QGroupBox("Inputs")
+        self.options_layout = QtGui.QVBoxLayout()
+        self.options.setLayout(self.options_layout)
+        self.options_layout.addWidget(self.instruction_label,0)
+        self.options_layout.addWidget(self.fsn_list_text_edit,5)
+        self.options_layout.addWidget(self.get_images_check_box,0)
+        self.options_layout.addWidget(self.images_types_box,0)
+        self.options_layout.addWidget(self.image_mask_instruction,0)
+        self.options_layout.addLayout(self.images_name_masks,0)
+        self.options_layout.addLayout(self.joiner,0)
+        self.options_layout.addLayout(self.output_location_layout,0)
+        self.options_layout.addWidget(self.subfolder_check_box,0)
+        self.options_layout.addWidget(self.open_output_location,0)
+        self.options_layout.addWidget(self.get_data_dump_check_box,0)
+        self.options_layout.addWidget(self.data_dump_instruction,0)
+        self.options_layout.addWidget(self.get_data_dump_types_box,1)
+        self.options_layout.addWidget(self.pull_button,0)
+        self.options_and_tabs = QtGui.QHBoxLayout()
+        self.options_and_tabs.addWidget(self.options,0)
+        self.options_and_tabs.addWidget(self.tabs,5)
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(self.options_and_tabs,0)
+        self.layout.addWidget(self.progress_bar,0)
+        self.layout.addWidget(self.status_label,0)
+        self.setWindowIcon(QtGui.QIcon("oink.ico"))
 
-def checkForRedirection(html_object):
-    """Checks the URL of the object and determines if it got redirected or not."""
+        self.main_widget = QtGui.QWidget()
+        self.main_widget.setLayout(self.layout)
+        self.setCentralWidget(self.main_widget)
+        self.show()
+        self.setWindowTitle("Swine: The Flipkart Data Extraction Application")
+        self.center()
 
-    return True
-
-def getWSNameFromSoup(soup_object):
-    WSName = "NA"
-    try:
-        WSName = soup_object.find("h1", {"itemprop": "name"}).string.strip()
-    except Exception, e:
-        print "Error in getWSNameFromSoup."
-        print repr(e)
-        print "Leaving getWSNameFromSoup."
-        pass
-
-def getItemIDFromURLLib2Object(html_object):
-    """Takes an urllib2 object, gets the current url from geturl and then extracts the item id."""
-    upload_link = html_object.geturl()
-    item_id_prefix_position = upload_link.find(r"/p/")
-    if item_id_prefix_position > -1:
-        item_id_start_position = item_id_prefix_position + len(r"/p/")
-        item_id_length = 16 #Right now, that's what it looks like.
-        item_id_end_position = item_id_start_position + item_id_length
-        item_id = upload_link[item_id_start_position: item_id_end_position]
-    else:
-        item_id = None
-    return item_id
-
-def getSpecsFromSoup(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the Specification Table and returns a dictionary of all the items in it as well as a list that maintains the order of the keys"""
-    #Rewrite this to use pandas.DataFrame
-    import pandas
-    spec_section_area = soup_object.find(class_ = "productSpecs specSection")
-    #print spec_section_area
-    specTables = spec_section_area.find_all(class_ = "specTable")
-    groupHeads_list = []
-    specsKeys_list = []
-    specsValues_list = []
-    for specTable in specTables:
-        groupHeads = specTable.find_all(class_ = "groupHead")
-        for groupHead in groupHeads:
-            groupHeads_list.append(str(groupHead.string).strip())
-        specsKeys = specTable.find_all(class_ = "specsKey")
-        for specsKey in specsKeys:
-            specsKeys_list.append(str(specsKey.string).strip())
-        
-        specsValues = specTable.find_all(class_ = "specsValue")
-        for specsValue in specsValues:
-            specsValues_list.append(str(specsValue.string).strip())
+    def mapEvents(self):
+        """"""
+        self.output_location_selector.clicked.connect(self.changeImageSaveLocation)
+        self.get_data_dump_check_box.stateChanged.connect(self.toggleDataProcurement)
+        self.get_images_check_box.stateChanged.connect(self.toggleImagesProcurement)
+        self.open_output_location.clicked.connect(self.openOutputLocation)
+        self.image_masks[0].currentIndexChanged.connect(self.limitMask1)
+        self.image_masks[1].currentIndexChanged.connect(self.limitMask2)
+        self.reset_masks.clicked.connect(self.resetNameMask)
+        self.pull_button.clicked.connect(self.runJob)
+        self.swine_thread.sendStatus.connect(self.displayProgress)
+        self.swine_thread.sendData.connect(self.populateTable)
+        self.swine_thread.sendException.connect(self.log.append)
     
-    specifications = dict(zip(specsKeys_list, specsValues_list))
+    def keyPressEvent(self, e):
+        if (e.modifiers() & QtCore.Qt.ControlModifier):
+            if e.key() == QtCore.Qt.Key_C:
+                table_to_copy = self.process_table
+                selected = table_to_copy.selectedRanges()
+                s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
+                s = s + '\n'
+                for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
+                    s += str(r+1) + '\t' 
+                    for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
+                        try:
+                            s += str(table_to_copy.item(r,c).text()) + "\t"
+                        except AttributeError:
+                            s += "\t"
+                    s = s[:-1] + "\n" #eliminate last '\t'
+                self.clip.setText(s)
 
-    #print "Group Heads: ", groupHeads_list
-    #print "Specifications: "
-    #for key in specifications:
-    #    print "%s: %s" %(key, specifications[key])
-    return specifications
+    def populateTable(self, data_list):
+        fsns = data_list.keys()
+        data_columns = data_list[fsns[0]].keys()
+        if "Image" in data_columns:
+            data_columns.remove("Image")
+            data_columns = ["Image"] + data_columns
+        if "WS Name" in data_columns:
+            data_columns.remove("WS Name")
+            data_columns = ["WS Name"] + data_columns
+        if "Brand" in data_columns:
+            data_columns.remove("Brand")
+            data_columns = ["Brand"] + data_columns
+        column_headers = ["FSN"] + data_columns
+        self.process_table.setColumnCount(0)
+        self.process_table.setRowCount(0)
+        self.process_table.setColumnCount(len(column_headers))
+        self.process_table.setSortingEnabled(False)
+        row_index = 0
+        for fsn in fsns:
+            self.process_table.insertRow(row_index)
+            self.process_table.setItem(row_index, 0, QtGui.QTableWidgetItem(str(fsn)))
+            column_index = 1
+            for column in column_headers[1:]:
+                self.process_table.setItem(row_index, column_index, QtGui.QTableWidgetItem(str(data_list[fsn][column])))
+                column_index += 1
+            row_index += 1
+        self.process_table.setHorizontalHeaderLabels(column_headers)
+        self.process_table.setSortingEnabled(True)
+        self.process_table.resizeColumnsToContents()
+        self.process_table.resizeRowsToContents()
 
-def checkForPlagiarism(featured_description):
-    return False
+    def limitMask1(self):
+        self.image_masks[1].clear()
+        for image_mask in self.image_mask_options:
+            if image_mask not in [str(self.image_masks[0].currentText())]:
+                self.image_masks[1].addItem(image_mask)
+        self.image_masks[1].setCurrentIndex(-1)
 
-def getPathFromSoup(soup_object):
-    """Takes a urllib2 object and creates a soup object that crawls for the path and returns a list that contains all items in the path except "Home"."""
-    if check_if_out_of_stock(soup_object):
-        path = "Item out of stock. Path cannot be retrieved."
-    else:
-        try:
-            path_list_in_soup = soup_object.find(attrs = {"data-tracking-id": "product_breadCrumbs"})
-        #    item = path_list_in_soup.find(class_ = "fk-inline-block")
-            path = []
-            anchor_items = path_list_in_soup.find_all("a")
-            #print anchor_items
-            for tag in anchor_items:
-                path.append(str(tag.string.strip()))
-        except AttributeError, e:
-            path = "Error Retrieving Path"
-            #print repr(e)
-        #print path
-    return path
+    def limitMask2(self):
+        self.image_masks[2].clear()
+        for image_mask in self.image_mask_options:
+            if image_mask not in [str(self.image_masks[0].currentText()),str(self.image_masks[1].currentText())]:
+                self.image_masks[2].addItem(image_mask)
+        self.image_masks[2].setCurrentIndex(-1)
 
-def scrapeFlipkart(FSN):
-    """This method does the following things:
-    1. Gets the flipkart search URL.
-    2. If redirected to the product page, it proceeds to the next steps. For now, there is no else action.
-    3. It extracts the Item ID.
-    4. It extracts the WSName.
-    5. It extracts the specifications table.
-    6. [Experimental] It extracts the description text.
-    7. [Experimental] It extracts the RPD text.
-    8. [Experimental] It analyses the extracted text to check if it is unique.
-    9. [Experimental] It gets the product images.
-    10. It creates a pandas.DataFrame from all the extracted data. The columns are:
-        a. Attribute Names[FSN, URL, Item ID, WS Name, Spec Table Headers (Multiple columns), Image URL(s) (list), Article Text, Article Text Type, Article Text Word Count (int), Plagiarism (Boolean)]
-        b. Values
-        c. [Experimental] Reliable Booleans. Each row will have a bool to value whether it can be trusted.
-    11. Returns the DataFrame.
-    12. For now, if it fails in redirection, it returns a list with the FSN and a False.
-    """
-    import pandas
-    url = get_flipkart_search_url(FSN)
-    fk_page_code = urllib2.urlopen(url, timeout=5)
-    proceed = checkForRedirection(fk_page_code)
-    if proceed:
+    def openOutputLocation(self):
+        subprocess.Popen(r'explorer /open,"%s"'%os.path.join(self.output_path,""))
 
-        item_id = getItemIDFromURLLib2Object(fk_page_code)
-        #print item_id
-        fk_page_soup = BeautifulSoup(fk_page_code)
-        path = getPathFromSoup(fk_page_soup)
-        #print path
-        ws_name = getWSNameFromSoup(fk_page_soup)
-        #print ws_name
-        spec_table_data = getSpecsFromSoup(fk_page_soup)
-        #print spec_table_data
-        #regular_description = getRegularDescriptionFromSoup(fk_page_soup)
-        #rich_product_description = getRichProductDescriptionFromSoup(fk_page_soup)
-        #featured_description = getFeaturedDescription(regular_description, rich_product_description)
-        
-        #plagiarized = checkForPlagiarism(featured_description)
-        
-        #image_urls = getImagesFromSoup(fk_page_soup)
-        #image_sizes = getURLFileSize(image_urls)
-        data_dictionary = {
-                    "FSN": FSN,
-                    "Scrape Success": True,
-                    "Item ID": item_id,
-                    "WS Name": ws_name,
-        }
-        data_dictionary.update(spec_table_data)
-
-        data = pandas.DataFrame.from_dict(data_dictionary, orient="index")
-        data.columns = ["Attribute"]
-        #print data
-    else:
-        data_dictionary = {
-                    "FSN": FSN,
-                    "Scrape Success": False
-        }
-        data = pandas.DataFrame.from_dict(data_dictionary, orient="index")
-        data.columns = ["Attribute"]
-        #data.columns = ["Attribute", "Value"]
-        
-        #Later, write code that catches the first product page and enters that. Then, restart the previous process.
-        #data = [FSN, False]
-    return data
-
-def findDescription(fsn):
-    url = get_flipkart_search_url(fsn)
-    try:
-        fk_page_code = urllib2.urlopen(url, timeout=60)
-        proceed = checkForRedirection(fk_page_code)
-    except:
-        proceed = False
-    if proceed:
-        fk_page_soup = BeautifulSoup(fk_page_code)
-        rpd_content = getRPDFromSoup(fk_page_soup).encode("utf8")
-        #print rpd_content
-        pd_content = getPDFromSoup(fk_page_soup).encode("utf8")
-        #print pd_content.encode("utf8")
-        if rpd_content == "NA":
-            isRPD = False
+    def toggleDataProcurement(self):
+        if self.get_data_dump_check_box.isChecked():
+            self.get_data_dump_types_box.setEnabled(True)
         else:
-            #print rpd_content
-            isRPD = True
-        if pd_content == "NA":
-            isPD = False
+            self.get_data_dump_types_box.setEnabled(False)
+
+    def toggleImagesProcurement(self):
+        if self.get_images_check_box.isChecked():
+            state = True
         else:
-            isPD = True
-        if isRPD and isPD:
-            return 3
-        elif isRPD:
-            return 1
-        elif isPD:
-            return 2
+            state = False
+        self.images_types_box.setEnabled(state)
+        for image_mask in self.image_masks:
+            image_mask.setEnabled(state)
+        self.joiner_mask.setEnabled(state)
+        #self.options.setEnabled(state)
+        self.output_location_selector.setEnabled(state)
+        self.open_output_location.setEnabled(state)
+        self.reset_masks.setEnabled(state)
+        self.subfolder_check_box.setEnabled(state)
+
+    def resetNameMask(self):
+        self.image_masks[0].setCurrentIndex(-1)
+        self.image_masks[1].setCurrentIndex(-1)
+        self.image_masks[2].setCurrentIndex(-1)
+        self.joiner_mask.setCurrentIndex(-1)
+
+    def runJob(self):
+        self.pull_button.setEnabled(False)
+        self.pull_button.setText("Pulling Data...")
+        text_edit_contents = str(self.fsn_list_text_edit.toPlainText()).strip()
+        #print "Got text!"
+        if '"' in text_edit_contents:
+            text_edit_contents.replace('"',"")
+            #print "Removing quotes"
+        if " " in text_edit_contents:
+            text_edit_contents.replace(' ', "")
+            #print "Removing spaces"
+        if "\n" in text_edit_contents:
+            search_items = list(set(text_edit_contents.split("\n")))
+        if "," in text_edit_contents:
+            search_items = list(set(text_edit_contents.split(",")))
+        if len(text_edit_contents) in [13, 16]:
+            search_items = [text_edit_contents]
+        #print search_items
+        fsn_list = [fsn for fsn in search_items if ((len(fsn) == 16) or (len(fsn) == 13))]
+
+        if len(fsn_list) == 0:
+            self.alertMessage("No input data provided.","Please paste at least 1 FSN in the entry field before trying to pull data.")
         else:
-            return 0
-    else:
-        return 0
+            #Set the variables.
+            self.swine_thread.fsn_list = fsn_list
+            if self.get_images_check_box.isChecked():
+                #Set the image save location
+                self.swine_thread.image_save_location = self.output_path
+                #Set the image mask.
+                self.swine_thread.get_all_images = self.images_types_box.isChecked()
+                if self.image_masks[0].currentIndex() == -1:
+                    self.swine_thread.image_name_mask = ["FSN"]
+                else:
+                    self.swine_thread.image_name_mask = [str(self.image_masks[0].currentText())]
+                    if self.image_masks[1].currentIndex() != -1:
+                        self.swine_thread.image_name_mask.append(str(self.image_masks[1].currentText()))
+                        if self.image_masks[2].currentIndex() != -1:
+                            self.swine_thread.image_name_mask.append(str(self.image_masks[2].currentText()))
 
-def runtest():
-    import datetime
-    import MOSES
-    FSN_list = MOSES.getFSNListWithoutUploadedType()
-    counter = 1
-    total = len(FSN_list)
-    start_time = datetime.datetime.now()
-    last_update_time = datetime.datetime.now() - datetime.timedelta(seconds=60)
-    print "Received %d FSNs from the Piggy Bank. Starting process at %s." %(total, datetime.datetime.strftime(start_time,"%H:%M:%S"))
-    for fsn in FSN_list:
-        description_type = findDescription(fsn)
-        if description_type == 0:
-            MOSES.updateUploadedTypeInPiggyBank(fsn,"Not Uploaded")
-        elif description_type == 1:
-            MOSES.updateUploadedTypeInPiggyBank(fsn,"RPD")
-        elif description_type == 2:
-            MOSES.updateUploadedTypeInPiggyBank(fsn,"PD")
-        elif description_type == 3:
-            MOSES.updateUploadedTypeInPiggyBank(fsn,"RPD,PD")
-        if datetime.datetime.now() - last_update_time >= datetime.timedelta(seconds=60):
-            print "%d of %d completed. ETA : %s" %(counter, total, datetime.datetime.strftime(MOSES.getETA(start_time, counter, total),"%d-%m, %H:%M:%S"))
-            last_update_time = datetime.datetime.now()
-        counter += 1
+                self.swine_thread.image_name_mask_delimiter = str(self.joiner_mask.currentText())
+                self.swine_thread.use_subfolders = self.subfolder_check_box.isChecked()
+                self.swine_thread.get_images = True
+            if self.get_data_dump_check_box.isChecked():
+                self.swine_thread.get_data = True
+                spec_table_names = str(self.get_data_dump_types_box.toPlainText()).strip()
+                if "," in spec_table_names:
+                    spec_table_names = spec_table_names.split(",")
+                    spec_table_names = [spec.strip() for spec in spec_table_names if len(spec)>1]
+                elif ";" in spec_table_names:
+                    spec_table_names = spec_table_names.split(";")
+                else:
+                    spec_table_names = [spec_table_names]
+                self.swine_thread.required_data = spec_table_names
+            self.swine_thread.allow_run = True
 
-    print "Completed."
-    raw_input("Hit enter> ")
+    def changeImageSaveLocation(self):
+        self.output_path = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        self.output_location_selector.setToolTip("Files will be saved in %s.\nClick to select a new save location."%self.output_path)
+        self.output_location_line_edit.setText(self.output_path)
 
-def getRPDFromSoup(soup_object):
-    """
-    class="rpdSection"
-    """
-    #rpd_section = soup_object.find(class_ = "rpdSection")
-    rpd_section = soup_object.find("div", {"class": "rpdSection"})
-    if len(str(rpd_section)) > 0:
-        try:
-            rpd = rpd_section.getText()
-        except Exception, e:
-            rpd= "NA"
-            #print rpd_section
-            print repr(e)
-
-        if type(rpd) == None:
-            rpd = "NA"
+    def displayProgress(self,status_message,process_percentage,completion_state,eta):
+        self.progress_bar.setValue(process_percentage)
+        if not completion_state:
+            display_message = "%s ETA: %s." %(status_message, eta.strftime("%H:%M:%S"))
         else:
-            rpd = rpd.strip()
-            if len(rpd) == 0:
-                rpd = "NA"
-    else:
-        rpd = "NA"
-    return rpd
+            self.pull_button.setEnabled(True)
+            self.pull_button.setText("Run")
+            display_message = "Completed Pulling the Required Information at %s from Flipkart." %eta.strftime("%H:%M:%S")
+            self.alertMessage("Completed Running",display_message)
+        self.status_label.setText(display_message)
+        self.log.append(display_message)
 
-def getPDFromSoup(soup_object):
-    """
-    <div class="description specSection">
-    class="rpdSection"
-    """
-    #rpd_section = soup_object.find(class_ = "rpdSection")
-    pd_section = soup_object.find("div", {"class": "description specSection"})
-    #print str(pd_section)
-    if len(str(pd_section)) > 0:
-        try:
-            pd = pd_section.getText()
-        except Exception, e:
-            pd= "NA"
-            #print pd_section
-            #print repr(e)
+    def alertMessage(self, title, message):
+        """Vindaloo."""
+        QtGui.QMessageBox.about(self, title, message)
 
-        if type(pd) == None:
-            pd = "NA"
-        else:
-            pd = pd.strip()
-            if len(pd) == 0:
-                pd = "NA"
-    else:
-        pd = "NA"
-    return pd
-
+    def center(self):
+        frameGm = self.frameGeometry()
+        screen = QtGui.QApplication.desktop().screenNumber(QtGui.QApplication.desktop().cursor().pos())
+        centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())
 
 if __name__ == "__main__":
-    #main()
-    test()
+    app = QtGui.QApplication(sys.argv)
+    swine = Swine()
+    swine.show()
+    sys.exit(app.exec_())

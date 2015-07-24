@@ -159,6 +159,43 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
 
         self.piggybank_summary_tables = QtGui.QTabWidget()
+        tab_style = """
+            QTabWidget::pane { /* The tab widget frame */
+            border-top: 2px solid black;
+            position: absolute;
+            top: -0.5em;
+        }
+
+        QTabWidget::tab-bar {
+            alignment: center;
+        }
+
+        /* Style the tab using the tab sub-control. Note that
+            it reads QTabBar _not_ QTabWidget */
+        QTabBar::tab {
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                        stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                        stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+            border: 2px solid #C4C4C3;
+            border-bottom-color: black; /* same as the pane color */
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            min-width: 8ex;
+            padding: 2px;
+        }
+
+        QTabBar::tab:selected, QTabBar::tab:hover {
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                        stop: 0 #fafafa, stop: 0.4 #f4f4f4,
+                                        stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);
+        }
+
+        QTabBar::tab:selected {
+            border-color: #9B9B9B;
+            border-bottom-color: black; /* same as pane color */
+        }
+        """
+        self.piggybank_summary_tables.setStyleSheet(tab_style)
         self.piggybank_summary_tables.addTab(self.piggybank_summary,"Audit Break Up")
         self.piggybank_summary_tables.addTab(self.piggybank_summary_editor_summary, "Editor Summary")
         self.piggybank_summary_tables.addTab(self.piggybank_summary_random_fsns,"Random FSNs")
@@ -704,7 +741,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         2. extracts n FSNs from the displayed piggybank, using the data set in the audit planner as a filter. The value n is the suggested audit number.
         3. adds these FSNs to the result table.
         """
-        print "Randomizing audits"
+        #print "Randomizing audits"
         audit_plan = self.audit_break_up
         start_date = self.start_date_edit.date().toPyDate()
         end_date = self.end_date_edit.date().toPyDate()

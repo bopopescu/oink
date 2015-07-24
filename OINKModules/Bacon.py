@@ -1,98 +1,36 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
+import os, datetime, sys, math
 from PyQt4 import QtGui, QtCore
 
 from PassResetDialog import PassResetDialog
-from EfficiencyCalculator import EfficiencyCalculator
-from DateSelectorWidget import DateSelectorWidget
-from FilterBox import FilterBox
 from OINKMethods import version
 import MOSES
 
 class Bacon(QtGui.QMainWindow):
-    def __init__(self, userID, password):
-        """BACON"""
-        super(BACONMainWindow,self).__init__()
-        self.userID = userID
+    def __init__(self, user_id, password):
+        super(Bacon, self).__init__()
+        self.user_id = user_id
         self.password = password
-        self.createWidgets()
-        self.createLayouts()
-        self.createEvents()
-        self.createActions()
-        self.refreshGraphs()
-        self.setVisuals()
-    def createWidgets(self):
-        """BACON"""
+        self.createUI()
+        self.mapEvents()
 
-    def createLayouts(self):
-        """BACON"""
+    def createUI(self):
+        self.main_widget = QtGui.QWidget()
+        self.setCentralWidget(self.main_widget)
 
-    def createEvents(self):
-        """BACON"""
+        self.audit_queue = QtGui.QTableWidget(0,0)
+        self.audit_plan = QtGui.QTableWidget(0,0)
 
-    def createActions(self):
-        """BACON"""
+        self.audit_percentage_monitor = AuditPercentageMonitor(self.user_id, self.password)
+        self.quality_analyser = QualityAnalyser(self.user_id, self.password)
+        self.editor_metrics = EditorMetricsViewer(self.user_id, self.password)
+        self.editor_calendar = EditorCalendar(self.user_id, self.password)
 
-    def fetchAuditQueue(self):
-        """BACON"""
-
-    def refreshGraphs(self):
-        """BACON"""
-
-    def plotCoverageChart(self):
-        """BACON"""
-
-    def plotPolarScatter(self):
-        """BACON"""
-
-    def fetchRawData(self):
-        """BACON"""
-
-    def openAuditForm(self):
-        """BACON"""
+        
 
 
-class BACONAuditForm(QtGui.QDialog):
-    def __init__(self, userID, password):
-        """BACON Form"""
-        super(BACONAuditForm, self).__init__()
-        self.userID = userID
-        self.password = password
-        self.createWidgets()
-        self.createLayouts()
-        self.createEvents()
-        self.createActions()
-        self.setVisuals()
+    def mapEvents():
+        """"""
 
-    def createWidgets(self):
-        """BACON Form"""
 
-    def createLayouts(self):
-        """BACON Form"""
-
-    def createEvents(self):
-        """BACON Form"""
-
-    def createActions(self):
-        """BACON Form"""
-
-    def fetchNextArticle(self):
-        """BACON Form"""
-
-    def fetchPreviousArticle(self):
-        """BACON Form"""
-
-    def publishAudits(self):
-        """BACON Form"""
-
-    def saveToLocal(self):
-        """BACON Form"""
-
-    def populateAuditFields(self):
-        """BACON Form"""
-
-    def addComment(self):
-        """BACON Form"""
-
-    def raiseRCA(self):
-        """BACON Form"""
