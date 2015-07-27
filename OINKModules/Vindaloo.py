@@ -20,6 +20,7 @@ from Graphite import Graphite
 from StyCleaner import StyCleaner
 from FarmHand import FarmHand
 from PiggyBankWithFilter import PiggyBankWithFilter
+from SwineHerd import SwineHerd
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -47,6 +48,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.piggy_bank_button.setToolTip("Click here to pull Piggy Bank data.")
         self.swine_herd_button = QtGui.QPushButton("Swine Herd")
         self.swine_herd_button.setToolTip("Click here to view the Head Count Report")
+        self.swine_button = QtGui.QPushButton("Swine")
+        self.swine_button.setToolTip("Click here to get data and images from Flipkart.")
 
         self.layout = QtGui.QGridLayout()
         self.layout.addWidget(self.daily_porker_button, 0, 0)
@@ -84,8 +87,6 @@ class Vindaloo(QtGui.QMainWindow):
             color: #0088D6;
             font: 14pt;
         }
-        
-
         """
         self.setWindowFlags(QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowShadeButtonHint)
         self.setStyleSheet(style_string)
@@ -125,7 +126,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.sty_cleaner.show()
     
     def openSwineHerd(self):
-        self.alertMessage("SwineHerd","The lord is my swineherd, and I shall not want.")
+        self.swine = SwineHerd()
+        self.swine.show()
     
     def openSeeker(self):
         #self.alertMessage("Seeker", "Porko Dormeins Nunquam Titlandus")

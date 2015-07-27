@@ -114,7 +114,7 @@ class LeavePlanner(QtGui.QDialog):
         datesList = OINKM.getDatesBetween(startDate,endDate)
         for oneDate in datesList:
             MOSES.modWorkingStatus(self.userID,self.password,oneDate,status,relaxation,comment)
-        super(leavePlanner,self).accept()
+        super(LeavePlanner,self).accept()
 
     def reject(self):
         """Leave Planner: Method to close the dialog box."""

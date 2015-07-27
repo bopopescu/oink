@@ -12,7 +12,6 @@ from AnimalFarm import AnimalFarm
 from PiggyBanker import PiggyBanker
 from Porker import Porker
 from PiggyBank import PiggyBank
-from SwineHerd import SwineHerd
 import OINKMethods as OINKM
 
 import MOSES
@@ -1064,11 +1063,11 @@ class Pork(QtGui.QMainWindow):
                 #reset background to white.
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: yellow;}")
                 self.generateUploadLink(fsnString)
-                self.swine_herd.setFSN(fsnString)
+                
             elif not isDuplicate:
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: white;}")
                 self.generateUploadLink(fsnString)
-                self.swine_herd.setFSNs(fsnString)
+                
 
     def generateUploadLink(self, fsnString):
         """PORK Window."""
@@ -1475,11 +1474,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
         self.porker_thread.sendDatesData.connect(self.sendDatesDataToCalendar)
         self.porker_thread.sendStatsData.connect(self.updateStatsTable)
         self.porker_thread.sendActivity.connect(self.displayPorkerProgress)
-        self.swine_herd = SwineHerd()
-        self.swine_herd.gotData.connect(self.useScrapedData)
 
-    def useScrapedData(self, scraped_data):
-        print scraped_data
 
     def calendarPageChanged(self, year, month):
         """When the calendar page is changed, this triggers the porker method which
