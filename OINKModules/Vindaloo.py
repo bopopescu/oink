@@ -35,7 +35,7 @@ class Vindaloo(QtGui.QMainWindow):
     def createUI(self):
         self.main_widget = QtGui.QWidget()
         self.setCentralWidget(self.main_widget)
-       
+        
         self.daily_porker_button = QtGui.QPushButton("Daily Porker")
         self.daily_porker_button.setToolTip("Click here to pull the report.")
         self.seeker_button = QtGui.QPushButton("Seeker")
@@ -75,7 +75,7 @@ class Vindaloo(QtGui.QMainWindow):
             font: 10pt;
         }
         .QWidget, .QPushButton{
-            font: 14pt;    
+            font: 14pt;
         }
         .QStatusBar {
             background-color: #FDDE2E;

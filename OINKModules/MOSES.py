@@ -851,8 +851,7 @@ def isHoliday(user_id, password, query_date):
     dbcursor = connectdb.cursor()
     sqlcmdstring = "Select * from `teamcalendar` WHERE `Record Date` = '%s'" % convertToMySQLDate(query_date)
     dbcursor.execute(sqlcmdstring)
-    data = dbcursor.fetchall()        
-    
+    data = dbcursor.fetchall()
     if len(data) == 0:
         status = False
         comment = "NA"
@@ -863,9 +862,14 @@ def isHoliday(user_id, password, query_date):
     return status, comment
 
 def isWorkingDay(user_id, password, queryDate):
-    """Method to check if the company is working on a particular date.
-    """
-    return not (OINKM.isWeekend(queryDate) or isHoliday(user_id, password, queryDate)[0])
+    """Method to check if the company is working on a particular date."""
+    is_weekend = OINKM.isWeekend(queryDate)
+    is_holiday = isHoliday(user_id, password, queryDate)[0]
+    if is_weekend:
+        print "%s is a weekend." %queryDate
+    if is_holiday:
+        print "%s is an FK holiday." %queryDate
+    return not (is_weekend or is_holiday)
 
 
 def getWorkingDatesLists(query_date, group_size=None, quantity=None):
@@ -2742,28 +2746,40 @@ def checkForOverride(FSN, query_date, user_id, password):
     return (len(retrieved_data) > 0), len(overall_retrieved_data)
 
 def getLastWorkingDate(user_id, password, queryDate = None, queryUser = None):
-    """Returns the last working date for the requested user."""
+    """Returns the last working date for the requested user.
+    If a query user isn't specified, it pulls the data for the user_id.
+    if the queryuser is "All", then the function returns the last FK working date.
+    """
     #Testing pending: need to check if it recursively picks out leaves and holidays as well.
     if queryDate is None:
         queryDate = datetime.date.today()
+    elif type(queryDate) == datetime.datetime:
+        queryDate = datetime.date(queryDate.year, queryDate.month, queryDate.day)
     if queryUser is None:
         queryUser = user_id
-    #print queryDate
     stopthis = False
     previousDate = queryDate - datetime.timedelta(1)
+    #print queryDate
+    
     while not stopthis:
-        if not isWorkingDay(user_id, password, previousDate):
-            #print previousDate, " is a holiday or a weekend!"
-            previousDate -= datetime.timedelta(1)
-        else:
-            status = getWorkingStatus(user_id, password, previousDate)[0]
-            if status == "Working":
-                stopthis = True
-            elif status in ["Leave", "Holiday", "Special Holiday"]:
-                #print "Not working on ", previousDate
+        if queryUser == "All":
+            if not isWorkingDay(user_id, password, previousDate):
+                #print previousDate, " is a holiday or a weekend!"
                 previousDate -= datetime.timedelta(1)
             else:
                 stopthis = True
+        else:
+            if not isWorkingDay(user_id, password, previousDate):
+                previousDate -= datetime.timedelta(1)
+            else:
+                status = getWorkingStatus(user_id, password, previousDate)[0]
+                if status == "Working":
+                    stopthis = True
+                elif status in ["Leave", "Holiday", "Special Holiday"]:
+                    #print "Not working on ", previousDate
+                    previousDate -= datetime.timedelta(1)
+                else:
+                    stopthis = True
     return previousDate
 
 ######################################################################

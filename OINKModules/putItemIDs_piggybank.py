@@ -103,7 +103,7 @@ def main():
 			#print "*"*10
 			#print "Error with url:"
 			#print repr(e)
-			print "Processed %d FSNs successfully.\n%d failed, %d remaining.\nPossible ETA: %s" % (passed, (counter-passed), total, getETA(start_time, counter, total))
+			print "Processed %d FSNs successfully.\n%d failed, %d remaining.\nPossible ETA: %s" % (passed, (counter-passed), (total-counter), getETA(start_time, counter, total))
 			last_update_time = datetime.datetime.now()
 			#print "*"*10
 			pass

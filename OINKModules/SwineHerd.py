@@ -270,7 +270,10 @@ class SwineThread(QtCore.QThread):
                 for spec_subrow in spec_row:
                     try:
                         current_class = str(spec_subrow["class"][0])
-                        current_string_value = str(spec_subrow.string).strip()
+                        try:
+                            current_string_value = str(spec_subrow.string).strip()
+                        except:
+                            current_string_value = "Error Obtaining String Value"
                         if counter >1:
                             if (last_found_entity == "specsKey") and (current_class == "specsValue"):
                                 if (len(last_found_string_value) > 0) and (last_found_string_value != ""):
@@ -284,7 +287,10 @@ class SwineThread(QtCore.QThread):
                             elif current_class == "groupHead":
                                 current_group_head = str(spec_subrow.string).strip()
                         last_found_entity = current_class
-                        last_found_string_value = str(spec_subrow.string).strip()
+                        try:
+                            last_found_string_value = str(spec_subrow.string).strip()
+                        except:
+                            last_found_string_value = "Error Obtaining String Value"
                         counter += 1
                     except TypeError:
                         pass

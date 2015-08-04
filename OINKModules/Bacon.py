@@ -14,6 +14,7 @@ class Bacon(QtGui.QMainWindow):
         self.password = password
         self.createUI()
         self.mapEvents()
+        self.current_processing_date = MOSES.getLastWorkingDay
 
     def createUI(self):
         self.main_widget = QtGui.QWidget()
