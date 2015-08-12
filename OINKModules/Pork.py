@@ -355,7 +355,7 @@ class Pork(QtGui.QMainWindow):
         if completed:
             #print "Completed one porker cycle."
             self.stats_progress_bar.setRange(0,1)
-            self.stats_progress_message.setText("   Last Updated at %s" % datetime.datetime.strftime(datetime.datetime.now(),"%H:%M:%S"))
+            self.stats_progress_message.setText("Last Updated at %s" % datetime.datetime.strftime(datetime.datetime.now(),"%H:%M:%S"))
         else:
             #print "Porker at work. Message : ", activity
             self.stats_progress_bar.setRange(0,0)

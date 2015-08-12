@@ -1,0 +1,45 @@
+<mockup version="1.0" skin="sketch" fontFace="Balsamiq Sans" measuredW="2137" measuredH="414" mockupW="1980" mockupH="400">
+  <controls>
+    <control controlID="4" controlTypeID="com.balsamiq.mockups::TitleWindow" x="157" y="14" w="597" h="400" measuredW="450" measuredH="400" zOrder="0" locked="false" isInGroup="-1">
+      <controlProperties>
+        <markup>true</markup>
+        <text>Bacon</text>
+      </controlProperties>
+    </control>
+    <control controlID="5" controlTypeID="com.balsamiq.mockups::TabBar" x="448" y="38" w="306" h="332" measuredW="300" measuredH="100" zOrder="1" locked="false" isInGroup="-1">
+      <controlProperties>
+        <markup>true</markup>
+        <text>Calendar%2C%20TNA%2C%20Team%20Performance</text>
+      </controlProperties>
+    </control>
+    <control controlID="6" controlTypeID="com.balsamiq.mockups::VerticalTabBar" x="165" y="61" w="275" h="309" measuredW="200" measuredH="157" zOrder="2" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>Audit%20Plan%0AAudit%20Queue%0ACalibration%20Queue</text>
+      </controlProperties>
+    </control>
+    <control controlID="7" controlTypeID="com.balsamiq.mockups::Arrow" x="325" y="128" w="819" h="131" measuredW="150" measuredH="100" zOrder="6" locked="false" isInGroup="-1">
+      <controlProperties>
+        <backgroundAlpha>1</backgroundAlpha>
+        <color>13369344</color>
+        <leftArrow>false</leftArrow>
+        <text/>
+      </controlProperties>
+    </control>
+    <control controlID="8" controlTypeID="com.balsamiq.mockups::VerticalTabBar" x="986" y="118" w="1151" h="177" measuredW="200" measuredH="157" zOrder="3" locked="false" isInGroup="-1">
+      <controlProperties>
+        <text>Audit%20Plan%0AAudit%20Queue%0ACalibration%20Queue</text>
+      </controlProperties>
+    </control>
+    <control controlID="10" controlTypeID="com.balsamiq.mockups::DataGrid" x="1107" y="128" w="1006" h="152" measuredW="928" measuredH="146" zOrder="4" locked="false" isInGroup="-1">
+      <controlProperties>
+        <align>center</align>
+        <hLines>false</hLines>
+        <italic>false</italic>
+        <rowHeight>42</rowHeight>
+        <size>11</size>
+        <text>Writer%20%5E%2C%20Description%20Type%20%5Ev%2C%20Category%2C%20Article%20Count%20v%2C%20Article%20Word%20Count%2C%20High%20Priority%20Articles%2C%20Exclusives%2C%20Suggested%20Audits%2C%20Auditable%20Word%20Count%0AVinay%20Keerthi%2C%20Regular%20Description%2C%20Books%2C%2010%2C%203000%2C%200%2C%200%2C%203%2C%20900%0AAyeshwaree%20Das%2CSEO%20Big%2CAuto%2C3%2C1500%2C0%2C0%2C1%2C500%0AAdrian%20Basil%2C%20Rich%20Product%20Description%20Plan%20A%2CCE%2C10%2C5000%2C1%2C1%2C3%2C1500%0A%7B65L%2C%200R%2C%2035%2C%200C%7D</text>
+      </controlProperties>
+    </control>
+    <control controlID="12" controlTypeID="com.balsamiq.mockups::Calendar" x="531" y="88" w="-1" h="-1" measuredW="96" measuredH="96" zOrder="5" locked="false" isInGroup="-1"/>
+  </controls>
+</mockup>

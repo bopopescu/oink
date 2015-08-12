@@ -28,6 +28,7 @@ class PorkKent(QtCore.QThread):
             self.end_date = self.start_date
         else:
             self.end_date = end_date
+            
         if not self.isRunning():
             self.start(QtCore.QThread.LowPriority)
 
