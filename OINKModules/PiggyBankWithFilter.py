@@ -444,6 +444,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank.setSortingEnabled(True)
         #populate the summary next.
         self.piggy_bank_data = data
+
         self.alertMessage("Completed Pulling PiggyBank","Completed Pulling Piggy Bank between %s and %s."%(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))
 
         self.summarize()
@@ -515,7 +516,9 @@ class PiggyBankWithFilter(QtGui.QWidget):
     
         #Now, for as long as the audit conditions aren't satisfied, keep repeating the following steps.
         first_run = True
+        counter = 0
         while not audit_conditions_satisfied:
+            counter+=1
             for editor in self.editor_audit_constraints.keys():
                 if not self.editor_audit_constraints[editor]["Audit Conditions Satisfied"]:
                     self.editor_audit_constraints[editor]["Total Word Count"] = 0
@@ -574,8 +577,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
                         self.alertMessage("Error Planning Audits","Audit percentage is out of bounds. Set to %d%%" %(self.editor_audit_constraints[scope]["Audit Percentage"]))
                         self.editor_audit_constraints[scope]["Audit Conditions Satisfied"] = True
                     else:
-                        #print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
                         self.editor_audit_constraints[scope]["Audit Percentage"] -= self.piggybank_summary_audit_percentage.singleStep()
+                        #print "Decreasing audit percentage to", self.editor_audit_constraints[scope]["Audit Percentage"]
                 elif (self.editor_audit_constraints[scope]["Total Word Count"] >= self.editor_audit_constraints[scope]["Target Minimum Word Count"]) and (self.editor_audit_constraints[scope]["Total Word Count"] <= self.editor_audit_constraints[scope]["Target Maximum Word Count"]):
                     #print "%s is well used.!" %scope
                     if self.editor_audit_constraints[scope]["Audit Percentage"] < 0:
@@ -622,6 +625,9 @@ class PiggyBankWithFilter(QtGui.QWidget):
                     else:
                         raise Exception
                     audit_conditions_satisfied = self.editor_audit_constraints[editor]["Audit Conditions Satisfied"] and audit_conditions_satisfied
+            if counter >= 100:
+                self.alertMessage("Infinite Loop","Since the code was stuck in an infinite loop trying to calculate an optimum audit breakup, the program has triggered a failsafe.")
+                audit_conditions_satisfied = True
             first_run = False
         headers = summarize_parameters + ["Article Count", "Word Count", "Suggested Audits","Approx. Word Count of Audits"]
         self.piggybank_summary.setRowCount(len(result))
