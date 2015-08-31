@@ -6,7 +6,7 @@ if __name__ == "__main__":
 	host_file_locations = ["Data",os.path.join("OINKModules","Data")]
 	file_name = "hostid.txt"
 	local_host = "localhost"
-	server = "172.17.188.139"
+	server = "172.17.188.141"
 	host_id_files = [os.path.join(location, file_name) for location in host_file_locations]
 	for host_id_file in host_id_files:
 		current_host_id = open(host_id_file, "r").read()

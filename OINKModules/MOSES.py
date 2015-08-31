@@ -865,10 +865,10 @@ def isWorkingDay(user_id, password, queryDate):
     """Method to check if the company is working on a particular date."""
     is_weekend = OINKM.isWeekend(queryDate)
     is_holiday = isHoliday(user_id, password, queryDate)[0]
-    if is_weekend:
-        print "%s is a weekend." %queryDate
-    if is_holiday:
-        print "%s is an FK holiday." %queryDate
+    #if is_weekend:
+    #    print "%s is a weekend." %queryDate
+    #if is_holiday:
+    #    print "%s is an FK holiday." %queryDate
     return not (is_weekend or is_holiday)
 
 
