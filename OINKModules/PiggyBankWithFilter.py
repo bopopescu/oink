@@ -81,11 +81,11 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
         self.start_date_edit = QtGui.QDateTimeEdit()
         self.start_date_edit.setToolTip("Select the start date for the data set you'd like to extract.")
-        self.start_date_edit.setDate(QtCore.QDate(datetime.date.today()))
+        lwd = MOSES.getLastWorkingDate(self.user_id, self.password, queryUser="All")
         self.start_date_edit.setCalendarPopup(True)
         self.start_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.start_date_edit.setMinimumDate(QtCore.QDate(2015,1,1))
-        self.start_date_edit.setDate(QtCore.QDate(datetime.date.today()))
+        self.start_date_edit.setDate(lwd)
 
         self.end_date_edit = QtGui.QDateTimeEdit()
         self.end_date_edit.setToolTip("Select the End Date for the data set you'd like to extract.")
@@ -94,6 +94,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.end_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.end_date_edit.setMinimumDate(self.start_date_edit.date().toPyDate())
         self.end_date_edit.setMaximumDate(datetime.date.today())
+        self.end_date_edit.setDate(lwd)
 
         self.all_time_dates = QtGui.QCheckBox("Pull All Time Data")
         self.all_time_dates.setToolTip("Check this box to pull data for the selected filter from all available data.")

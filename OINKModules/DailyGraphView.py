@@ -1,5 +1,6 @@
 from PyQt4 import QtGui, QtCore
 import os, datetime
+
 class DailyGraphView(QtGui.QWidget):
     def __init__(self,graph_date=None):
         super(DailyGraphView, self).__init__()
@@ -24,10 +25,14 @@ class DailyGraphView(QtGui.QWidget):
         self.hist_quality_graph.setMaximumSize(400, 300)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.refresh_graphs,0)
+        stylesheet = """QLabel {border: 1px solid black;}"""
+        self.eff_graph.setStyleSheet(stylesheet)
+        self.quality_graph.setStyleSheet(stylesheet)
+        self.hist_quality_graph.setStyleSheet(stylesheet)
         self.graphs_layout = QtGui.QHBoxLayout()
-        self.graphs_layout.addWidget(self.eff_graph)
-        self.graphs_layout.addWidget(self.quality_graph)  
-        self.graphs_layout.addWidget(self.hist_quality_graph)
+        self.graphs_layout.addWidget(self.eff_graph, QtCore.Qt.AlignRight)
+        self.graphs_layout.addWidget(self.quality_graph, QtCore.Qt.AlignHCenter)
+        self.graphs_layout.addWidget(self.hist_quality_graph, QtCore.Qt.AlignLeft)
         self.layout.addLayout(self.graphs_layout,3)
         self.setLayout(self.layout)
         self.setWindowTitle("Daily Graphs")

@@ -10,6 +10,8 @@ import numpy
 import MOSES
 from DailyGraphView import DailyGraphView
 import Graphinator
+from ProgressBar import ProgressBar
+
 class PorkLane(QtCore.QThread):
     """
     This threaded class emits the daily report data to DailyPorker.
@@ -366,11 +368,12 @@ class DailyPorker(QtGui.QWidget):
         self.mapEvents()
 
     def center(self):
-        frameGm = self.frameGeometry()
-        screen = QtGui.QApplication.desktop().screenNumber(QtGui.QApplication.desktop().cursor().pos())
-        centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
-        frameGm.moveCenter(centerPoint)
-        self.move(frameGm.topLeft())
+        #frameGm = self.frameGeometry()
+        #screen = QtGui.QApplication.desktop().screenNumber(QtGui.QApplication.desktop().cursor().pos())
+        #centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
+        #frameGm.moveCenter(centerPoint)
+        #self.move(frameGm.topLeft())
+        self.move(70,50)
 
     def createUI(self):
         self.reports_list = QtGui.QListWidget()
@@ -405,7 +408,7 @@ class DailyPorker(QtGui.QWidget):
         self.start_date_label = QtGui.QLabel("<b>Select a report date:</b>")
         self.start_date_edit = QtGui.QDateTimeEdit()
         self.start_date_edit.setToolTip("Set the date for which you want to generate the report.")
-        self.start_date_edit.setDate(QtCore.QDate(datetime.date.today()))
+        self.start_date_edit.setDate(MOSES.getLastWorkingDate(self.user_id, self.password, queryUser="All"))
         self.start_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.start_date_edit.setMinimumDate(QtCore.QDate(2015,1,1))
         self.start_date_edit.setCalendarPopup(True)
@@ -448,12 +451,7 @@ class DailyPorker(QtGui.QWidget):
         self.graphs = DailyGraphView()
         #self.t_graphs = QtGui.QWidget()
         
-        self.progress_bar = QtGui.QProgressBar()
-        progress_bar_style = """
-            .QProgressBar {
-                 text-align: center;
-             }"""
-        self.progress_bar.setStyleSheet(progress_bar_style)
+        self.progress_bar = ProgressBar()
         self.build_stop_button = QtGui.QPushButton("Build Report")
         self.build_stop_button.setToolTip("Click this button to start building the report")
         self.build_stop_button.setCheckable(True)
