@@ -196,7 +196,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
             border-bottom-color: black; /* same as pane color */
         }
         """
-        self.piggybank_summary_tables.setStyleSheet(tab_style)
+        #self.piggybank_summary_tables.setStyleSheet(tab_style)
         self.piggybank_summary_tables.addTab(self.piggybank_summary,"Audit Break Up")
         self.piggybank_summary_tables.addTab(self.piggybank_summary_editor_summary, "Editor Summary")
         self.piggybank_summary_tables.addTab(self.piggybank_summary_random_fsns,"Random FSNs")

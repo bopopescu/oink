@@ -2750,7 +2750,7 @@ def getLastWorkingDate(user_id, password, queryDate = None, queryUser = None):
     If a query user isn't specified, it pulls the data for the user_id.
     if the queryuser is "All", then the function returns the last FK working date.
     """
-    #Testing pending: need to check if it recursively picks out leaves and holidays as well.
+    #Testing pending: need to check if it recursively picks out leaves and holidays as well. Ans: Yes, it does.
     if queryDate is None:
         queryDate = datetime.date.today()
     elif type(queryDate) == datetime.datetime:
