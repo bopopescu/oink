@@ -2684,11 +2684,8 @@ def detectChangeInHost(newHostID):
     oldHostID = getHostID()
     changedStatus = False
     if newHostID != oldHostID:
-        if checkHostID(newHostID):
-            changeHostID(newHostID)
-            changedStatus = True
-        else:
-            print "Error, host ID is not valid."
+        changeHostID(newHostID)
+        changedStatus = True
     return changedStatus
 
 def checkHostID(hostID):
