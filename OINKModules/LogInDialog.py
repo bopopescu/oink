@@ -2,40 +2,29 @@
 # -*- coding: utf-8 -*-
 
 import os
+import datetime
 from PyQt4 import QtGui, QtCore
 import OINKMethods as OINKM
 import MOSES
+#from UsersThread import UsersThread
 
 class LogInDialog(QtGui.QDialog):
 
     def __init__(self):
         """Login Dialog"""
-        super(QtGui.QDialog,self).__init__()
+        super(LogInDialog, self).__init__()
         self.generateWidgets()
         self.createVisuals()
+        self.refresh()
         self.createLayouts()
         self.mapTooltips()
         self.createActions()
+
 
     def generateWidgets(self):
         """Login Dialog"""
         self.loginLabel = QtGui.QLabel("User ID:")
         self.loginLineEdit = QtGui.QLineEdit()
-        u, p = MOSES.getBigbrotherCredentials()
-        if os.path.exists(os.path.join("cache","users_list.txt")):
-            user_ids = open(os.path.join("cache","users_list.txt")).read().split(",")
-        else:
-            user_ids = MOSES.getUsersList(u, p)
-            if os.path.exists("cache"):
-                cached_file_handler = open(os.path.join("cache","users_list.txt"),"w")
-            else:
-                os.makedirs("cache")
-                cached_file_handler = open(os.path.join("cache","users_list.txt"),"w")
-                users = ",".join(user_ids)
-                cached_file_handler.write(users)
-                cached_file_handler.close()
-        user_completer = QtGui.QCompleter(user_ids)
-        self.loginLineEdit.setCompleter(user_completer)
         self.loginLineEdit.setToolTip("Enter your user ID here. Your user ID is your Flipkart employee ID.")
         self.passwordLabel = QtGui.QLabel("Password:")
         self.passwordLineEdit = QtGui.QLineEdit()
@@ -47,6 +36,44 @@ class LogInDialog(QtGui.QDialog):
         self.hostLineEdit.setText(hostID)
         self.buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok|
                                             QtGui.QDialogButtonBox.Cancel)       
+
+    def refresh(self):
+        user_ids = []
+        #First attempt to get the user data from the cache.
+        if os.path.exists(os.path.join("cache","users_list.txt")):
+            user_ids = open(os.path.join("cache","users_list.txt")).read().split(",")
+            file_exists = True
+            cache_retrieval_success = len(user_ids)>0
+        else:
+            file_exists = False
+            cache_retrieval_success = False
+        retrieval_success = cache_retrieval_success
+        #If the cache data isn't valid, or if the cache file doesnt' exist:
+        if (not cache_retrieval_success) or (not file_exists):
+            u, p = MOSES.getBigbrotherCredentials()
+            user_ids, connection_success = MOSES.getUsersList(u, p, datetime.datetime.now())
+            if connection_success:
+                cached_file_handler = open(os.path.join("cache","users_list.txt"),"w")
+                if not os.path.exists("cache"):
+                    os.makedirs("cache")
+                    users = ",".join(user_ids)
+                    cached_file_handler.write(users)
+                    cached_file_handler.close()
+                retrieval_success = True
+        if retrieval_success:
+            user_completer = QtGui.QCompleter(user_ids)
+            self.loginLineEdit.setCompleter(user_completer)
+        else:
+            if not connection_success:
+                message = "Host is unreachable."
+            elif not cache_retrieval_success:
+                message = "The cached file doesn't have any entries, or it doesn't exist."
+            else:
+                message = "Unknown error"
+            self.alertMessage("User List Retrieval Error","There was a problem retrieving a list of users: {0}".format(message))
+    
+    def alertMessage(self, title, message):
+        QtGui.QMessageBox.about(self, title, message)
 
     def createLayouts(self):
         """Login Dialog"""
@@ -94,6 +121,9 @@ class LogInDialog(QtGui.QDialog):
         """Login Dialog"""
         super(LogInDialog, self).reject()
 
+    def closeEvent(self, e):
+        super(LogInDialog, self).closeEvent(e)
+
     def validateUserID(self):
         """Login Dialog"""
         userID, password = self.getUserDetails()
@@ -125,7 +155,7 @@ class LogInDialog(QtGui.QDialog):
                 self.warningMessage = QtGui.QWidget()
                 self.warningMessage.say = QtGui.QMessageBox.question(\
                     self.warningMessage,"Login failure",\
-                    "Stand back, Flame of Udun! Thou shalt not pass!",QtGui.QMessageBox.Ok,QtGui.QMessageBox.Ok)
+                    "The password and user ID do not match: thou shall not pass!",QtGui.QMessageBox.Ok,QtGui.QMessageBox.Ok)
         else:
             self.warningmessage = QtGui.QWidget()
             self.warningmessage.say = QtGui.QMessageBox.question(self.warningmessage, "Error with host ID!", "The host seems to be unreachable. Please contact Admin.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)

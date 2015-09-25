@@ -1153,20 +1153,25 @@ def createUser(newuser_id, userClass, user_id, password):
     connecteddb.commit()
     connecteddb.close()
 
-def getUsersList(user_id, password):
+def getUsersList(user_id, password, query_date=None):
     #Cannot use getOINKConnector() here, as the db which has the users list is mysql, not oink.
-    superdb = MySQLdb.connect(host=getHostID(), user=user_id, passwd=password, db="mysql", cursorclass=MySQLdb.cursors.DictCursor)
-    supercursor = superdb.cursor()
-    sqlcmdstring = "SELECT user from user"
-    supercursor.execute(sqlcmdstring)
-    usersTuples = supercursor.fetchall()
-    superdb.commit()
-    superdb.close()
-    usersList = []
-    for userTuple in usersTuples:
-        usersList.append(userTuple["user"])
-    #print usersList #debug
-    return usersList
+    users_list = []
+    try:    
+        superdb = MySQLdb.connect(host=getHostID(), user=user_id, passwd=password, db="mysql", cursorclass=MySQLdb.cursors.DictCursor)
+        supercursor = superdb.cursor()
+        sqlcmdstring = "SELECT user from user;"
+        supercursor.execute(sqlcmdstring)
+        users_tuples = supercursor.fetchall()
+        superdb.commit()
+        superdb.close()
+        for user_tuple in users_tuples:
+            users_list.append(user_tuple["user"])
+        connection_success = True
+    except MySQLdb.OperationalError:
+        connection_success = False
+        pass
+    #print users_list #debug
+    return users_list, connection_success
 
 def addEmployee(employeeDict, user_id, password):
     """Takes a dictionary with employee data. The fields are Employee ID, Name, Email-ID, DOJ and Current Class"""
@@ -1256,7 +1261,7 @@ def getWritersList(user_id, password, queryDate = None):
 
 def checkuser_id(user_id):
     superID, superPassword = getBigbrotherCredentials()
-    return user_id in getUsersList(superID, superPassword)
+    return user_id in getUsersList(superID, superPassword)[0]
 
 def checkPassword(user_id,password):
     success, error = False, "Unchecked"
@@ -1272,8 +1277,9 @@ def checkPassword(user_id,password):
             error = getSQLErrorType(repr(e))
             print error
     else:
-        success,error = False,"User ID does not exist."
-    return success,error
+        success, error = False, "User ID does not exist."
+    #print success, error, "While checking for %s and %s." %(user_id, password)
+    return success, error
 
 def getBigbrotherCredentials():
     import codecs
@@ -2679,6 +2685,7 @@ def getHostID():
 def getDBName():
     dbName = "oink"
     return dbName
+
 
 def detectChangeInHost(newHostID):
     oldHostID = getHostID()
