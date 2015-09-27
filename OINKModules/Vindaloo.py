@@ -133,6 +133,7 @@ class Vindaloo(QtGui.QMainWindow):
         #self.alertMessage("Seeker", "Porko Dormeins Nunquam Titlandus")
         self.seeker = Seeker(self.user_id, self.password)
         self.seeker.show()
+        
     def alertMessage(self, title, message):
         """Vindaloo."""
         QtGui.QMessageBox.about(self, title, message)

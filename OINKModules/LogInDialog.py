@@ -131,7 +131,7 @@ class LogInDialog(QtGui.QDialog):
             self.warningMessage = QtGui.QWidget()
             continue_as_admin = QtGui.QMessageBox.question(\
                     self.warningMessage,"Use Big Brother Credentials?",\
-                    "Are you sure you want to use the Bigbrother Credentials?",QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
+                    "Are you sure you want to use the Bigbrother Credentials?", QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if continue_as_admin == QtGui.QMessageBox.Yes:
                 return MOSES.checkPassword(userID,password)[0]
             else:
