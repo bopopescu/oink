@@ -1604,6 +1604,7 @@ def getRawDataForDate(user_id, password, query_date, query_user=None):
     return data
 
 def getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_user=None):
+    #What the fuck. I shouldn't be using this ever.
     if query_user is None:
         query_user = user_id
     sqlcmdstring = """SELECT `Date`, `Status`,`Relaxation` from workcalendar where `Employee ID`="%s" and `Date` BETWEEN "%s" and "%s";""" %(query_user, start_date, end_date)
@@ -1658,10 +1659,11 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     cursor.execute(sqlcmdstring)
     piggy_bank_data = cursor.fetchall()
     conn.close()
-    #get all the dates during which a write is working.
+    #get all the dates during which a writer is working.
     working_dates = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
+    #
     work_calendar_data = getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_user)
-    working_dates = [entry["Date"] for entry in work_calendar_data if entry["Status"] == "Working"]
+    #working_dates = [entry["Date"] for entry in work_calendar_data if entry["Status"] == "Working"]
     #print "Found %d working dates." %len(working_dates)
     #build a dictionary for the writers which contains information at the date level.
     writer_dates_data = dict((date_,{}) for date_ in working_dates)

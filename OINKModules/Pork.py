@@ -1094,58 +1094,61 @@ class Pork(QtGui.QMainWindow):
         """This method checks if the given data is complete, and then if the data is for today, 
         it allows addition or modification."""
         completion = False
-        allowAddition = False
+        allowAction = False
         mode = self.getMode()
         selected_date = self.getActiveDate()
         last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
         #print "Trying to validateAndSendToPiggy. The last working date is :", last_working_date
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), last_working_date]
         #TEMPORARILY DISABLED.
-        #if selected_date not in dates_user_is_allowed_to_manipulate:
-            #allowAddition = False
-            #self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
-        if mode == "Addition": #CHANGE TO ELIF LATER
-            fsnData = self.getFSNDataDict()
-            fsn = fsnData["FSN"]
-            fsntype = fsnData["Description Type"]
-            isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
-            override_status, override_count = MOSES.checkForOverride(fsn, selected_date, self.userID, self.password)
-            if isDuplicate == "Local":
-                self.alertMessage("Repeated FSN","You just reported that FSN today!")
-            elif (isDuplicate == "Global") and not override_status:
-                self.alertMessage("Repeated FSN","That FSN was already reported before by a writer. If your TL has instructed you to overwrite the contents, please request an overide request.")
-            elif (isDuplicate == "Global") and override_count:
-                fsnData["Rewrite Ticket"] = override_count
-                MOSES.addToPiggyBank(fsnData, self.userID, self.password)
-                self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
-                self.populateTable()
-                completion = True
-            else:
-                MOSES.addToPiggyBank(fsnData, self.userID, self.password)
-                self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
+        if selected_date not in dates_user_is_allowed_to_manipulate:
+            allowAction = False
+            self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
+        else:
+            allowAction = True
+        if allowAction:
+            if mode == "Addition": #CHANGE TO ELIF LATER
+                fsnData = self.getFSNDataDict()
+                fsn = fsnData["FSN"]
+                fsntype = fsnData["Description Type"]
+                isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
+                override_status, override_count = MOSES.checkForOverride(fsn, selected_date, self.userID, self.password)
+                if isDuplicate == "Local":
+                    self.alertMessage("Repeated FSN","You just reported that FSN today!")
+                elif (isDuplicate == "Global") and not override_status:
+                    self.alertMessage("Repeated FSN","That FSN was already reported before by a writer. If your TL has instructed you to overwrite the contents, please request an overide request.")
+                elif (isDuplicate == "Global") and override_count:
+                    fsnData["Rewrite Ticket"] = override_count
+                    MOSES.addToPiggyBank(fsnData, self.userID, self.password)
+                    self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
+                    self.populateTable()
+                    completion = True
+                else:
+                    MOSES.addToPiggyBank(fsnData, self.userID, self.password)
+                    self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
 
+                    completion = True
+            elif mode == "Modification":
+                fsnData = self.getFSNDataDict()
+                #print "Trying to modify an entry."
+                MOSES.updatePiggyBankEntry(fsnData, self.userID, self.password, )
+                self.alertMessage("Success", "Successfully modified an entry in the Piggy Bank.")
+                #print "Modified!"
                 completion = True
-        elif mode == "Modification":
-            fsnData = self.getFSNDataDict()
-            #print "Trying to modify an entry."
-            MOSES.updatePiggyBankEntry(fsnData, self.userID, self.password, )
-            self.alertMessage("Success", "Successfully modified an entry in the Piggy Bank.")
-            #print "Modified!"
-            completion = True
-        if completion:
-            #FSN = fsnData["FSN"]
-            #clar_code = str(self.lineEditClarification.text()).strip()
-            #clarification_status = MOSES.checkIfClarificationPosted(self.userID, self.password, FSN, clar_code)
-            #do I need a comment box? Not yet, maybe after I figure how to make a combocheckbox.
-            #if type(clarification_status) == type(selected_date):
-            #    MOSES.updateClarification(self.userID, self.password, FSN, self.userID, clar_code)
-            #else:
-            #    MOSES.addClarification(self.userID, self.password, FSN, selected_date, clar_code)
-            #self.populateTable()
-            #self.displayEfficiency()
-            self.resetForm()
-            self.piggybanker_thread.getPiggyBank()
-            self.porker_thread.getEfficiency()
+            if completion:
+                #FSN = fsnData["FSN"]
+                #clar_code = str(self.lineEditClarification.text()).strip()
+                #clarification_status = MOSES.checkIfClarificationPosted(self.userID, self.password, FSN, clar_code)
+                #do I need a comment box? Not yet, maybe after I figure how to make a combocheckbox.
+                #if type(clarification_status) == type(selected_date):
+                #    MOSES.updateClarification(self.userID, self.password, FSN, self.userID, clar_code)
+                #else:
+                #    MOSES.addClarification(self.userID, self.password, FSN, selected_date, clar_code)
+                #self.populateTable()
+                #self.displayEfficiency()
+                self.resetForm()
+                self.piggybanker_thread.getPiggyBank()
+                self.porker_thread.getEfficiency()
 
     def alertMessage(self, title, message):
         """PORK Window."""

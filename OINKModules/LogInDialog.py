@@ -40,6 +40,8 @@ class LogInDialog(QtGui.QDialog):
     def refresh(self):
         user_ids = []
         #First attempt to get the user data from the cache.
+        if not os.path.exists("cache"):
+            os.makedirs("path")
         if os.path.exists(os.path.join("cache","users_list.txt")):
             user_ids = open(os.path.join("cache","users_list.txt")).read().split(",")
             file_exists = True

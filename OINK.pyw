@@ -8,7 +8,7 @@ import ctypes
 from PyQt4 import QtGui, QtCore
 
 from OINKModules.Pork import Pork
-from OINKModules.Vindaloo import Vindaloo
+#from OINKModules.Vindaloo import Vindaloo
 from OINKModules.Bacon import Bacon
 from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, passwordResetter
 from OINKModules import MOSES
@@ -24,9 +24,12 @@ def main():
                 password = passwordResetter(userID, password)
             user_role = MOSES.getUserRole(userID, password)
             userDict = {
-                "Content Writer": Pork, "Copy Editor": Vindaloo, 
-                "Team Lead": Vindaloo, "Big Brother": Vindaloo, 
-                "Manager": Vindaloo, "Assistant Manager": Vindaloo
+                "Content Writer": Pork, 
+                "Copy Editor": Vindaloo, 
+                "Team Lead": Vindaloo, 
+                "Big Brother": Vindaloo, 
+                "Manager": Vindaloo, 
+                "Assistant Manager": Vindaloo
                 }
             
             #print "Ok, %s mode" % user_role
