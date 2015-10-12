@@ -8,7 +8,7 @@ import ctypes
 from PyQt4 import QtGui, QtCore
 
 from OINKModules.Pork import Pork
-#from OINKModules.Vindaloo import Vindaloo
+from OINKModules.Vindaloo import Vindaloo
 from OINKModules.Bacon import Bacon
 from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, passwordResetter
 from OINKModules import MOSES
