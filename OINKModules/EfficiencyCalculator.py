@@ -34,6 +34,8 @@ class calculatorRow(QtGui.QWidget):
         self.calcWidgets.update({"Vertical": QtGui.QComboBox()})
         self.calcWidgets.update({"Quantity": QtGui.QSpinBox()})
         self.calcWidgets.update({"Efficiency": QtGui.QLabel("00.00%")})
+        self.calcWidgets.update({"Target": QtGui.QLabel("-")})
+
         for description in self.calcWidgets:
             self.calcWidgets[description].setMinimumWidth(100)
             self.calcWidgets[description].setMaximumWidth(100)
@@ -68,6 +70,8 @@ class calculatorRow(QtGui.QWidget):
         self.calcLayout.addWidget(self.calcWidgets["Vertical"])
         self.calcLayout.addWidget(self.calcWidgets["Quantity"])
         self.calcLayout.addWidget(self.calcWidgets["Efficiency"])
+        self.calcLayout.addWidget(self.calcWidgets["Target"])
+
         self.setLayout(self.calcLayout)
 
         functionName = sys._getframe().f_code.co_name
@@ -91,7 +95,12 @@ class calculatorRow(QtGui.QWidget):
     def updateEfficiency(self):
         """Calculator Row"""
         startTime = datetime.now()
-        self.calcWidgets["Efficiency"].setText("%.2f%%" % (self.getEfficiency()))
+        efficiency = self.getEfficiency()
+        if efficiency is None:
+            efficiency_text = "No Target"
+        else:
+            efficiency_text = "%.2f%%" % (efficiency)
+        self.calcWidgets["Efficiency"].setText(efficiency_text)
         functionName = sys._getframe().f_code.co_name
         endTime = datetime.now()
         timeSpent = endTime - startTime
@@ -176,15 +185,29 @@ class calculatorRow(QtGui.QWidget):
 
     def getEfficiency(self):
         """Calculator Row"""
-        startTime = datetime.now()        
-        target = float(MOSES.getTargetFor(self.userID, self.password, DescriptionType = self.calcWidgets["Description Type"].currentText(), Source = self.calcWidgets["Source"].currentText(), BU = self.calcWidgets["BU"].currentText(), SuperCategory = self.calcWidgets["Super-Category"].currentText(), Category = self.calcWidgets["Category"].currentText(), SubCategory = self.calcWidgets["Sub-Category"].currentText(), Vertical = self.calcWidgets["Vertical"].currentText()))
+        startTime = datetime.now()
+        row = {
+            "Description Type": str(self.calcWidgets["Description Type"].currentText()),
+            "Source": str(self.calcWidgets["Source"].currentText()),
+            "BU": str(self.calcWidgets["BU"].currentText()),
+            "Super-Category": str(self.calcWidgets["Super-Category"].currentText()),
+            "Category": str(self.calcWidgets["Category"].currentText()),
+            "Sub-Category": str(self.calcWidgets["Sub-Category"].currentText()),
+            "Vertical": str(self.calcWidgets["Vertical"].currentText())
+        }
+        request_date = datetime.date(startTime)
+
+        target = float(MOSES.getTargetFor(self.userID, self.password, row, request_date))
+
+        self.calcWidgets["Target"].setText("%s"%target)
+        #DescriptionType = self.calcWidgets["Description Type"].currentText(), Source = self.calcWidgets["Source"].currentText(), BU = self.calcWidgets["BU"].currentText(), SuperCategory = self.calcWidgets["Super-Category"].currentText(), Category = self.calcWidgets["Category"].currentText(), SubCategory = self.calcWidgets["Sub-Category"].currentText(), Vertical = self.calcWidgets["Vertical"].currentText()))
         quantity = float(self.calcWidgets["Quantity"].value())
         functionName = sys._getframe().f_code.co_name
         endTime = datetime.now()
         timeSpent = endTime - startTime
         print "Spent %s in %s." % (timeSpent, functionName)
         
-        return (quantity*100.00/target)
+        return (quantity*100.00/target) if target >0 else None
 
 class EfficiencyCalculator(QtGui.QDialog):
     """Class definition for the efficiency calculator."""
@@ -204,38 +227,42 @@ class EfficiencyCalculator(QtGui.QDialog):
         startTime = datetime.now()
         functionName = sys._getframe().f_code.co_name
 
-        self.typeLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Description Type</b></font>")
+        self.typeLabel = QtGui.QLabel("Description Type")
         self.typeLabel.setMinimumWidth(100)
         self.typeLabel.setMaximumWidth(100)
 
-        self.SourceLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Source</b></font>")
+        self.SourceLabel = QtGui.QLabel("Source")
         self.SourceLabel.setMinimumWidth(100)
         self.SourceLabel.setMaximumWidth(100)
-        self.BULabel = QtGui.QLabel("<font size=3 face=Georgia><b>BU</b></font>")
-        self.BULabel.setMinimumWidth(100)
-        self.BULabel.setMaximumWidth(100)
+        self.BULabel = QtGui.QLabel("BU")
+        self.BULabel.setMinimumWidth(50)
+        self.BULabel.setMaximumWidth(50)
          
 
-        self.SupCLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Super-Category</b></font>")
+        self.SupCLabel = QtGui.QLabel("Super-Category")
         self.SupCLabel.setMinimumWidth(100)
         self.SupCLabel.setMaximumWidth(100)
         
-        self.CatLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Category</b></font>")
+        self.CatLabel = QtGui.QLabel("Category")
         self.CatLabel.setMinimumWidth(100)
         self.CatLabel.setMaximumWidth(100)
         
-        self.SubCLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Sub-Category</b></font>")
+        self.SubCLabel = QtGui.QLabel("Sub-Category")
         self.SubCLabel.setMinimumWidth(100)
         self.SubCLabel.setMaximumWidth(100)
         
-        self.VertLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Vertical</b></font>")
+        self.VertLabel = QtGui.QLabel("Vertical")
         self.VertLabel.setMinimumWidth(100)
         self.VertLabel.setMaximumWidth(100)
-        self.QtyLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Quantity</b></font>")
-        self.QtyLabel.setMinimumWidth(100)
-        self.QtyLabel.setMaximumWidth(100)
+        self.QtyLabel = QtGui.QLabel("Quantity")
+        self.QtyLabel.setMinimumWidth(80)
+        self.QtyLabel.setMaximumWidth(80)
         
-        self.EffLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Efficiency</b></font>")
+        self.EffLabel = QtGui.QLabel("Efficiency")
+        self.EffLabel.setMinimumWidth(100)
+        self.EffLabel.setMaximumWidth(100)
+
+        self.TargetLabel = QtGui.QLabel("Target")
         self.EffLabel.setMinimumWidth(100)
         self.EffLabel.setMaximumWidth(100)
         
@@ -258,22 +285,15 @@ class EfficiencyCalculator(QtGui.QDialog):
 
         self.labelsLayout = QtGui.QHBoxLayout()
         self.labelsLayout.addWidget(self.typeLabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.SourceLabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.BULabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.SupCLabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.CatLabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.SubCLabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.VertLabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.QtyLabel)
-        self.labelsLayout.addStretch(1)
         self.labelsLayout.addWidget(self.EffLabel)
+        self.labelsLayout.addWidget(self.TargetLabel)
         
         self.effLayout = QtGui.QHBoxLayout()
         self.effLayout.addWidget(self.plusButton)
@@ -360,3 +380,11 @@ class EfficiencyCalculator(QtGui.QDialog):
         endTime = datetime.now()
         timeSpent = endTime - startTime
         print "Spent %s in %s." % (timeSpent, functionName)
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    u, p = MOSES.getBigbrotherCredentials()
+    calc = EfficiencyCalculator(u,p)
+    calc.show()
+    sys.exit(app.exec_())
