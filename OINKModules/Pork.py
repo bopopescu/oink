@@ -1,9 +1,12 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
+import os
 import getpass
-from PyQt4 import QtGui, QtCore
-import numpy
 import math
+import datetime
+
+import numpy
+from PyQt4 import QtGui, QtCore
 from EfficiencyCalculator import EfficiencyCalculator
 from WeekCalendar import WeekCalendar
 from LeavePlanner import LeavePlanner
@@ -13,9 +16,9 @@ from PiggyBanker import PiggyBanker
 from Porker import Porker
 from PiggyBank import PiggyBank
 import OINKMethods as OINKM
-
+from ImageButton import ImageButton
+from Seeker import Seeker
 import MOSES
-import datetime
 
 
 class Pork(QtGui.QMainWindow):
@@ -29,6 +32,7 @@ class Pork(QtGui.QMainWindow):
         self.userID = userID
         self.password = password
         MOSES.createLoginStamp(self.userID, self.password)
+        self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         self.clip = QtGui.QApplication.clipboard()
         self.mapThreads()
 
@@ -48,7 +52,6 @@ class Pork(QtGui.QMainWindow):
         self.setVisuals()
         self.refreshStatsTable()
         #Initialize the application with required details.
-        self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         self.populateBU()
         #self.populateTable()
         self.populateClarification()
@@ -70,6 +73,29 @@ class Pork(QtGui.QMainWindow):
         """PORK Window."""
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
+        height, width = 32, 32
+        self.calculator_button = ImageButton(os.path.join("Images","calculator.png"),height, width)
+        self.calculator_button.setToolTip("Open the Efficiency calculator tool.")
+        self.tna_button = ImageButton(os.path.join("Images","tna.png"),height, width)
+        self.tna_button.setToolTip("Open the training needs assessment window")
+        self.find_button = ImageButton(os.path.join("Images","find.png"),height, width)
+        self.find_button.setToolTip("Open Seeker to find who wrote an FSN.")
+        self.leave_button = ImageButton(os.path.join("Images","leaves.png"),height, width)
+        self.leave_button.setToolTip("Apply for leaves on the OINK server")
+        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),height, width)
+        self.relaxation_button.setToolTip("Apply for relaxation")
+        self.project_button = ImageButton(os.path.join("Images","projects.png"),height, width)
+        self.project_button.setToolTip("Open Project Log")
+
+        self.icon_panel = QtGui.QHBoxLayout()
+        self.icon_panel.addWidget(self.calculator_button,0)
+        self.icon_panel.addWidget(self.tna_button,0)
+        self.icon_panel.addWidget(self.find_button,0)
+        self.icon_panel.addWidget(self.leave_button,0)
+        self.icon_panel.addWidget(self.relaxation_button,0)
+        self.icon_panel.addWidget(self.project_button,0)
+        self.icon_panel.addStretch(10)
+
         self.piggybank = PiggyBank()
         self.tabs = QtGui.QTabWidget()
         self.stats = QtGui.QWidget()
@@ -322,10 +348,11 @@ class Pork(QtGui.QMainWindow):
         self.penultimateLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
         #create the final layout.
         self.finalLayout = QtGui.QGridLayout()
+        self.finalLayout.addLayout(self.icon_panel,1,0,1,5)
         self.finalLayout.addWidget(self.menu,0,0,1,5)
-        self.finalLayout.addLayout(self.penultimateLayout,1,0,5,5)
-        self.finalLayout.addWidget(self.efficiencyProgress,6,0,1,5)
-        self.finalLayout.addWidget(self.status_bar,7,0,1,5)
+        self.finalLayout.addLayout(self.penultimateLayout,2,0,5,5)
+        self.finalLayout.addWidget(self.efficiencyProgress,7,0,1,5)
+        self.finalLayout.addWidget(self.status_bar,8,0,1,5)
 
         #self.finalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
 
@@ -506,6 +533,28 @@ class Pork(QtGui.QMainWindow):
         self.buttonAddClarification.clicked.connect(self.addClarification)
         self.buttonCopyFields.clicked.connect(self.copyCommonFields)
         self.refresh_stats_button.clicked.connect(self.refreshStatsTable)
+        self.calculator_button.clicked.connect(self.showEfficiencyCalc)
+        self.tna_button.clicked.connect(self.openTNA)
+        self.find_button.clicked.connect(self.openSeeker)
+        self.leave_button.clicked.connect(self.openLeaveManagementTool)
+        self.relaxation_button.clicked.connect(self.openRelaxationTool)
+        self.project_button.clicked.connect(self.openProjectManager)
+
+    def openSeeker(self):
+        self.seeker = Seeker(self.userID, self.password)
+        self.seeker.show()
+
+    def openLeaveManagementTool(self):
+        self.alertMessage("Feature unavailable","The Leave Management Tool is still under development")
+
+    def openRelaxationTool(self):
+        self.alertMessage("Feature unavailable","The Relaxation tool is still under development")
+
+    def openProjectManager(self):
+        self.alertMessage("Feature unavailable","The Relaxation tool is still under development")
+
+    def openTNA(self):
+        self.alertMessage("Feature unavailable","The TNA module is still under development")
 
     def notify(self,title,message):
         """PORK Window: Method to show a tray notification"""
@@ -534,9 +583,8 @@ class Pork(QtGui.QMainWindow):
 
     def showEfficiencyCalc(self):
         """PORK Window."""
-        calculator = EfficiencyCalculator(self.userID, self.password)
-        if calculator.exec_():
-            print "Calculator has successfully executed.!"
+        self.calculator = EfficiencyCalculator(self.userID, self.password, self.category_tree)
+        self.calculator.show()
 
     def updateStatsTable(self, stats_data):
         """PORK Window method that updates the writer's statistics sheet.

@@ -2,20 +2,20 @@
 # -*- coding: utf-8 -*-
 import sys
 from datetime import datetime
-
+import pandas
 from PyQt4 import QtGui, QtCore
 
 import MOSES
 
-class calculatorRow(QtGui.QWidget):
+class calculatorRow:
     """Class definition for a single row of the efficiency calculator."""
-    def __init__(self, userID, password):
+    def __init__(self, userID, password, category_tree):
         """Calculator Row"""
-        super(calculatorRow, self).__init__()
         self.userID = userID
         self.password = password
+        self.category_tree = category_tree
+        self.efficiency = 0.0
         self.createWidgets()
-        self.createLayouts()
         self.populateTypeSource()
         self.mapToolTips()
         self.populateBU()
@@ -23,7 +23,7 @@ class calculatorRow(QtGui.QWidget):
 
     def createWidgets(self):
         """Calculator Row: Method to create widgets for a single calculator Row."""
-        startTime = datetime.now()        
+        #startTime = datetime.now()        
         self.calcWidgets = {}
         self.calcWidgets.update({"Description Type": QtGui.QComboBox()})
         self.calcWidgets.update({"Source": QtGui.QComboBox()})
@@ -36,14 +36,21 @@ class calculatorRow(QtGui.QWidget):
         self.calcWidgets.update({"Efficiency": QtGui.QLabel("00.00%")})
         self.calcWidgets.update({"Target": QtGui.QLabel("-")})
 
-        for description in self.calcWidgets:
-            self.calcWidgets[description].setMinimumWidth(100)
-            self.calcWidgets[description].setMaximumWidth(100)
+        self.calcWidgets["Description Type"].setFixedWidth(180)
+        self.calcWidgets["Source"].setFixedWidth(105)
+        self.calcWidgets["BU"].setFixedWidth(150)
+        self.calcWidgets["Super-Category"].setFixedWidth(150)
+        self.calcWidgets["Category"].setFixedWidth(150)
+        self.calcWidgets["Sub-Category"].setFixedWidth(150)
+        self.calcWidgets["Vertical"].setFixedWidth(150)
+        self.calcWidgets["Quantity"].setFixedWidth(60)
+        self.calcWidgets["Efficiency"].setFixedWidth(60)
+        self.calcWidgets["Target"].setFixedWidth(60)
 
-        functionName = sys._getframe().f_code.co_name
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        #functionName = sys._getframe().f_code.co_name
+        #endTime = datetime.now()
+        #timeSpent = endTime - startTime
+        #print "Spent %s in %s." % (timeSpent, functionName)
 
     def mapToolTips(self):
         """Calculator Row"""
@@ -57,44 +64,22 @@ class calculatorRow(QtGui.QWidget):
         self.calcWidgets["Quantity"].setToolTip("Select the Quantity of the article.")
         self.calcWidgets["Efficiency"].setToolTip("This is the efficiency one receives for the selected FSN type.")
 
-    def createLayouts(self):
-        """Calculator Row"""
-        startTime = datetime.now()
-        self.calcLayout = QtGui.QHBoxLayout()
-        self.calcLayout.addWidget(self.calcWidgets["Description Type"])
-        self.calcLayout.addWidget(self.calcWidgets["Source"])
-        self.calcLayout.addWidget(self.calcWidgets["BU"])
-        self.calcLayout.addWidget(self.calcWidgets["Super-Category"])
-        self.calcLayout.addWidget(self.calcWidgets["Category"])
-        self.calcLayout.addWidget(self.calcWidgets["Sub-Category"])
-        self.calcLayout.addWidget(self.calcWidgets["Vertical"])
-        self.calcLayout.addWidget(self.calcWidgets["Quantity"])
-        self.calcLayout.addWidget(self.calcWidgets["Efficiency"])
-        self.calcLayout.addWidget(self.calcWidgets["Target"])
-
-        self.setLayout(self.calcLayout)
-
-        functionName = sys._getframe().f_code.co_name
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
-
     def createEvents(self):
         """Calculator Row"""
-        startTime = datetime.now()
         self.calcWidgets["BU"].currentIndexChanged.connect(self.populateSupC)
         self.calcWidgets["Super-Category"].currentIndexChanged.connect(self.populateC)
         self.calcWidgets["Category"].currentIndexChanged.connect(self.populateSubC)
         self.calcWidgets["Sub-Category"].currentIndexChanged.connect(self.populateVert)
+        
+        self.calcWidgets["Vertical"].currentIndexChanged.connect(self.updateEfficiency)
         self.calcWidgets["Quantity"].valueChanged.connect(self.updateEfficiency)
-        functionName = sys._getframe().f_code.co_name
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        self.calcWidgets["Description Type"].currentIndexChanged.connect(self.updateEfficiency)
+        self.calcWidgets["Source"].currentIndexChanged.connect(self.updateEfficiency)
+
 
     def updateEfficiency(self):
         """Calculator Row"""
-        startTime = datetime.now()
+        #startTime = datetime.now()
         efficiency = self.getEfficiency()
         if efficiency is None:
             efficiency_text = "No Target"
@@ -102,9 +87,9 @@ class calculatorRow(QtGui.QWidget):
             efficiency_text = "%.2f%%" % (efficiency)
         self.calcWidgets["Efficiency"].setText(efficiency_text)
         functionName = sys._getframe().f_code.co_name
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        #endTime = datetime.now()
+        #timeSpent = endTime - startTime
+        #print "Spent %s in %s." % (timeSpent, functionName)
    
     def populateTypeSource(self):
         """Calculator Row"""
@@ -119,73 +104,56 @@ class calculatorRow(QtGui.QWidget):
 
     def populateBU(self):
         """Calculator Row"""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
-        BUValues = MOSES.getBUValues(self.userID, self.password)
+        bus = list(set(self.category_tree["BU"]))
+        bus.sort()
         self.calcWidgets["BU"].clear()
-        self.calcWidgets["BU"].addItems(BUValues)
+        self.calcWidgets["BU"].addItems(bus)
         self.calcWidgets["BU"].setCurrentIndex(-1)
 
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
 
     def populateSupC(self):
         """Calculator Row"""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
-        selectedBU = self.calcWidgets["BU"].currentText()
+        bu = str(self.calcWidgets["BU"].currentText())
+        filtered_category_tree = self.category_tree.loc[self.category_tree["BU"] == bu]
+        super_categories = list(set(filtered_category_tree["Super-Category"]))
+        super_categories.sort()
         self.calcWidgets["Super-Category"].clear()
-        SupCValues = MOSES.getSuperCategoryValues(self.userID, self.password, BU=selectedBU)
-        self.calcWidgets["Super-Category"].addItems(SupCValues)
+        self.calcWidgets["Super-Category"].addItems(super_categories)
         self.calcWidgets["Super-Category"].setCurrentIndex(-1)
-
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
 
     def populateC(self):
         """Calculator Row"""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
-        selectedSupC = self.calcWidgets["Super-Category"].currentText()
+        super_category = str(self.calcWidgets["Super-Category"].currentText())
         self.calcWidgets["Category"].clear()
-        CatValues = MOSES.getCategoryValues(self.userID, self.password, SupC = selectedSupC)
-        self.calcWidgets["Category"].addItems(CatValues)
+        filtered_category_tree = self.category_tree.loc[self.category_tree["Super-Category"] == super_category]
+        categories = list(set(filtered_category_tree["Category"]))
+        categories.sort()
+        self.calcWidgets["Category"].addItems(categories)
         self.calcWidgets["Category"].setCurrentIndex(-1)
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
 
     def populateSubC(self):
         """Calculator Row"""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
-        selectedC = self.calcWidgets["Category"].currentText()
+        category = str(self.calcWidgets["Category"].currentText())
         self.calcWidgets["Sub-Category"].clear()
-        SubCValues = MOSES.getSubCategoryValues(self.userID,self.password,Cat=selectedC)
-        self.calcWidgets["Sub-Category"].addItems(SubCValues)
+        filtered_category_tree = self.category_tree.loc[self.category_tree["Category"] == category]
+        sub_categories = list(set(filtered_category_tree["Sub-Category"]))
+        sub_categories.sort()
+
+        self.calcWidgets["Sub-Category"].addItems(sub_categories)
         self.calcWidgets["Sub-Category"].setCurrentIndex(-1)
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
 
     def populateVert(self):
         """Calculator Row"""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
-        selectedSubC = self.calcWidgets["Sub-Category"].currentText()
+        sub_category = self.calcWidgets["Sub-Category"].currentText()
+        filtered_category_tree = self.category_tree.loc[self.category_tree["Sub-Category"] == sub_category]
+        verticals = list(set(filtered_category_tree["Vertical"]))
+        verticals.sort()
         self.calcWidgets["Vertical"].clear()
-        VertValues = MOSES.getVerticalValues(self.userID, self.password, SubC = selectedSubC)
-        self.calcWidgets["Vertical"].addItems(VertValues)
+        self.calcWidgets["Vertical"].addItems(verticals)
         self.calcWidgets["Vertical"].setCurrentIndex(-1)
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
 
     def getEfficiency(self):
         """Calculator Row"""
-        startTime = datetime.now()
         row = {
             "Description Type": str(self.calcWidgets["Description Type"].currentText()),
             "Source": str(self.calcWidgets["Source"].currentText()),
@@ -200,21 +168,21 @@ class calculatorRow(QtGui.QWidget):
         target = float(MOSES.getTargetFor(self.userID, self.password, row, request_date))
 
         self.calcWidgets["Target"].setText("%s"%target)
-        #DescriptionType = self.calcWidgets["Description Type"].currentText(), Source = self.calcWidgets["Source"].currentText(), BU = self.calcWidgets["BU"].currentText(), SuperCategory = self.calcWidgets["Super-Category"].currentText(), Category = self.calcWidgets["Category"].currentText(), SubCategory = self.calcWidgets["Sub-Category"].currentText(), Vertical = self.calcWidgets["Vertical"].currentText()))
+
         quantity = float(self.calcWidgets["Quantity"].value())
-        functionName = sys._getframe().f_code.co_name
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
-        
-        return (quantity*100.00/target) if target >0 else None
+        self.efficiency = (quantity*100.00/target) if target >0 else None
+        return self.efficiency
 
 class EfficiencyCalculator(QtGui.QDialog):
     """Class definition for the efficiency calculator."""
-    def __init__(self, userID, password):
+    def __init__(self, userID, password, category_tree=None):
         """Efficiency Calculator Initializer function."""
         self.userID = userID
         self.password = password
+        if category_tree is None:
+            self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
+        else:
+            self.category_tree = category_tree 
         super(QtGui.QDialog, self).__init__()
         self.calcList = []
         self.createWidgets()
@@ -224,76 +192,27 @@ class EfficiencyCalculator(QtGui.QDialog):
 
     def createWidgets(self):
         """Efficiency Calculator: Creates widgets."""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
-
-        self.typeLabel = QtGui.QLabel("Description Type")
-        self.typeLabel.setMinimumWidth(100)
-        self.typeLabel.setMaximumWidth(100)
-
-        self.SourceLabel = QtGui.QLabel("Source")
-        self.SourceLabel.setMinimumWidth(100)
-        self.SourceLabel.setMaximumWidth(100)
-        self.BULabel = QtGui.QLabel("BU")
-        self.BULabel.setMinimumWidth(50)
-        self.BULabel.setMaximumWidth(50)
-         
-
-        self.SupCLabel = QtGui.QLabel("Super-Category")
-        self.SupCLabel.setMinimumWidth(100)
-        self.SupCLabel.setMaximumWidth(100)
-        
-        self.CatLabel = QtGui.QLabel("Category")
-        self.CatLabel.setMinimumWidth(100)
-        self.CatLabel.setMaximumWidth(100)
-        
-        self.SubCLabel = QtGui.QLabel("Sub-Category")
-        self.SubCLabel.setMinimumWidth(100)
-        self.SubCLabel.setMaximumWidth(100)
-        
-        self.VertLabel = QtGui.QLabel("Vertical")
-        self.VertLabel.setMinimumWidth(100)
-        self.VertLabel.setMaximumWidth(100)
-        self.QtyLabel = QtGui.QLabel("Quantity")
-        self.QtyLabel.setMinimumWidth(80)
-        self.QtyLabel.setMaximumWidth(80)
-        
-        self.EffLabel = QtGui.QLabel("Efficiency")
-        self.EffLabel.setMinimumWidth(100)
-        self.EffLabel.setMaximumWidth(100)
-
-        self.TargetLabel = QtGui.QLabel("Target")
-        self.EffLabel.setMinimumWidth(100)
-        self.EffLabel.setMaximumWidth(100)
-        
-        self.calcLayout  = QtGui.QVBoxLayout()
+        #startTime = datetime.now()
+        #functionName = sys._getframe().f_code.co_name
+        self.calc_table = QtGui.QTableWidget()
+        self.headers = ["Description Type","Source","BU","Super-Category","Category","Sub-Category","Vertical","Quantity","Efficiency","Target"]
+        self.calc_table.setColumnCount(len(self.headers))
         self.addCalcRow()
 
+        
         self.plusButton = QtGui.QPushButton("Add Another Type of Article")
         #self.findIdenLabel = QtGui.QLabel("Find a vertical")
         self.refreshButton = QtGui.QPushButton("Recalculate Efficiency")
         self.totEffLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Total Efficiency:</b></font>")
         self.effScoreLabel = QtGui.QLabel("<font size=3 face=Georgia><b>00.00%</b></font>")
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        #endTime = datetime.now()
+        #timeSpent = endTime - startTime
+        #print "Spent %s in %s." % (timeSpent, functionName)
 
     def createLayouts(self):
         """Efficiency Calculator."""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
-
-        self.labelsLayout = QtGui.QHBoxLayout()
-        self.labelsLayout.addWidget(self.typeLabel)
-        self.labelsLayout.addWidget(self.SourceLabel)
-        self.labelsLayout.addWidget(self.BULabel)
-        self.labelsLayout.addWidget(self.SupCLabel)
-        self.labelsLayout.addWidget(self.CatLabel)
-        self.labelsLayout.addWidget(self.SubCLabel)
-        self.labelsLayout.addWidget(self.VertLabel)
-        self.labelsLayout.addWidget(self.QtyLabel)
-        self.labelsLayout.addWidget(self.EffLabel)
-        self.labelsLayout.addWidget(self.TargetLabel)
+        #startTime = datetime.now()
+        #functionName = sys._getframe().f_code.co_name
         
         self.effLayout = QtGui.QHBoxLayout()
         self.effLayout.addWidget(self.plusButton)
@@ -304,51 +223,54 @@ class EfficiencyCalculator(QtGui.QDialog):
         
         self.finalLayout = QtGui.QVBoxLayout()
 
-        self.finalLayout.addLayout(self.labelsLayout)
-        self.finalLayout.addLayout(self.calcLayout)
+        self.finalLayout.addWidget(self.calc_table,3)
         self.finalLayout.addStretch(1)
         self.finalLayout.addLayout(self.effLayout)
 
         self.setLayout(self.finalLayout)
 
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        #endTime = datetime.now()
+        #timeSpent = endTime - startTime
+        #print "Spent %s in %s." % (timeSpent, functionName)
 
     def addCalcRow(self):
         """Efficiency Calculator."""
-        startTime = datetime.now()
-        functionName = sys._getframe().f_code.co_name
         #print "Entered the loop!"
-        self.calcList.append(calculatorRow(self.userID, self.password)) 
+        self.calcList.append(calculatorRow(self.userID, self.password, self.category_tree)) 
         #print "Printing Calc List", self.calcList
-        self.calcLayout.addWidget(self.calcList[-1])
-        #print "There are %d rows in the calcList" % len(self.calcList)
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        row_count = int(self.calc_table.rowCount())
+        self.calc_table.insertRow(row_count)
+        row = row_count
+        column = 0
+
+        for widget_name in self.headers:
+            self.calc_table.setCellWidget(row, column, self.calcList[-1].calcWidgets[widget_name])
+            column+=1
+        self.calc_table.setHorizontalHeaderLabels(self.headers)
+        self.calc_table.resizeColumnsToContents()
+
     
     def createEvents(self):
         """Efficiency Calculator."""
-        startTime = datetime.now()
+        #startTime = datetime.now()
         self.plusButton.clicked.connect(self.plusAction)
         self.refreshButton.clicked.connect(self.displayEfficiency)
         self.connectQuantityWidgets()
         functionName = sys._getframe().f_code.co_name
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        #endTime = datetime.now()
+        #timeSpent = endTime - startTime
+        #print "Spent %s in %s." % (timeSpent, functionName)
 
     def setVisuals(self):
         """Efficiency Calculator."""
-        startTime = datetime.now()
+        #startTime = datetime.now()
         functionName = sys._getframe().f_code.co_name
-        self.setWindowTitle("Efficiency Calculator")
-        self.resize(800,100)
+        self.setWindowTitle("Efficiency Calculator: Driving What Drives You")
+        self.setWindowIcon(QtGui.QIcon('Images\PORK_Icon.png'))
         self.show()
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        #endTime = datetime.now()
+        #timeSpent = endTime - startTime
+        #print "Spent %s in %s." % (timeSpent, functionName)
 
     def plusAction(self):
         """Efficiency Calculator."""
@@ -362,16 +284,17 @@ class EfficiencyCalculator(QtGui.QDialog):
         
     def displayEfficiency(self):
         """Efficiency Calculator."""
-        startTime = datetime.now()
+        #startTime = datetime.now()
         totalEfficiency = 0.0
         for calc_row in self.calcList:
             calc_row.updateEfficiency()
-            totalEfficiency += calc_row.getEfficiency()
+            efficiency = calc_row.efficiency if calc_row.efficiency is not None else 0
+            totalEfficiency += efficiency
         self.effScoreLabel.setText("%.2f%%"%totalEfficiency)
         functionName = sys._getframe().f_code.co_name
-        endTime = datetime.now()
-        timeSpent = endTime - startTime
-        print "Spent %s in %s." % (timeSpent, functionName)
+        #endTime = datetime.now()
+        #timeSpent = endTime - startTime
+        #print "Spent %s in %s." % (timeSpent, functionName)
 
     def findIdentifier(self):
         """Efficiency Calculator."""

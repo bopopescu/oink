@@ -3,8 +3,11 @@
 import itertools
 import math
 import datetime
+import os
+
 import numpy
 import matplotlib
+
 from PyQt4 import QtGui, QtCore
 from PassResetDialog import PassResetDialog
 from EfficiencyCalculator import EfficiencyCalculator
@@ -21,6 +24,8 @@ from StyCleaner import StyCleaner
 from FarmHand import FarmHand
 from PiggyBankWithFilter import PiggyBankWithFilter
 from SwineHerd import SwineHerd
+from ImageButton import ImageButton
+
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -51,13 +56,37 @@ class Vindaloo(QtGui.QMainWindow):
         self.swine_button = QtGui.QPushButton("Swine")
         self.swine_button.setToolTip("Click here to get data and images from Flipkart.")
 
+        self.calc_button = ImageButton(os.path.join("Images","calculator.png"),48, 48)
+        self.calc_button.setToolTip("Click to open the Efficiency Calculator")
+
+        self.leaves_button = ImageButton(os.path.join("Images","leaves.png"), 48, 48)
+        self.leaves_button.setToolTip("Click to open the leave approval system")
+
+        self.tna_button = ImageButton(os.path.join("Images","tna.png"),48, 48)
+        self.tna_button.setToolTip("Click to open the training needs analysis tool")
+
+        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),48, 48)
+        self.relaxation_button.setToolTip("Click to open the relaxation approval system")
+
+        self.escalation_button = ImageButton(os.path.join("Images","alert.png"), 48, 48)
+        self.escalation_button.setToolTip("Click to open the escalation tracker")
+
+        buttons_layout = QtGui.QHBoxLayout()
+        buttons_layout.addWidget(self.calc_button, 0)
+        buttons_layout.addWidget(self.leaves_button, 0)
+        buttons_layout.addWidget(self.tna_button, 0)
+        buttons_layout.addWidget(self.relaxation_button, 0)
+        buttons_layout.addWidget(self.escalation_button, 0)
+
+
         self.layout = QtGui.QGridLayout()
-        self.layout.addWidget(self.daily_porker_button, 0, 0)
-        self.layout.addWidget(self.farmhand_button, 0, 1)
-        self.layout.addWidget(self.piggy_bank_button, 0, 2)
-        self.layout.addWidget(self.swine_herd_button, 1, 0)
-        self.layout.addWidget(self.seeker_button, 1, 1)
-        self.layout.addWidget(self.sty_cleaner_button, 1, 2)
+        self.layout.addLayout(buttons_layout, 0,0,1,3, QtCore.Qt.AlignHCenter)
+        self.layout.addWidget(self.daily_porker_button, 1, 0)
+        self.layout.addWidget(self.farmhand_button, 1, 1)
+        self.layout.addWidget(self.piggy_bank_button, 1, 2)
+        self.layout.addWidget(self.swine_herd_button, 2, 0)
+        self.layout.addWidget(self.seeker_button, 2, 1)
+        self.layout.addWidget(self.sty_cleaner_button, 2, 2)
 
         self.main_widget.setLayout(self.layout)
 
