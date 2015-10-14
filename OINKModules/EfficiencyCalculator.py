@@ -8,7 +8,7 @@ import pandas
 from PyQt4 import QtGui, QtCore
 
 import MOSES
-
+from CategoryFinder import CategoryFinder
 class calculatorRow:
     """Class definition for a single row of the efficiency calculator."""
     def __init__(self, userID, password, category_tree):

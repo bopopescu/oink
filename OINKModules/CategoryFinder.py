@@ -2,21 +2,24 @@ import os
 import datetime
 import MOSES
 import pandas
+from functools import partial
 from PyQt4 import QtGui, QtCore
 import numpy
 
 class CategoryFinder(QtGui.QWidget):
-	pickRow = QtCore.pyqtSignal(dict)
-	def __init__(self, category_tree, category_tree_headers, *args, **kwargs):
-		super(CategoryFinder, self).__init__(*args, **kwargs)
-		self.category_tree = category_tree
-		self.category_tree_headers = category_tree_headers
-		self.createUI()
-		self.mapEvents()
+    pickRow = QtCore.pyqtSignal(dict)
+    def __init__(self, category_tree, category_tree_headers, *args, **kwargs):
+        super(CategoryFinder, self).__init__(*args, **kwargs)
+        self.category_tree = category_tree
+        self.category_tree_headers = category_tree_headers
+        self.createUI()
+        self.mapEvents()
 
-	def createUI(self):
-		self.finder_label = QtGui.QLabel("Search Based On:")
-        
+    def mapEvents(self):
+        self.find_button.clicked.connect(self.findIdentifier)
+
+    def createUI(self):
+        self.finder_label = QtGui.QLabel("Search Based On:")
         self.search_criteria_combo_box = QtGui.QComboBox()
         self.search_criteria_combo_box.addItems(["Any"] + self.category_tree_headers)
         
@@ -26,9 +29,10 @@ class CategoryFinder(QtGui.QWidget):
 
         self.result_table = QtGui.QTableWidget()
         self.result_table.setRowCount(0)
-        self.result_table.setColumnCount(len(self.category_tree_headers))
-        self.result_table.setHorizontalHeaderLabels(self.category_tree_headers)
+        self.result_table.setColumnCount(len(self.category_tree_headers)+ 1)
+        self.result_table.setHorizontalHeaderLabels(self.category_tree_headers+["Use Button"])
         self.result_table.resizeColumnsToContents()
+        self.use_buttons = []
 
         self.find_widget_layout = QtGui.QGridLayout()
 
@@ -44,9 +48,6 @@ class CategoryFinder(QtGui.QWidget):
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.find_group)
         self.setLayout(layout)
-
-    def mapEvents(self):
-        self.find_button.clicked.connect(self.findIdentifier)        
 
     def alertMessage(self, title, message):
         """Vindaloo."""
@@ -65,6 +66,7 @@ class CategoryFinder(QtGui.QWidget):
         search_string = str(self.search_string_line_edit.text()).strip()
         search_criteria = str(self.search_criteria_combo_box.currentText())
         df = None
+        self.use_buttons = []
         if search_criteria != "Any":
             if search_string != "":
                 df = self.findIdentifierInCategoryTree(search_string, search_criteria)
@@ -92,8 +94,15 @@ class CategoryFinder(QtGui.QWidget):
                     string_value = str(row[1][column_name])
                     self.result_table.setItem(row_counter, column_counter, QtGui.QTableWidgetItem(string_value))
                     column_counter += 1
+                self.use_buttons.append(QtGui.QPushButton("Use"))
+                self.use_buttons[row_counter].clicked.connect(partial(self.clickUse, row_counter))
+                self.result_table.setCellWidget(row_counter, column_counter, self.use_buttons[row_counter])
+
                 row_counter += 1
 
-            self.result_table.setHorizontalHeaderLabels(self.category_tree_headers)
+            self.result_table.setHorizontalHeaderLabels(self.category_tree_headers+["Use Button"])
             self.result_table.resizeColumnsToContents()
             self.result_table.resizeRowsToContents()
+
+    def clickUse(self, count):
+        print "Clicked the %d use button"%count
