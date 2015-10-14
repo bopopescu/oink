@@ -227,7 +227,7 @@ class EfficiencyCalculator(QtGui.QDialog):
         self.finder_label = QtGui.QLabel("Search Based On:")
         
         self.search_criteria_combo_box = QtGui.QComboBox()
-        self.search_criteria_combo_box.addItems(self.category_tree_headers+["Any"])
+        self.search_criteria_combo_box.addItems(["Any"] + self.category_tree_headers)
         
         self.search_string_line_edit = QtGui.QLineEdit()
 
