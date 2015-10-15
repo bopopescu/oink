@@ -108,8 +108,7 @@ class calculatorRow:
         self.calcWidgets["Sub-Category"].setToolTip("Select the Sub-Category")
         self.calcWidgets["Vertical"].setToolTip("Select the Vertical")
         self.calcWidgets["Quantity"].setToolTip("Set the number of articles article.")
-
-        self.calcWidgets["Efficiency"].setToolTip("Change this and hit Enter to increase the number of articles appropriately.")
+        self.calcWidgets["Efficiency"].setToolTip("Change this and press the tab key to increase the number of articles appropriately.")
         self.calcWidgets["Target"].setToolTip("This is the appropriate target for today's date.")
 
 

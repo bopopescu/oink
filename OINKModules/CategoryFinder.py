@@ -24,6 +24,7 @@ class CategoryFinder(QtGui.QWidget):
         self.search_criteria_combo_box.addItems(["Any"] + self.category_tree_headers)
         
         self.search_string_line_edit = QtGui.QLineEdit()
+        self.search_string_line_edit.setMinimumWidth(200)
 
         self.find_button = QtGui.QPushButton("Find")
 
@@ -38,9 +39,9 @@ class CategoryFinder(QtGui.QWidget):
 
         self.find_widget_layout.addWidget(self.finder_label,0,0 )
         self.find_widget_layout.addWidget(self.search_criteria_combo_box,0, 1)
-        self.find_widget_layout.addWidget(self.search_string_line_edit,0, 2, 1, 2)
-        self.find_widget_layout.addWidget(self.find_button,0,4,1,1)
-        self.find_widget_layout.addWidget(self.result_table,1,0,2,10)
+        self.find_widget_layout.addWidget(self.search_string_line_edit,0, 2, 1, 4)
+        self.find_widget_layout.addWidget(self.find_button,0,6,1,1)
+        self.find_widget_layout.addWidget(self.result_table,1,0,2,7)
 
         self.find_group = QtGui.QGroupBox("Find a Vertical")
         self.find_group.setLayout(self.find_widget_layout)

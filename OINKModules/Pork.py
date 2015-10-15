@@ -19,7 +19,7 @@ import OINKMethods as OINKM
 from ImageButton import ImageButton
 from Seeker import Seeker
 import MOSES
-
+from CategoryFinder import CategoryFinder
 
 class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
@@ -34,6 +34,8 @@ class Pork(QtGui.QMainWindow):
         MOSES.createLoginStamp(self.userID, self.password)
         self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         self.clip = QtGui.QApplication.clipboard()
+        self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
+        
         self.mapThreads()
 
         #Create the widgets and arrange them as needed.
@@ -54,7 +56,6 @@ class Pork(QtGui.QMainWindow):
         #Initialize the application with required details.
         self.populateBU()
         #self.populateTable()
-        self.populateClarification()
         self.initForm()
         #self.porker_thread.getStatsData(self.getActiveDate())
         #Final set up.
@@ -97,15 +98,31 @@ class Pork(QtGui.QMainWindow):
         self.icon_panel.addStretch(10)
 
         self.piggybank = PiggyBank()
-        self.tabs = QtGui.QTabWidget()
-        self.stats = QtGui.QWidget()
+        #initialize Calendar
+        self.workCalendar = WeekCalendar(self.userID, self.password)
+        self.workCalendar.setFixedSize(350,250)
+
+        self.stats = QtGui.QGroupBox("My Performance")
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
         self.menu = self.menuBar()
         self.stats_table = QtGui.QTableWidget(0, 0, self)
+        self.stats_table.setColumnCount(len(self.stats_table_headers))
+        self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
+        self.stats_table.setStyleSheet("gridline-color: rgb(0, 0, 0); font: Georgia 18 pt;")
+        self.stats_table.resizeColumnsToContents()
+        self.stats_table.resizeRowsToContents()
+        self.stats_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.stats_table.horizontalHeader().setStretchLastSection(True)
+
+        self.stats_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.stats_table.verticalHeader().setStretchLastSection(True)
+        self.stats_table.verticalHeader().setVisible(False)
+
         self.stats_table.setToolTip("This report displays your statistics for the last working date.\nIf you've selected a Monday, this will show you\nyour data for last Friday, provided you weren't on leave on that day.\nIf you were, it'll search for the date\non which you last worked and show you that.")
-        self.stats_table.setMinimumHeight(170)
-        self.refresh_stats_button = QtGui.QPushButton("Refresh Statistics")
+        self.stats_table.setFixedSize(300,160)
+        self.refresh_stats_button = QtGui.QPushButton("Refresh")
+
         self.stats_progress_bar = QtGui.QProgressBar()
         progressbar_style = """
             .QProgressBar {
@@ -119,54 +136,24 @@ class Pork(QtGui.QMainWindow):
                  width: 20px;
              }""" #05B8CC
         self.stats_progress_message = QtGui.QLabel("Awaiting signals.")
+        self.stats_progress_bar.setMaximumWidth(300)
+        self.stats_progress_message.setMaximumWidth(300)
 
         self.stats_progress_message.setStyleSheet("QLabel { font-size: 10px }")
         self.stats_progress = QtGui.QWidget()
         self.stats_progress_layout = QtGui.QGridLayout()
-        self.stats_progress_layout.addWidget(self.stats_progress_bar,0,0)
-        self.stats_progress_layout.addWidget(self.stats_progress_message,0,0)
+        self.stats_progress_layout.addWidget(self.refresh_stats_button,0,0,1,1)
+        self.stats_progress_layout.addWidget(self.stats_progress_bar,0,1,1,3)
+        self.stats_progress_layout.addWidget(self.stats_progress_message,0,1,1,3)
         self.stats_progress.setLayout(self.stats_progress_layout)
-
         self.stats_progress_bar.setRange(0,1)
         self.stats_progress_bar.setStyleSheet(progressbar_style)
         self.stats_layout = QtGui.QVBoxLayout()
         self.stats_layout.addWidget(self.stats_table)
-        self.stats_layout.addWidget(self.refresh_stats_button)
         self.stats_layout.addWidget(self.stats_progress)
         self.stats.setLayout(self.stats_layout)
-        self.tabs.addTab(self.stats, "Writer Statistics")
-        self.tabs.addTab(self.piggybank, "Piggy Bank")
-
-        style = "font-size: 12px; font-weight: bold;"
-
-        self.hide_piggy_button = QtGui.QPushButton(">")
-        self.hide_piggy_button.setStyleSheet(style)
-        self.hide_piggy_button.setCheckable(True)
-        self.hide_piggy_button.setMinimumHeight(70)
-        self.hide_piggy_button.setMaximumHeight(70)
-        self.hide_piggy_button.setMinimumWidth(30)
-        self.hide_piggy_button.setMaximumWidth(30)
-        self.hide_piggy_button.clicked.connect(self.hide_piggy)
-
-        self.hide_form_button = QtGui.QPushButton("<")
-        self.hide_form_button.setStyleSheet(style)
-        self.hide_form_button.setCheckable(True)
-        self.hide_form_button.setMinimumHeight(70)
-        self.hide_form_button.setMaximumHeight(70)
-        self.hide_form_button.setMinimumWidth(30)
-        self.hide_form_button.setMaximumWidth(30)
-        self.hide_form_button.clicked.connect(self.hide_form)
 
 
-        self.hide_buttons = QtGui.QButtonGroup()
-        self.hide_buttons.addButton(self.hide_form_button)
-        self.hide_buttons.addButton(self.hide_piggy_button)
-        self.hide_buttons.setExclusive(False)
-
-        #initialize Calendar
-        self.workCalendar = WeekCalendar(self.userID, self.password)
-        self.workCalendar.setMinimumWidth(400)
-        self.workCalendar.setMinimumHeight(250)
         #initialize buttons to modify values
         self.buttonAddFSN = QtGui.QPushButton('Add', self)
         self.buttonAddFSN.setCheckable(True)
@@ -189,6 +176,10 @@ class Pork(QtGui.QMainWindow):
         self.formModifierButtons = QtGui.QButtonGroup()
         self.formModifierButtons.addButton(self.buttonAddFSN)
         self.formModifierButtons.addButton(self.buttonModifyFSN)
+        self.category_tree_headers = ["BU","Super-Category","Category","Sub-Category","Vertical"]
+        self.category_finder = CategoryFinder(self.category_tree, self.category_tree_headers)
+
+
 
         self.efficiencyProgress = QtGui.QProgressBar()
         self.efficiencyProgress.setRange(0,100)
@@ -200,7 +191,6 @@ class Pork(QtGui.QMainWindow):
         #Create all the widgets associated with the form.
         self.labelFSN = QtGui.QLabel("FSN:")
         self.lineEditFSN = QtGui.QLineEdit(self)
-        self.lineEditFSN.setMaximumWidth(150)
         self.labelType = QtGui.QLabel("Description Type:")
         self.comboBoxType = QtGui.QComboBox()
         self.comboBoxType.setMaximumWidth(150)
@@ -245,114 +235,76 @@ class Pork(QtGui.QMainWindow):
         self.labelRefLinks = QtGui.QLabel("Reference Links:")
         self.lineEditRefLink = QtGui.QLineEdit(self)
         self.lineEditRefLink.setMaximumWidth(150)
-        self.labelGuidelines = QtGui.QLabel("Guidelines:")
-        self.textEditGuidelines = QtGui.QTextEdit(self)
-        self.textEditGuidelines.setMaximumHeight(50)
-        self.textEditGuidelines.setMinimumHeight(50)
-        self.textEditGuidelines.setMaximumWidth(300)
-        self.textEditGuidelines.isReadOnly()
-        self.labelClarifications = QtGui.QLabel("Clarifications:")
-        self.lineEditClarification = QtGui.QLineEdit(self)
-        self.lineEditClarification.setMaximumWidth(50)
-        self.comboBoxClarification = QtGui.QComboBox(self)
-        self.comboBoxClarification.setMaximumWidth(50)
-        self.buttonAddClarification = QtGui.QPushButton("+")
-        self.buttonAddClarification.setMaximumWidth(20)
-        #styler = """image: url(Images\ok.png)"""
         self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
                                             QtGui.QDialogButtonBox.Cancel)
         self.buttonBox.setMaximumWidth(300)
-        #self.buttonBox.Ok.setStyleSheet(styler)
         self.buttonBox.setMaximumHeight(40)
 
 
     def widgetLayout(self):
         """PORK Window."""
         #Begin the form's layout.
-        self.formLayout = QtGui.QGridLayout()
-        self.formLayout.addWidget(self.labelFSN,0,0)
-        self.formLayout.addWidget(self.lineEditFSN,0,1)
-        self.formLayout.addWidget(self.labelType,1,0)
-        self.formLayout.addWidget(self.comboBoxType,1,1)
-        self.formLayout.addWidget(self.labelSource,2,0)
-        self.formLayout.addWidget(self.comboBoxSource,2,1)
-        #self.formLayout.addWidget(self.labelPriority,3,0)
-        #self.formLayout.addWidget(self.comboBoxPriority,3,1)
-        self.formLayout.addWidget(self.labelBU,4,0)
-        self.formLayout.addWidget(self.comboBoxBU,4,1)
-        self.formLayout.addWidget(self.labelSuperCategory,5,0)
-        self.formLayout.addWidget(self.comboBoxSuperCategory,5,1)
-        self.formLayout.addWidget(self.labelCategory,6,0)
-        self.formLayout.addWidget(self.comboBoxCategory,6,1)
-        self.formLayout.addWidget(self.labelSubCategory,7,0)
-        self.formLayout.addWidget(self.comboBoxSubCategory,7,1)
-        self.formLayout.addWidget(self.labelVertical,8,0)
-        self.formLayout.addWidget(self.comboBoxVertical,8,1)
-        self.formLayout.addWidget(self.labelBrand,9,0)
-        self.formLayout.addWidget(self.lineEditBrand,9,1)
-        self.formLayout.addWidget(self.labelWordCount,10,0)
-        self.formLayout.addWidget(self.spinBoxWordCount,10,1)
-        self.formLayout.addWidget(self.labelUploadLink,11,0)
-        self.formLayout.addWidget(self.lineEditUploadLink,11,1)
-        self.formLayout.addWidget(self.labelRefLinks,12,0)
-        self.formLayout.addWidget(self.lineEditRefLink,12,1)
-        ###############SpecialLayoutForClarifications##############
-        self.clarificationRow = QtGui.QHBoxLayout()
-        self.clarificationRow.addWidget(self.labelClarifications,2)
-        self.clarificationRow.addWidget(self.lineEditClarification,2)
-        self.clarificationRow.addWidget(self.comboBoxClarification,2)
-        self.clarificationRow.addWidget(self.buttonAddClarification,1)
-        ###########################################################
-        self.formLayout.addLayout(self.clarificationRow,13,0,1,2)
-        self.formLayout.addWidget(self.labelGuidelines,14,0,1,2)
-        self.formLayout.addWidget(self.textEditGuidelines,15,0,1,2)
-        self.formLayout.addWidget(self.buttonBox,16,0,1,2)
+        form_fields_layout = QtGui.QGridLayout()
+        form_fields_layout.addWidget(self.labelFSN,0,0)
+        form_fields_layout.addWidget(self.lineEditFSN,0,1,1,2)
+        form_fields_layout.addWidget(self.labelType,1,0)
+        form_fields_layout.addWidget(self.comboBoxType,1,1)
+        form_fields_layout.addWidget(self.labelSource,1,2)
+        form_fields_layout.addWidget(self.comboBoxSource,1,3)
+        form_fields_layout.addWidget(self.labelBU,2,0)
+        form_fields_layout.addWidget(self.comboBoxBU,2,1)
+        form_fields_layout.addWidget(self.labelSuperCategory,2,2)
+        form_fields_layout.addWidget(self.comboBoxSuperCategory,2,3)
+        form_fields_layout.addWidget(self.labelCategory,3,0)
+        form_fields_layout.addWidget(self.comboBoxCategory,3,1)
+        form_fields_layout.addWidget(self.labelSubCategory,3,2)
+        form_fields_layout.addWidget(self.comboBoxSubCategory,3,3)
+        form_fields_layout.addWidget(self.labelVertical,4,0)
+        form_fields_layout.addWidget(self.comboBoxVertical,4,1)
+        form_fields_layout.addWidget(self.labelBrand,4,2)
+        form_fields_layout.addWidget(self.lineEditBrand,4,3)
+        form_fields_layout.addWidget(self.labelWordCount,5,0)
+        form_fields_layout.addWidget(self.spinBoxWordCount,5,1)
+        form_fields_layout.addWidget(self.labelUploadLink,5,2)
+        form_fields_layout.addWidget(self.lineEditUploadLink,5,3)
+        form_fields_layout.addWidget(self.labelRefLinks,6,0)
+        form_fields_layout.addWidget(self.lineEditRefLink,6,1,1,2)
+        form_fields_layout.addWidget(self.buttonBox,7,2,1,2)
         ######################--------------------#################
         #Create a layout for the buttons.
-        self.buttonsLayout = QtGui.QGridLayout()
-        self.buttonsLayout.addWidget(self.buttonAddFSN,0,0)
-        self.buttonsLayout.addWidget(self.buttonModifyFSN,0,1)
-        self.buttonsLayout.addWidget(self.buttonCopyFields,0,2)
+        mode_control_buttons_layout = QtGui.QGridLayout()
+        mode_control_buttons_layout.addWidget(self.buttonAddFSN,0,0,1,1,QtCore.Qt.AlignRight)
+        mode_control_buttons_layout.addWidget(self.buttonModifyFSN,0,1,1,1,QtCore.Qt.AlignHCenter)
+        mode_control_buttons_layout.addWidget(self.buttonCopyFields,0,2,1,1,QtCore.Qt.AlignLeft)
 
         #set the buttons above the form's layout.
-        self.finalFormLayout = QtGui.QVBoxLayout()
-        self.finalFormLayout.addLayout(self.buttonsLayout)
-        self.finalFormLayout.addLayout(self.formLayout)
-        self.finalFormLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        form_layout = QtGui.QVBoxLayout()
+        form_layout.addLayout(mode_control_buttons_layout,1)
+        form_layout.addLayout(form_fields_layout,0)
+        
         self.form = QtGui.QWidget()
-        self.form.setLayout(self.finalFormLayout)
+        self.form.setLayout(form_layout)
+
+        #Create a tabwidget with the form as page 1 and the finder as page 2.
+        self.form_tab_widget = QtGui.QTabWidget()
+        self.form_tab_widget.addTab(self.form, "Form")
+        self.form_tab_widget.addTab(self.category_finder, "Category Finder")
         ###Set the form's layout adjacent to the QTableWidget.
 
-
-
         #Create the piggy bank widget and layout.
-        self.piggyLayout = QtGui.QVBoxLayout()
-        self.piggyLayout.addWidget(self.workCalendar,1)
-        self.piggyLayout.addWidget(self.tabs,3)
-#        self.piggyLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-        self.piggyWidget = QtGui.QWidget()
-        self.piggyWidget.setLayout(self.piggyLayout)
-        #Create the collapsible buttons layout
-        self.hider_buttons_layout = QtGui.QVBoxLayout()
-        self.hider_buttons_layout.addStretch(3)
-        self.hider_buttons_layout.addWidget(self.hide_piggy_button)
-        self.hider_buttons_layout.addWidget(self.hide_form_button)
-        self.hider_buttons_layout.addStretch(3)
-        self.hider_buttons_layout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-        self.hider_buttons_layout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-        #create the penultimate layout.
-        self.penultimateLayout = QtGui.QHBoxLayout()
-        self.penultimateLayout.addWidget(self.piggyWidget,8)
-        self.penultimateLayout.addLayout(self.hider_buttons_layout,1)
-        self.penultimateLayout.addWidget(self.form,2)
-        self.penultimateLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        self.piggy_bank_calendar_and_report_layout = QtGui.QGridLayout()
+        self.piggy_bank_calendar_and_report_layout.addWidget(self.workCalendar,0,0,2,2)
+        self.piggy_bank_calendar_and_report_layout.addWidget(self.stats,0,2,2,2)
+        self.piggy_bank_calendar_and_report_layout.addWidget(self.form_tab_widget,0,4,2,2)
+        self.piggy_bank_calendar_and_report_layout.addWidget(self.piggybank,2,0,2,6)
+
         #create the final layout.
         self.finalLayout = QtGui.QGridLayout()
-        self.finalLayout.addLayout(self.icon_panel,1,0,1,5)
         self.finalLayout.addWidget(self.menu,0,0,1,5)
-        self.finalLayout.addLayout(self.penultimateLayout,2,0,5,5)
+        self.finalLayout.addLayout(self.icon_panel,1,0,1,5)
+        self.finalLayout.addLayout(self.piggy_bank_calendar_and_report_layout,2,0,5,5)
         self.finalLayout.addWidget(self.efficiencyProgress,7,0,1,5)
-        self.finalLayout.addWidget(self.status_bar,8,0,1,5)
+        self.finalLayout.addWidget(self.status_bar,8,0,2,5, QtCore.Qt.AlignTop)
 
         #self.finalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
 
@@ -376,8 +328,6 @@ class Pork(QtGui.QMainWindow):
         self.spinBoxWordCount.setToolTip("Type the word count of the article here.")
         self.lineEditUploadLink.setToolTip("If you are not using an FSN or an ISBN, please paste the appropriate upload link here.")
         self.lineEditRefLink.setToolTip("Paste the reference link(s) here.\nMultiple links can be appended by using a comma or a semi-colon.\nAvoid spaces like the plague.")
-        self.lineEditClarification.setToolTip("Use the drop down menu adjacent to this box to append clarifications.\nIf a clarification is unavailable, please append it to this list by using a comma.")
-
     def displayPorkerProgress(self, activity, eta, completed):
         if completed:
             #print "Completed one porker cycle."
@@ -386,7 +336,7 @@ class Pork(QtGui.QMainWindow):
         else:
             #print "Porker at work. Message : ", activity
             self.stats_progress_bar.setRange(0,0)
-            self.stats_progress_message.setText("   %s Possible ETA: %s" %(activity, datetime.datetime.strftime(eta,"%H:%M:%S")))
+            self.stats_progress_message.setText("\t%s ETA: %s" %(activity, datetime.datetime.strftime(eta,"%H:%M")))
 
     def keyPressEvent(self, e):
         """PORK Window: Found this code online. Go through it and try to improve it."""
@@ -410,14 +360,11 @@ class Pork(QtGui.QMainWindow):
     def createTabOrder(self):
         """PORK Window."""
         self.setTabOrder(self.workCalendar, self.buttonAddFSN)
-        #self.setTabOrder(self.piggybank,self.buttonAddFSN)
         self.setTabOrder(self.buttonAddFSN, self.buttonModifyFSN)
         self.setTabOrder(self.buttonModifyFSN, self.lineEditFSN)
         self.setTabOrder(self.lineEditFSN, self.comboBoxType)
         self.setTabOrder(self.comboBoxType, self.comboBoxSource)
         self.setTabOrder(self.comboBoxSource, self.comboBoxBU)
-        #self.setTabOrder(self.comboBoxSource, self.comboBoxPriority)
-        #self.setTabOrder(self.comboBoxPriority, self.comboBoxBU)
         self.setTabOrder(self.comboBoxBU, self.comboBoxSuperCategory)
         self.setTabOrder(self.comboBoxSuperCategory, self.comboBoxCategory)
         self.setTabOrder(self.comboBoxCategory, self.comboBoxSubCategory)
@@ -426,10 +373,7 @@ class Pork(QtGui.QMainWindow):
         self.setTabOrder(self.lineEditBrand, self.spinBoxWordCount)
         self.setTabOrder(self.spinBoxWordCount, self.lineEditUploadLink)
         self.setTabOrder(self.lineEditUploadLink,self.lineEditRefLink)
-        self.setTabOrder(self.lineEditRefLink, self.comboBoxClarification)
-        self.setTabOrder(self.comboBoxClarification, self.buttonAddClarification)
-        self.setTabOrder(self.buttonAddClarification, self.buttonBox)
-        #self.setTabOrder(self.buttonBox,self.lineEditFSN)
+        self.setTabOrder(self.lineEditRefLink, self.buttonBox)
 
     def addMenus(self):
         """PORK Window."""
@@ -494,7 +438,6 @@ class Pork(QtGui.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('Images\PORK_Icon.png'))
         self.setWindowTitle("P.O.R.K. v%s - Server : %s, User: %s (%s)" % (MOSES.version(), MOSES.getHostID(), self.userID, MOSES.getEmpName(self.userID)))
         self.center()
-        self.expand()
         self.show()
         self.trayIcon = QtGui.QSystemTrayIcon(QtGui.QIcon('Images\Pork_Icon.png'),self)
         self.trayIcon.show()
@@ -510,9 +453,6 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxSubCategory.setCurrentIndex(-1)
         self.comboBoxVertical.setCurrentIndex(-1)
         self.lineEditBrand.setText("")
-        self.lineEditClarification.setText("NA")
-        self.comboBoxClarification.setCurrentIndex(-1)
-        #self.comboBoxPriority.setCurrentIndex(-1)
 
     def setEvents(self):
         """PORK Window."""
@@ -525,12 +465,12 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxSuperCategory.currentIndexChanged['QString'].connect(self.populateCategory)
         self.comboBoxCategory.currentIndexChanged['QString'].connect(self.populateSubCategory)
         self.comboBoxSubCategory.currentIndexChanged['QString'].connect(self.populateBrandVertical)
-        self.comboBoxVertical.currentIndexChanged['QString'].connect(self.getVerticalGuidelines)
+        #self.comboBoxVertical.currentIndexChanged['QString'].connect(self.getVerticalGuidelines)
         self.lineEditFSN.editingFinished.connect(self.FSNEditFinishTriggers)
         self.lineEditFSN.textChanged.connect(self.FSNEditFinishTriggers)
         self.comboBoxType.currentIndexChanged['QString'].connect(self.FSNEditFinishTriggers)
         self.buttonBox.rejected.connect(self.clearAll)
-        self.buttonAddClarification.clicked.connect(self.addClarification)
+        #self.buttonAddClarification.clicked.connect(self.addClarification)
         self.buttonCopyFields.clicked.connect(self.copyCommonFields)
         self.refresh_stats_button.clicked.connect(self.refreshStatsTable)
         self.calculator_button.clicked.connect(self.showEfficiencyCalc)
@@ -539,6 +479,15 @@ class Pork(QtGui.QMainWindow):
         self.leave_button.clicked.connect(self.openLeaveManagementTool)
         self.relaxation_button.clicked.connect(self.openRelaxationTool)
         self.project_button.clicked.connect(self.openProjectManager)
+        self.category_finder.pickRow.connect(self.setFormValues)
+
+    def setFormValues(self, values_dict):
+        self.comboBoxBU.setCurrentIndex(self.comboBoxBU.findText(values_dict["BU"]))
+        self.comboBoxSuperCategory.setCurrentIndex(self.comboBoxSuperCategory.findText(values_dict["Super-Category"]))
+        self.comboBoxCategory.setCurrentIndex(self.comboBoxCategory.findText(values_dict["Category"]))
+        self.comboBoxSubCategory.setCurrentIndex(self.comboBoxSubCategory.findText(values_dict["Sub-Category"]))
+        self.comboBoxVertical.setCurrentIndex(self.comboBoxVertical.findText(values_dict["Vertical"]))
+        self.alertMessage("Used row", "Successfully copied the fields into the Piggy Bank form.")
 
     def openSeeker(self):
         self.seeker = Seeker(self.userID, self.password)
@@ -624,7 +573,6 @@ class Pork(QtGui.QMainWindow):
         blue = QtGui.QColor(23, 136, 216)
         blue1 = QtGui.QColor(1, 172, 218)
 
-        self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
         self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
 
         if (self.lwd_efficiency is None): 
@@ -892,6 +840,13 @@ class Pork(QtGui.QMainWindow):
         self.stats_table.setStyleSheet("gridline-color: rgb(0, 0, 0); font: Georgia 18 pt;")
         self.stats_table.resizeColumnsToContents()
         self.stats_table.resizeRowsToContents()
+        self.stats_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.stats_table.horizontalHeader().setStretchLastSection(True)
+        self.stats_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.stats_table.verticalHeader().setStretchLastSection(True)
+        self.stats_table.verticalHeader().setVisible(False)
+        
+
     
     def openStyleSheet(self):
         """PORK Window."""
@@ -1053,31 +1008,7 @@ class Pork(QtGui.QMainWindow):
         verticals = list(set(filtered_category_tree["Vertical"]))
         verticals.sort()
         self.comboBoxVertical.addItems(verticals)
-        self.textEditGuidelines.clear()
 
-    def populateClarification(self):
-        """PORK Window."""
-        self.comboBoxClarification.addItems(MOSES.getClarifications(self.userID,self.password))
-
-    def addClarification(self):
-        """PORK Window."""
-        if self.lineEditClarification.text() == "NA":
-            self.lineEditClarification.clear()
-        if str(self.lineEditClarification.text()).find(str(self.comboBoxClarification.currentText())) == -1:
-            self.lineEditClarification.insert(str(self.comboBoxClarification.currentText()) + ";")
-
-    def getVerticalGuidelines(self):
-        """PORK Window."""
-        self.selectedVertical = str(self.comboBoxVertical.currentText())
-        try:
-            if self.selectedVertical == "BlockConstruction":
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("Construction blocks teach kids about patterns, cognitive skills and improve their creativity. For more information, read up on Lego and see how many various amateur and professional models exist. It has ascended into an art form. Children aside, some adults wouldn't mind playing with them.")
-            else:
-                self.textEditGuidelines.clear()
-                self.textEditGuidelines.append("There are no guidelines for %s. Please ask your TL if there's anything vertical specific that you need to write." % self.selectedVertical)
-        except:
-            self.notify("Error", "No vertical has been selected.")
 
     def closeEvent(self,event):
         """PORK Window."""
@@ -1184,16 +1115,6 @@ class Pork(QtGui.QMainWindow):
                 #print "Modified!"
                 completion = True
             if completion:
-                #FSN = fsnData["FSN"]
-                #clar_code = str(self.lineEditClarification.text()).strip()
-                #clarification_status = MOSES.checkIfClarificationPosted(self.userID, self.password, FSN, clar_code)
-                #do I need a comment box? Not yet, maybe after I figure how to make a combocheckbox.
-                #if type(clarification_status) == type(selected_date):
-                #    MOSES.updateClarification(self.userID, self.password, FSN, self.userID, clar_code)
-                #else:
-                #    MOSES.addClarification(self.userID, self.password, FSN, selected_date, clar_code)
-                #self.populateTable()
-                #self.displayEfficiency()
                 self.resetForm()
                 self.piggybanker_thread.getPiggyBank()
                 self.porker_thread.getEfficiency()
@@ -1217,7 +1138,6 @@ class Pork(QtGui.QMainWindow):
         self.spinBoxWordCount.setValue(0)
         self.lineEditRefLink.setText("NA")
         self.lineEditUploadLink.setText("")
-        self.lineEditClarification.setText("NA")
         self.buttonAddFSN.setChecked(True)
 
     def cellSelected(self, row, column):
@@ -1293,8 +1213,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
                     self.lineEditUploadLink.setText(self.cellValue)
                 elif self.columnHeaderLabel == "Reference Link":
                     self.lineEditRefLink.setText(self.cellValue)
-                elif self.columnHeaderLabel == "Clarification":
-                    self.lineEditClarification.setText(self.cellValue)
                 elif self.columnHeaderLabel == "Word Count":
                     self.spinBoxWordCount.setValue(int(self.cellValue))
 
@@ -1318,7 +1236,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
         self.lineEditBrand.setText("")
         self.lineEditRefLink.setText("")
         self.lineEditUploadLink.setText("")
-        self.lineEditClarification.setText("")
+
         self.buttonAddFSN.setChecked(True)
 
     def getFSNDataDict(self):
@@ -1456,17 +1374,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
             self.lineEditRefLink.setFocus()
             self.valid = False
             return []
-        try:
-            self.clarification = str(self.lineEditClarification.text()).replace(",",";").replace("'","").strip()
-            if len(self.clarification) == 0:
-                self.valid = False
-                self.alertMessage("User Error","Clarification cell cannot be empty.")
-                return []
-        except:
-            self.alertMessage("Runtime Error","Clarification cell cannot be empty.")
-            self.lineEditClarification.setFocus()
-            self.valid = False
-            return []
         #Success!
         if self.valid:
             writer_name = MOSES.getEmpName(self.userID)
@@ -1536,43 +1443,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
     def sendDatesDataToCalendar(self, dates_data):
         self.workCalendar.setDatesData(dates_data)
 
-    def hide_form(self):
-        piggy_is_hidden = self.hide_piggy_button.isChecked()
-        form_is_hidden = self.hide_form_button.isChecked()
-        if (not piggy_is_hidden):
-            self.form.setVisible(not form_is_hidden)
-            self.resize(200,200)
-        elif form_is_hidden:
-            self.form.setVisible(form_is_hidden)
-            self.resize(800,600)
-
-    def hide_piggy(self):
-       #print "Hiding piggy!"
-        piggy_is_hidden = self.hide_piggy_button.isChecked()
-        form_is_hidden = self.hide_form_button.isChecked()
-        if (not form_is_hidden):
-            #print "Form isn't hidden, so I'll hide the piggy bank."
-            self.piggyWidget.setVisible(not piggy_is_hidden)
-        elif piggy_is_hidden:
-            self.piggyWidget.setVisible(piggy_is_hidden)
-
-
-        piggy_is_hidden = self.hide_piggy_button.isChecked()
-        form_is_hidden = self.hide_form_button.isChecked()
-        if piggy_is_hidden or form_is_hidden:
-            self.contract()
-        else:
-            self.expand()
-
-    def contract(self):
-        self.resize(self.centralWidget().minimumSizeHint())
-        self.quote_thread.setWidth(50)
-        self.center()
-
-    def expand(self):
-        self.resize(self.centralWidget().minimumSizeHint())
-        self.quote_thread.setWidth(100)
-        self.center()
 
     def center(self):
         frameGm = self.frameGeometry()

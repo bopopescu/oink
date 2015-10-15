@@ -49,6 +49,12 @@ class PiggyBank(QtGui.QTableWidget):
         self.resizeRowsToContents()
         self.setHorizontalHeaderLabels(header_labels)
         self.setSortingEnabled(True)
+        self.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.verticalHeader().setStretchLastSection(False)
+        self.verticalHeader().setVisible(True)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setVisible(True)
 
         #QtGui.QMessageBox.about(self, "Success", "Pulled %d entries for selected date(s)." % len(self.data_list))
         
