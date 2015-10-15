@@ -250,7 +250,7 @@ class EfficiencyCalculator(QtGui.QDialog):
         #print "Printing Calc List", self.calcList
         row_count = int(self.calc_table.rowCount())
         self.calc_table.insertRow(0)
-        row = row_count
+        row = 0
         column = 0
 
         for widget_name in self.headers:

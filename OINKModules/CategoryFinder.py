@@ -65,28 +65,28 @@ class CategoryFinder(QtGui.QWidget):
         #functionName = sys._getframe().f_code.co_name
         search_string = str(self.search_string_line_edit.text()).strip()
         search_criteria = str(self.search_criteria_combo_box.currentText())
-        df = None
+        self.result_dataframe = None
         self.use_buttons = []
         if search_criteria != "Any":
             if search_string != "":
-                df = self.findIdentifierInCategoryTree(search_string, search_criteria)
+                self.result_dataframe = self.findIdentifierInCategoryTree(search_string, search_criteria)
                 self.category_tree[self.category_tree[search_criteria].str.contains(search_string)]
-                df.drop_duplicates(subset=self.category_tree_headers, inplace=True)
-                self.alertMessage("Alert", "%d results found when searching for %s in the %s column of the category tree."%(len(df.index),search_string, search_criteria))
+                self.result_dataframe.drop_duplicates(subset=self.category_tree_headers, inplace=True)
+                self.alertMessage("Alert", "%d results found when searching for %s in the %s column of the category tree."%(len(self.result_dataframe.index),search_string, search_criteria))
             else:
                 self.alertMessage("Alert","Try typing a word into the search field before searching for something.")
         else:   
             dfs = []     
             for search_criteria in self.category_tree_headers:
                 dfs.append(self.findIdentifierInCategoryTree(search_string, search_criteria))
-            df = pandas.concat(dfs)
-            df.drop_duplicates(subset=self.category_tree_headers, inplace=True)
-            self.alertMessage("Alert", "%d results found when searching for %s in all columns of the category tree."%(len(df.index),search_string))
+            self.result_dataframe = pandas.concat(dfs)
+            self.result_dataframe.drop_duplicates(subset=self.category_tree_headers, inplace=True)
+            self.alertMessage("Alert", "%d results found when searching for %s in all columns of the category tree."%(len(self.result_dataframe.index),search_string))
 
-        if df is not None:
+        if self.result_dataframe is not None:
             self.result_table.setRowCount(0)
             row_counter = 0
-            for row in df.iterrows():
+            for row in self.result_dataframe.iterrows():
                 #print row[1]
                 self.result_table.insertRow(row_counter)
                 column_counter = 0
@@ -106,3 +106,4 @@ class CategoryFinder(QtGui.QWidget):
 
     def clickUse(self, count):
         print "Clicked the %d use button"%count
+        print self.result_dataframe.xs(int(count))
