@@ -40,7 +40,7 @@ class CategoryFinder(QtGui.QWidget):
         self.find_widget_layout.addWidget(self.search_criteria_combo_box,0, 1)
         self.find_widget_layout.addWidget(self.search_string_line_edit,0, 2, 1, 2)
         self.find_widget_layout.addWidget(self.find_button,0,4,1,1)
-        self.find_widget_layout.addWidget(self.result_table,1,0,2,5)
+        self.find_widget_layout.addWidget(self.result_table,1,0,2,10)
 
         self.find_group = QtGui.QGroupBox("Find a Vertical")
         self.find_group.setLayout(self.find_widget_layout)
@@ -72,6 +72,7 @@ class CategoryFinder(QtGui.QWidget):
                 self.result_dataframe = self.findIdentifierInCategoryTree(search_string, search_criteria)
                 self.category_tree[self.category_tree[search_criteria].str.contains(search_string)]
                 self.result_dataframe.drop_duplicates(subset=self.category_tree_headers, inplace=True)
+                self.result_dataframe = self.result_dataframe.reset_index()
                 self.alertMessage("Alert", "%d results found when searching for %s in the %s column of the category tree."%(len(self.result_dataframe.index),search_string, search_criteria))
             else:
                 self.alertMessage("Alert","Try typing a word into the search field before searching for something.")
@@ -81,6 +82,8 @@ class CategoryFinder(QtGui.QWidget):
                 dfs.append(self.findIdentifierInCategoryTree(search_string, search_criteria))
             self.result_dataframe = pandas.concat(dfs)
             self.result_dataframe.drop_duplicates(subset=self.category_tree_headers, inplace=True)
+            self.result_dataframe = self.result_dataframe.reset_index()
+
             self.alertMessage("Alert", "%d results found when searching for %s in all columns of the category tree."%(len(self.result_dataframe.index),search_string))
 
         if self.result_dataframe is not None:
@@ -105,5 +108,4 @@ class CategoryFinder(QtGui.QWidget):
             self.result_table.resizeRowsToContents()
 
     def clickUse(self, count):
-        print "Clicked the %d use button"%count
-        print self.result_dataframe.xs(int(count))
+        self.pickRow.emit(self.result_dataframe.xs(count)[self.category_tree_headers].to_dict())

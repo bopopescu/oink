@@ -1,16 +1,18 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
+from __future__ import division
 import sys
 import datetime
 import re
 import pandas
-
+import math
 from PyQt4 import QtGui, QtCore
 
 import MOSES
 from CategoryFinder import CategoryFinder
 class calculatorRow:
     """Class definition for a single row of the efficiency calculator."""
+    
     def __init__(self, userID, password, category_tree):
         """Calculator Row"""
         self.userID = userID
@@ -23,6 +25,8 @@ class calculatorRow:
         self.populateBU()
         self.createEvents()
 
+        self.calcWidgets["Source"].setCurrentIndex(self.calcWidgets["Source"].findText("Inhouse"))
+
     def createWidgets(self):
         """Calculator Row: Method to create widgets for a single calculator Row."""
         self.calcWidgets = {}
@@ -34,8 +38,14 @@ class calculatorRow:
         self.calcWidgets.update({"Sub-Category": QtGui.QComboBox()})
         self.calcWidgets.update({"Vertical": QtGui.QComboBox()})
         self.calcWidgets.update({"Quantity": QtGui.QSpinBox()})
-        self.calcWidgets.update({"Efficiency": QtGui.QLabel("00.00%")})
+        self.calcWidgets.update({"Efficiency": QtGui.QDoubleSpinBox()})
         self.calcWidgets.update({"Target": QtGui.QLabel("-")})
+
+        self.calcWidgets["Quantity"].setRange(0,100000000)
+        self.calcWidgets["Efficiency"].setRange(0,100000000)
+        self.calcWidgets["Efficiency"].setSuffix("%")
+        self.calcWidgets["Efficiency"].setSingleStep(0.5)
+
 
         self.calcWidgets["Description Type"].setFixedWidth(140)
         self.calcWidgets["Source"].setFixedWidth(80)
@@ -44,8 +54,8 @@ class calculatorRow:
         self.calcWidgets["Category"].setFixedWidth(140)
         self.calcWidgets["Sub-Category"].setFixedWidth(140)
         self.calcWidgets["Vertical"].setFixedWidth(140)
-        self.calcWidgets["Quantity"].setFixedWidth(60)
-        self.calcWidgets["Efficiency"].setFixedWidth(60)
+        self.calcWidgets["Quantity"].setFixedWidth(80)
+        self.calcWidgets["Efficiency"].setFixedWidth(80)
         self.calcWidgets["Target"].setFixedWidth(60)
 
         self.calcWidgets["Description Type"].setFixedHeight(20)
@@ -68,10 +78,25 @@ class calculatorRow:
         for widget_label in self.calcWidgets.keys():
             self.calcWidgets[widget_label].setStyleSheet(style_sheet)
 
+    def setValues(self, values_dict):
+        bu_index = self.calcWidgets["BU"].findText(values_dict["BU"])
+        self.calcWidgets["BU"].setCurrentIndex(bu_index)
+        
+        supercategory_index = self.calcWidgets["Super-Category"].findText(values_dict["Super-Category"])
+        self.calcWidgets["Super-Category"].setCurrentIndex(supercategory_index)
+        
+        category_index = self.calcWidgets["Category"].findText(values_dict["Category"])
+        self.calcWidgets["Category"].setCurrentIndex(category_index)
+        
+        subcategory_index = self.calcWidgets["Sub-Category"].findText(values_dict["Sub-Category"])
+        self.calcWidgets["Sub-Category"].setCurrentIndex(subcategory_index)
+
+        vertical_index = self.calcWidgets["Vertical"].findText(values_dict["Vertical"])
+        self.calcWidgets["Vertical"].setCurrentIndex(vertical_index)
 
     def alertMessage(self, title, message):
         """Vindaloo."""
-        QtGui.QMessageBox.about(self, title, message)
+        QtGui.QMessageBox.about(QtGui.QWidget(), title, message)
 
     def mapToolTips(self):
         """Calculator Row"""
@@ -82,8 +107,11 @@ class calculatorRow:
         self.calcWidgets["Category"].setToolTip("Select the Category")
         self.calcWidgets["Sub-Category"].setToolTip("Select the Sub-Category")
         self.calcWidgets["Vertical"].setToolTip("Select the Vertical")
-        self.calcWidgets["Quantity"].setToolTip("Select the Quantity of the article.")
-        self.calcWidgets["Efficiency"].setToolTip("This is the efficiency one receives for the selected FSN type.")
+        self.calcWidgets["Quantity"].setToolTip("Set the number of articles article.")
+
+        self.calcWidgets["Efficiency"].setToolTip("Change this and hit Enter to increase the number of articles appropriately.")
+        self.calcWidgets["Target"].setToolTip("This is the appropriate target for today's date.")
+
 
     def createEvents(self):
         """Calculator Row"""
@@ -97,16 +125,38 @@ class calculatorRow:
         self.calcWidgets["Description Type"].currentIndexChanged.connect(self.updateEfficiency)
         self.calcWidgets["Source"].currentIndexChanged.connect(self.updateEfficiency)
 
+        self.calcWidgets["Efficiency"].editingFinished.connect(self.updateQuantity)
+
+    def updateQuantity(self):
+        minimum_efficiency = float(self.calcWidgets["Efficiency"].value())
+        if self.target >0:
+            if minimum_efficiency >=self.efficiency:
+                if minimum_efficiency == self.efficiency:
+                    print "%f == %f"%(minimum_efficiency, self.efficiency)
+                else:
+                    print "%f > %f"%(minimum_efficiency, self.efficiency)
+
+                required_articles = int(math.ceil(self.target*minimum_efficiency/100))
+            else:
+                print "%f < %f"%(minimum_efficiency, self.efficiency)
+                required_articles = int(math.floor(self.target*minimum_efficiency/100))
+
+            print required_articles
+            self.calcWidgets["Quantity"].setValue(required_articles)
+        else:
+            self.alertMessage("Zero target!","No target, bub!")
 
     def updateEfficiency(self):
         """Calculator Row"""
-
         efficiency = self.getEfficiency()
         if efficiency is None:
-            efficiency_text = "No Target"
+            efficiency = 0
+            self.calcWidgets["Efficiency"].setStyleSheet("QDoubleSpinBox {background-color: #FF0000}")
+            self.calcWidgets["Efficiency"].setToolTip("This row has no defined efficiency!")
         else:
-            efficiency_text = "%.2f%%" % (efficiency)
-        self.calcWidgets["Efficiency"].setText(efficiency_text)
+            self.calcWidgets["Efficiency"].setStyleSheet("")    
+            self.calcWidgets["Efficiency"].setToolTip("Change this to increase the number of articles appropriately.")
+        self.calcWidgets["Efficiency"].setValue(efficiency)
    
     def populateTypeSource(self):
         """Calculator Row"""
@@ -183,24 +233,27 @@ class calculatorRow:
         request_date = datetime.date.today()
 
         target = float(MOSES.getTargetFor(self.userID, self.password, row, request_date))
+        self.target = target
 
         self.calcWidgets["Target"].setText("%s"%target)
 
         quantity = float(self.calcWidgets["Quantity"].value())
-        self.efficiency = (quantity*100.00/target) if target >0 else None
+        self.efficiency = (quantity*100.00/target) if target > 0 else None
         return self.efficiency
 
 class EfficiencyCalculator(QtGui.QDialog):
     """Class definition for the efficiency calculator."""
     def __init__(self, userID, password, category_tree=None):
         """Efficiency Calculator Initializer function."""
+        super(QtGui.QDialog, self).__init__()
         self.userID = userID
         self.password = password
         if category_tree is None:
             self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         else:
             self.category_tree = category_tree 
-        super(QtGui.QDialog, self).__init__()
+        self.retrieved_data = None
+        self.allow_paste = False
         self.calcList = []
         self.createWidgets()
         self.createLayouts()
@@ -238,7 +291,7 @@ class EfficiencyCalculator(QtGui.QDialog):
 
         self.finalLayout = QtGui.QVBoxLayout()
         self.finalLayout.addWidget(self.calc_table,1)
-        self.finalLayout.addWidget(self.finder_widget,1)
+        self.finalLayout.addWidget(self.finder_widget,2)
         self.finalLayout.addLayout(self.effLayout,0)
 
         self.setLayout(self.finalLayout)
@@ -247,12 +300,18 @@ class EfficiencyCalculator(QtGui.QDialog):
         """Efficiency Calculator."""
         #print "Entered the loop!"
         self.calcList.append(calculatorRow(self.userID, self.password, self.category_tree)) 
+        if self.allow_paste:
+            if self.retrieved_data is not None:
+                self.calcList[-1].setValues(self.retrieved_data)
+                self.retrieved_data = None
+                self.allow_paste = False
+            else:
+                self.alertMessage("Error", "There's no retrieved data.")
         #print "Printing Calc List", self.calcList
         row_count = int(self.calc_table.rowCount())
         self.calc_table.insertRow(0)
         row = 0
         column = 0
-
         for widget_name in self.headers:
             self.calc_table.setCellWidget(row, column, self.calcList[-1].calcWidgets[widget_name])
             column+=1
@@ -266,12 +325,28 @@ class EfficiencyCalculator(QtGui.QDialog):
         self.plusButton.clicked.connect(self.plusAction)
         self.refreshButton.clicked.connect(self.displayEfficiency)
         self.connectQuantityWidgets()
+        self.finder_widget.pickRow.connect(self.useRow)
+        self.calc_table.cellClicked.connect(self.tryPasting)
+
+    def useRow(self, row_dict):
+        self.alertMessage("Select Row","Click on any cell in a row to use the chosen attributes, or, if you like, you can add a new row that'll be populated with that category combination right away.")
+        self.retrieved_data = row_dict
+        self.allow_paste = True
+
+    def tryPasting(self, row, column):
+        if self.allow_paste:
+            if self.retrieved_data is not None:
+                self.calcList[(self.calc_table.rowCount()-1) - row].setValues(self.retrieved_data)
+                self.retrieved_data = None
+                self.allow_paste = False
+            else:
+                self.alertMessage("Error", "No retrieved data!")
 
 
     def setVisuals(self):
         """Efficiency Calculator."""
         functionName = sys._getframe().f_code.co_name
-        self.setWindowTitle("Efficiency Calculator: Driving What Drives You")
+        self.setWindowTitle("Efficiency Calculator: Ignorance is Knowledge")
         self.setWindowIcon(QtGui.QIcon('Images\PORK_Icon.png'))
         self.show()
 
