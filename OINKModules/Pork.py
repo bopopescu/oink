@@ -17,6 +17,7 @@ from Porker import Porker
 from PiggyBank import PiggyBank
 import OINKMethods as OINKM
 from ImageButton import ImageButton
+from ImageLabel import ImageLabel
 from Seeker import Seeker
 import MOSES
 from CategoryFinder import CategoryFinder
@@ -67,6 +68,12 @@ class Pork(QtGui.QMainWindow):
     def focusInEvent(self, event):
         print "Pork Focus in"
 
+    def showAbout(self):
+        title = "About OINK"
+        message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2015, by Vinay Keerthi. The  <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding the development."
+        QtGui.QMessageBox.about(self, title, message)
+
+
     def FocusOutEvent(self, event):
         print "Pork Focus out"
 
@@ -74,6 +81,22 @@ class Pork(QtGui.QMainWindow):
         """PORK Window."""
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
+
+        self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
+        self.bigbrother_icon = ImageLabel(os.path.join("Images","bigbrother.png"), 64, 64)
+        self.pork_icon = ImageLabel(os.path.join("Images","pork_logo.png"),64, 64)
+        self.v_icon = ImageButton(os.path.join("Images","v.png"),64,64)
+        self.fk_icon.setToolTip("Flipkart Content Team")
+        self.bigbrother_icon.setToolTip("Big Brother lied. Of course he did.")
+        self.pork_icon.setToolTip("All animals are created equal, but some animals are created more equal than others.")
+        self.v_icon.setToolTip("Remember, remember, the 5th of November.")
+        self.logos_layout = QtGui.QVBoxLayout()
+        self.logos_layout.addWidget(self.fk_icon,0)
+        self.logos_layout.addWidget(self.bigbrother_icon,0)
+        self.logos_layout.addWidget(self.pork_icon,0)
+        self.logos_layout.addWidget(self.v_icon,0)
+        self.logos_layout.addStretch(10)
+
         height, width = 32, 32
         self.calculator_button = ImageButton(os.path.join("Images","calculator.png"),height, width)
         self.calculator_button.setToolTip("Open the Efficiency calculator tool.")
@@ -95,15 +118,16 @@ class Pork(QtGui.QMainWindow):
         self.icon_panel.addWidget(self.leave_button,0)
         self.icon_panel.addWidget(self.relaxation_button,0)
         self.icon_panel.addWidget(self.project_button,0)
-        self.icon_panel.addStretch(10)
 
         self.piggybank = PiggyBank()
         #initialize Calendar
         self.workCalendar = WeekCalendar(self.userID, self.password)
-        self.workCalendar.setFixedSize(350,250)
+        self.workCalendar.setMinimumSize(350,350)
+        self.workCalendar.setMaximumHeight(350)
 
-        self.stats = QtGui.QGroupBox("My Performance")
+        self.stats = QtGui.QGroupBox("My Performance and Tools")
         self.status_bar = self.statusBar()
+        #self.status_bar.setMaximumWidth()
         self.status_bar.showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
         self.menu = self.menuBar()
         self.stats_table = QtGui.QTableWidget(0, 0, self)
@@ -121,7 +145,7 @@ class Pork(QtGui.QMainWindow):
 
         self.stats_table.setToolTip("This report displays your statistics for the last working date.\nIf you've selected a Monday, this will show you\nyour data for last Friday, provided you weren't on leave on that day.\nIf you were, it'll search for the date\non which you last worked and show you that.")
         self.stats_table.setFixedSize(300,160)
-        self.refresh_stats_button = QtGui.QPushButton("Refresh")
+        self.refresh_stats_button = ImageButton(os.path.join("Images","refresh.png"),24,24)
 
         self.stats_progress_bar = QtGui.QProgressBar()
         progressbar_style = """
@@ -136,21 +160,21 @@ class Pork(QtGui.QMainWindow):
                  width: 20px;
              }""" #05B8CC
         self.stats_progress_message = QtGui.QLabel("Awaiting signals.")
-        self.stats_progress_bar.setMaximumWidth(300)
-        self.stats_progress_message.setMaximumWidth(300)
-
-        self.stats_progress_message.setStyleSheet("QLabel { font-size: 10px }")
+        self.stats_progress_message.setStyleSheet("QLabel { font-size: 8px }")
         self.stats_progress = QtGui.QWidget()
         self.stats_progress_layout = QtGui.QGridLayout()
         self.stats_progress_layout.addWidget(self.refresh_stats_button,0,0,1,1)
         self.stats_progress_layout.addWidget(self.stats_progress_bar,0,1,1,3)
         self.stats_progress_layout.addWidget(self.stats_progress_message,0,1,1,3)
+        self.stats_progress_layout.setColumnStretch(0,0)
         self.stats_progress.setLayout(self.stats_progress_layout)
         self.stats_progress_bar.setRange(0,1)
         self.stats_progress_bar.setStyleSheet(progressbar_style)
         self.stats_layout = QtGui.QVBoxLayout()
+        self.stats_layout.addLayout(self.icon_panel,0)
         self.stats_layout.addWidget(self.stats_table)
         self.stats_layout.addWidget(self.stats_progress)
+        self.stats_layout.addStretch(3)
         self.stats.setLayout(self.stats_layout)
 
 
@@ -248,7 +272,7 @@ class Pork(QtGui.QMainWindow):
         
         form_fields_layout.addWidget(self.labelFSN,0,0)
         form_fields_layout.addWidget(self.lineEditFSN,0,1,1,3)
-        form_fields_layout.addWidget(self.category_finder, 1, 0, 1, 4, QtCore.Qt.AlignLeft)
+        form_fields_layout.addLayout(self.category_finder, 1, 0, 1, 4, QtCore.Qt.AlignLeft)
         form_fields_layout.addWidget(self.labelType,2,0)
         form_fields_layout.addWidget(self.comboBoxType,2,1)
         form_fields_layout.addWidget(self.labelSource,2,2)
@@ -284,20 +308,29 @@ class Pork(QtGui.QMainWindow):
         form_layout.addLayout(mode_control_buttons_layout,1)
         form_layout.addLayout(form_fields_layout,0)
         
-        self.form = QtGui.QWidget()
+        self.form = QtGui.QGroupBox("Piggy Bank Form")
         self.form.setLayout(form_layout)
 
+        calendar_and_icons = QtGui.QGroupBox("My Work Calendar")
+        calendars_and_icons_layout = QtGui.QVBoxLayout()
+        calendars_and_icons_layout.addWidget(self.workCalendar,3)
+        calendar_and_icons.setLayout(calendars_and_icons_layout)
         #Create the piggy bank widget and layout.
-        self.piggy_bank_calendar_and_report_layout = QtGui.QGridLayout()
-        self.piggy_bank_calendar_and_report_layout.addWidget(self.workCalendar,0,0,2,2)
-        self.piggy_bank_calendar_and_report_layout.addWidget(self.stats,0,2,2,2)
-        self.piggy_bank_calendar_and_report_layout.addWidget(self.form,0,4,2,2)
-        self.piggy_bank_calendar_and_report_layout.addWidget(self.piggybank,2,0,2,6)
+        top_row = QtGui.QHBoxLayout()
+        top_row.addLayout(self.logos_layout,0)
+        top_row.addWidget(calendar_and_icons,0, QtCore.Qt.AlignLeft)
+        top_row.addWidget(self.stats,0, QtCore.Qt.AlignHCenter)
+        top_row.addWidget(self.form,1, QtCore.Qt.AlignLeft)
 
+        self.piggy_bank_calendar_and_report_layout = QtGui.QGridLayout()
+        self.piggy_bank_calendar_and_report_layout.addLayout(top_row,0,0,2,6, QtCore.Qt.AlignLeft)
+        self.piggy_bank_calendar_and_report_layout.addWidget(self.piggybank,2,0,2,6)
+        self.piggy_bank_calendar_and_report_layout.setColumnStretch(0,0)
+        self.piggy_bank_calendar_and_report_layout.setRowStretch(0,0)
+        self.piggy_bank_calendar_and_report_layout.setColumnStretch(0,0)
         #create the final layout.
         self.finalLayout = QtGui.QGridLayout()
         self.finalLayout.addWidget(self.menu,0,0,1,5)
-        self.finalLayout.addLayout(self.icon_panel,1,0,1,5)
         self.finalLayout.addLayout(self.piggy_bank_calendar_and_report_layout,2,0,5,5)
         self.finalLayout.addWidget(self.efficiencyProgress,7,0,1,5)
         self.finalLayout.addWidget(self.status_bar,8,0,2,5, QtCore.Qt.AlignTop)
@@ -328,11 +361,11 @@ class Pork(QtGui.QMainWindow):
         if completed:
             #print "Completed one porker cycle."
             self.stats_progress_bar.setRange(0,1)
-            self.stats_progress_message.setText("Last Updated at %s" % datetime.datetime.strftime(datetime.datetime.now(),"%H:%M:%S"))
+            self.stats_progress_message.setText(" Last Updated at %s" % datetime.datetime.strftime(datetime.datetime.now(),"%H:%M:%S"))
         else:
             #print "Porker at work. Message : ", activity
             self.stats_progress_bar.setRange(0,0)
-            self.stats_progress_message.setText("\t%s ETA: %s" %(activity, datetime.datetime.strftime(eta,"%H:%M")))
+            self.stats_progress_message.setText(" %s\n ETA: %s" %(activity, datetime.datetime.strftime(eta,"%H:%M")))
 
     def keyPressEvent(self, e):
         """PORK Window: Found this code online. Go through it and try to improve it."""
@@ -477,6 +510,7 @@ class Pork(QtGui.QMainWindow):
         self.relaxation_button.clicked.connect(self.openRelaxationTool)
         self.project_button.clicked.connect(self.openProjectManager)
         self.category_finder.pickRow.connect(self.setFormValues)
+        self.v_icon.clicked.connect(self.showAbout)
 
     def setFormValues(self, values_dict):
         self.comboBoxBU.setCurrentIndex(self.comboBoxBU.findText(values_dict["BU"]))

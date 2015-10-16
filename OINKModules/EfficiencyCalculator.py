@@ -13,11 +13,12 @@ from CategoryFinder import CategoryFinder
 class calculatorRow:
     """Class definition for a single row of the efficiency calculator."""
     
-    def __init__(self, userID, password, category_tree):
+    def __init__(self, userID, password, category_tree, target_date):
         """Calculator Row"""
         self.userID = userID
         self.password = password
         self.category_tree = category_tree
+        self.target_date = target_date
         self.efficiency = 0.0
         self.createWidgets()
         self.populateTypeSource()
@@ -130,20 +131,13 @@ class calculatorRow:
         minimum_efficiency = float(self.calcWidgets["Efficiency"].value())
         if self.target >0:
             if minimum_efficiency >=self.efficiency:
-                if minimum_efficiency == self.efficiency:
-                    print "%f == %f"%(minimum_efficiency, self.efficiency)
-                else:
-                    print "%f > %f"%(minimum_efficiency, self.efficiency)
-
                 required_articles = int(math.ceil(self.target*minimum_efficiency/100))
             else:
-                print "%f < %f"%(minimum_efficiency, self.efficiency)
                 required_articles = int(math.floor(self.target*minimum_efficiency/100))
 
-            print required_articles
             self.calcWidgets["Quantity"].setValue(required_articles)
         else:
-            self.alertMessage("Zero target!","No target, bub!")
+            self.alertMessage("No target!","That row doesn't have a target. It could be that you've not filled all the options, or there's no target defined in the category tree on the server.")
 
     def updateEfficiency(self):
         """Calculator Row"""
@@ -229,9 +223,7 @@ class calculatorRow:
             "Sub-Category": str(self.calcWidgets["Sub-Category"].currentText()),
             "Vertical": str(self.calcWidgets["Vertical"].currentText())
         }
-        request_date = datetime.date.today()
-
-        target = float(MOSES.getTargetFor(self.userID, self.password, row, request_date))
+        target = float(MOSES.getTargetFor(self.userID, self.password, row, self.target_date))
         self.target = target
 
         self.calcWidgets["Target"].setText("%s"%target)
@@ -251,6 +243,7 @@ class EfficiencyCalculator(QtGui.QDialog):
             self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         else:
             self.category_tree = category_tree 
+        self.target_date = datetime.date.today()
         self.retrieved_data = None
         self.allow_paste = False
         self.calcList = []
@@ -266,14 +259,25 @@ class EfficiencyCalculator(QtGui.QDialog):
         self.headers = ["Description Type","Source"] + self.category_tree_headers + ["Quantity","Efficiency","Target"]
         self.calc_table.setColumnCount(len(self.headers))
         self.calc_table.setMinimumWidth(1200)
+        self.date_label = QtGui.QLabel("Target Date:")
+        self.date_picker = QtGui.QDateEdit()
+        self.date_picker.setMinimumDate(QtCore.QDate(datetime.date(2015,1,1)))
+        self.date_picker.setDate(QtCore.QDate(datetime.date.today()))
+        self.date_picker.setCalendarPopup(True)
+        self.date_picker.setDisplayFormat('MMM d yyyy')
         self.addCalcRow()
-
-        
         self.plusButton = QtGui.QPushButton("Add Another Type of Article")
         #self.findIdenLabel = QtGui.QLabel("Find a vertical")
         self.refreshButton = QtGui.QPushButton("Recalculate Efficiency")
-        self.totEffLabel = QtGui.QLabel("<font size=3 face=Georgia><b>Total Efficiency:</b></font>")
-        self.effScoreLabel = QtGui.QLabel("<font size=3 face=Georgia><b>00.00%</b></font>")
+        self.totEffLabel = QtGui.QLabel("Total Efficiency:")
+        self.effScoreLabel = QtGui.QLabel("00.00%")
+        label_style_sheet = """
+            QLabel {
+                    font: 16px;
+                    font-weight: bold;
+            }"""
+        self.totEffLabel.setStyleSheet(label_style_sheet)
+        self.effScoreLabel.setStyleSheet(label_style_sheet)
 
         self.finder_widget = CategoryFinder(self.category_tree, self.category_tree_headers)
         #Finder
@@ -281,24 +285,24 @@ class EfficiencyCalculator(QtGui.QDialog):
 
     def createLayouts(self):
         """Efficiency Calculator."""
-        self.effLayout = QtGui.QHBoxLayout()
-        self.effLayout.addWidget(self.plusButton)
-        self.effLayout.addWidget(self.refreshButton)
-        self.effLayout.addStretch(2)
-        self.effLayout.addWidget(self.totEffLabel)
-        self.effLayout.addWidget(self.effScoreLabel)
-
+        efficiency_and_date_layout = QtGui.QHBoxLayout()
+        efficiency_and_date_layout.addWidget(self.date_label,0,QtCore.Qt.AlignLeft)
+        efficiency_and_date_layout.addWidget(self.date_picker,0,QtCore.Qt.AlignLeft)
+        efficiency_and_date_layout.addWidget(self.plusButton,0)
+        efficiency_and_date_layout.addWidget(self.refreshButton,0)
+        efficiency_and_date_layout.addStretch(2)
+        efficiency_and_date_layout.addWidget(self.totEffLabel, 0, QtCore.Qt.AlignRight)
+        efficiency_and_date_layout.addWidget(self.effScoreLabel, 0, QtCore.Qt.AlignRight)
         self.finalLayout = QtGui.QVBoxLayout()
+        self.finalLayout.addLayout(self.finder_widget,0)
         self.finalLayout.addWidget(self.calc_table,1)
-        self.finalLayout.addWidget(self.finder_widget,2)
-        self.finalLayout.addLayout(self.effLayout,0)
-
+        self.finalLayout.addLayout(efficiency_and_date_layout,0)
         self.setLayout(self.finalLayout)
 
     def addCalcRow(self):
         """Efficiency Calculator."""
         #print "Entered the loop!"
-        self.calcList.append(calculatorRow(self.userID, self.password, self.category_tree)) 
+        self.calcList.append(calculatorRow(self.userID, self.password, self.category_tree, self.target_date)) 
         if self.allow_paste:
             if self.retrieved_data is not None:
                 self.calcList[-1].setValues(self.retrieved_data)
@@ -317,6 +321,9 @@ class EfficiencyCalculator(QtGui.QDialog):
         self.calc_table.setHorizontalHeaderLabels(self.headers)
         self.calc_table.resizeRowsToContents()
         self.calc_table.resizeColumnsToContents()
+        self.calc_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.calc_table.horizontalHeader().setStretchLastSection(True)
+        self.calc_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
 
     
     def createEvents(self):
@@ -326,6 +333,13 @@ class EfficiencyCalculator(QtGui.QDialog):
         self.connectQuantityWidgets()
         self.finder_widget.pickRow.connect(self.useRow)
         self.calc_table.cellClicked.connect(self.tryPasting)
+        self.date_picker.dateChanged.connect(self.changeDate)
+
+    def changeDate(self):
+        self.target_date = self.date_picker.date().toPyDate()
+        for calc_row in self.calcList:
+            calc_row.target_date = self.target_date
+        self.displayEfficiency()
 
     def useRow(self, row_dict):
         self.alertMessage("Select Row","Click on any cell in a row to use the chosen attributes, or, if you like, you can add a new row that'll be populated with that category combination right away.")

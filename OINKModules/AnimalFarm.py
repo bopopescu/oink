@@ -4,7 +4,7 @@ import random, time
 class AnimalFarm(QtCore.QThread):
     quoteSent = QtCore.pyqtSignal(str)
 
-    def __init__(self, width=100, parent=None):
+    def __init__(self, width=500, parent=None):
         super(AnimalFarm, self).__init__(parent)
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
@@ -40,7 +40,7 @@ class AnimalFarm(QtCore.QThread):
                     shorten = quote_part    
                 #print "Sending ", quote_part
                 self.quoteSent.emit(shorten)
-                time.sleep(0.1)
+                time.sleep(0.07)
             time.sleep(5)
         self.mutex.lock()
 
