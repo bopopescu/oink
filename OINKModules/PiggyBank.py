@@ -7,6 +7,15 @@ class PiggyBank(QtGui.QTableWidget):
     def __init__(self):
         QtGui.QTableWidget.__init__(self, 0 ,0)
         self.setStyleSheet("gridline-color: rgb(0, 0, 0)")
+        header_labels = MOSES.getPiggyBankKeys()
+        self.setColumnCount(len(header_labels))
+        self.setHorizontalHeaderLabels(header_labels)
+        self.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.verticalHeader().setStretchLastSection(False)
+        self.verticalHeader().setVisible(True)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setVisible(True)       
 
     def setData(self, data_list, targets_data):
         self.data_list = data_list
@@ -18,13 +27,13 @@ class PiggyBank(QtGui.QTableWidget):
         self.setRowCount(0)
         row_index = 0
         header_labels = MOSES.getPiggyBankKeys()
+        self.setColumnCount(len(header_labels))
         for row in self.data_list:
             #print "Printing:"
             #print row
             #print type(row)
             #print "Row %d" % row_index #debug
             if len(row) > 0:
-                self.setColumnCount(len(row))
                 column_index = 0
                 self.insertRow(row_index)
                 #get the keys from the PiggyBank Key list.

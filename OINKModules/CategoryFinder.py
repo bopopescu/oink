@@ -19,12 +19,12 @@ class CategoryFinder(QtGui.QWidget):
         self.find_button.clicked.connect(self.findIdentifier)
 
     def createUI(self):
-        self.finder_label = QtGui.QLabel("Search Based On:")
+        self.finder_label = QtGui.QLabel("Find Vertical:")
         self.search_criteria_combo_box = QtGui.QComboBox()
         self.search_criteria_combo_box.addItems(["Any"] + self.category_tree_headers)
         
         self.search_string_line_edit = QtGui.QLineEdit()
-        self.search_string_line_edit.setMinimumWidth(200)
+        self.search_string_line_edit.setMinimumWidth(150)
 
         self.find_button = QtGui.QPushButton("Find")
 
@@ -33,22 +33,22 @@ class CategoryFinder(QtGui.QWidget):
         self.result_table.setColumnCount(len(self.category_tree_headers)+ 1)
         self.result_table.setHorizontalHeaderLabels(self.category_tree_headers+["Use Button"])
         self.result_table.resizeColumnsToContents()
+        self.result_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.result_table.horizontalHeader().setStretchLastSection(True)
+        self.result_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.result_table.verticalHeader().setStretchLastSection(True)
+        self.result_table.setVisible(False)
         self.use_buttons = []
 
         self.find_widget_layout = QtGui.QGridLayout()
 
-        self.find_widget_layout.addWidget(self.finder_label,0,0 )
+        self.find_widget_layout.addWidget(self.finder_label,0,0, 1, 1, QtCore.Qt.AlignLeft)
         self.find_widget_layout.addWidget(self.search_criteria_combo_box,0, 1)
         self.find_widget_layout.addWidget(self.search_string_line_edit,0, 2, 1, 4)
         self.find_widget_layout.addWidget(self.find_button,0,6,1,1)
-        self.find_widget_layout.addWidget(self.result_table,1,0,2,7)
+        #self.find_widget_layout.addWidget(self.result_table,1,0,2,7)
 
-        self.find_group = QtGui.QGroupBox("Find a Vertical")
-        self.find_group.setLayout(self.find_widget_layout)
-
-        layout = QtGui.QHBoxLayout()
-        layout.addWidget(self.find_group)
-        self.setLayout(layout)
+        self.setLayout(self.find_widget_layout)
 
     def alertMessage(self, title, message):
         """Vindaloo."""
@@ -107,6 +107,16 @@ class CategoryFinder(QtGui.QWidget):
             self.result_table.setHorizontalHeaderLabels(self.category_tree_headers+["Use Button"])
             self.result_table.resizeColumnsToContents()
             self.result_table.resizeRowsToContents()
+            self.result_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+            self.result_table.horizontalHeader().setStretchLastSection(True)
+            self.result_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+            self.result_table.verticalHeader().setStretchLastSection(True)
+        self.result_table.setVisible(True)
+        self.result_table.show()
+        self.result_table.setWindowTitle("Search Results")
+        self.result_table.setMinimumWidth(600)
+
 
     def clickUse(self, count):
         self.pickRow.emit(self.result_dataframe.xs(count)[self.category_tree_headers].to_dict())
+        self.result_table.setVisible(False)
