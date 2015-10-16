@@ -21,6 +21,7 @@ from ImageLabel import ImageLabel
 from Seeker import Seeker
 import MOSES
 from CategoryFinder import CategoryFinder
+from Player import Player
 
 class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
@@ -32,6 +33,7 @@ class Pork(QtGui.QMainWindow):
         #store the variables so they are accessible elsewhere in this class.
         self.userID = userID
         self.password = password
+        self.player = Player()
         MOSES.createLoginStamp(self.userID, self.password)
         self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         self.clip = QtGui.QApplication.clipboard()
@@ -83,7 +85,7 @@ class Pork(QtGui.QMainWindow):
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
 
         self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
-        self.bigbrother_icon = ImageLabel(os.path.join("Images","bigbrother.png"), 64, 64)
+        self.bigbrother_icon = ImageButton(os.path.join("Images","bigbrother.png"), 64, 64)
         self.pork_icon = ImageLabel(os.path.join("Images","pork_logo.png"),64, 64)
         self.v_icon = ImageButton(os.path.join("Images","v.png"),64,64)
         self.fk_icon.setToolTip("Flipkart Content Team")
@@ -511,6 +513,11 @@ class Pork(QtGui.QMainWindow):
         self.project_button.clicked.connect(self.openProjectManager)
         self.category_finder.pickRow.connect(self.setFormValues)
         self.v_icon.clicked.connect(self.showAbout)
+        self.bigbrother_icon.clicked.connect(self.playTMNT)
+
+    def playTMNT(self):
+        self.player.allow_play = True
+                
 
     def setFormValues(self, values_dict):
         self.comboBoxBU.setCurrentIndex(self.comboBoxBU.findText(values_dict["BU"]))
