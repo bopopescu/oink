@@ -22,6 +22,7 @@ from Seeker import Seeker
 import MOSES
 from CategoryFinder import CategoryFinder
 from Player import Player
+from TNAViewer import TNAViewer
 
 class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
@@ -541,7 +542,7 @@ class Pork(QtGui.QMainWindow):
         self.alertMessage("Feature unavailable","The Relaxation tool is still under development")
 
     def openTNA(self):
-        self.alertMessage("Feature unavailable","The TNA module is still under development")
+        self.tna_viewer = TNAViewer(self.userID, self.password)
 
     def notify(self,title,message):
         """PORK Window: Method to show a tray notification"""

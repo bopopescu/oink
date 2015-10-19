@@ -41,7 +41,7 @@ class WeekCalendar(QtGui.QCalendarWidget):
             orange from 25% to 75%, a mix of both from 75% to 99.99% and green at and above 100%. 
         """
         #start inner function
-        def paintCellThreaded(efficiency):
+        def paintCellThreaded(efficiency, cfm, gseo):
             gradient = QtGui.QLinearGradient(progress_origin, progress_end)
             gradient.setSpread(QtGui.QGradient.PadSpread)
             sub_rect = QtCore.QRect(sub_rect_topleft, sub_rect_bottomright)
@@ -117,13 +117,15 @@ class WeekCalendar(QtGui.QCalendarWidget):
             status = self.datesData[date_][0]
             relaxation = self.datesData[date_][1]
             efficiency = self.datesData[date_][2]
+            cfm = self.datesData[date_][3]
+            gseo = self.datesData[date_][4]
             if status == "Working":
                 #status, relaxation = MOSES.getWorkingStatus(self.userID, self.password, date.toPyDate())
                 if relaxation >= 0.0:
                     #efficiency = MOSES.getEfficiencyFor(self.userID, self.password, date.toPyDate()) 
-                    paintCellThreaded(efficiency)
+                    paintCellThreaded(efficiency, cfm, gseo)
                 elif relaxation > 0.0:
-                    paintCellThreaded(efficiency)
+                    paintCellThreaded(efficiency, cfm, gseo)
                 else:
                     painter.fillRect(rect, disabled_color)
             elif status == "Leave":

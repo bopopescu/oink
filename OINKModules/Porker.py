@@ -133,8 +133,10 @@ class Porker(QtCore.QThread):
                 efficiency = 0.0
             counter += 1
             eta = MOSES.getETA(start_time, counter, total)
+            cfm = MOSES.getCFMFor(self.userID, self.password, each_date)
+            gseo = MOSES.getGSEOFor(self.userID, self.password, each_date)
             self.sendActivity.emit("Refreshing Current Calendar Page (%d/%d)."%(counter,total), eta, False)
-            self.current_datesData.update({each_date:[status, relaxation, efficiency]})
+            self.current_datesData.update({each_date:[status, relaxation, efficiency, cfm, gseo]})
         if self.current_datesData != self.old_datesData:
             self.sendDatesData.emit(self.current_datesData)
             self.sendActivity.emit("Compiled Calendar Dates Data. Moving on to next process.", MOSES.getETA(self.start_time,1,3), False)
