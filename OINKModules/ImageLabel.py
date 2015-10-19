@@ -16,7 +16,7 @@ class ImageLabel(QtGui.QLabel):
             self.setText("No image.")
             self.setFixedSize(150,20)
 
-    def showImage(image_path, height, width):
+    def showImage(self, image_path, height, width):
         self.setText("")
         type = os.path.splitext(os.path.basename(str(image_path)))[1]
         image_pixmap = QtGui.QPixmap(image_path, type)

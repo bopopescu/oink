@@ -3717,6 +3717,18 @@ def getFSNListWithoutUploadedType():
     random.shuffle(fsn_list)
     return fsn_list
 
+def getWriterAndEditorData(user_id, password, query_date):
+    """for a given date, this method returns a dataframe mapping with writer and editors for columns. 
+    It retains the data of who edited who."""
+    import pandas as pd
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT `Writer Name`, `Editor Name` from `rawdata` WHERE `Audit Date`<='%s';"""%query_date
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return pd.DataFrame.from_records(data).drop_duplicates()
+
 def getFeedbackBetweenDates(user_id, password, start_date, end_date=None, entity_type=None):
     if end_date is None:
         end_date = start_date
@@ -3754,6 +3766,7 @@ def getFeedbackBetweenDates(user_id, password, start_date, end_date=None, entity
     conn.close()
     return {"yes":yes_count, "total":total_count, "data": all_data}
 
+
 def getWritersListForEditor(user_id, password, editor_name=None):
     conn = getOINKConnector(user_id, password, 1)
     cursor = conn.cursor()
@@ -3790,6 +3803,15 @@ def getWritersListForEditor(user_id, password, editor_name=None):
     writers_list = list(set(writers_list))
     return writers_list
 
+def getAuditParametersData(user_id, password, query_date):
+    import pandas as pd
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT `Parameter Class`, `Parameter Class Index`, `Column Descriptions` from `auditscoresheet` where `Revision Date`= (SELECT MAX(`Revision Date`) from `auditscoresheet` WHERE `Revision Date`<='%s');"""%query_date
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return pd.DataFrame.from_records(data).drop_duplicates()
     
 if __name__ == "__main__":
     print "Never call Moses mainly."

@@ -40,14 +40,14 @@ class Pork(QtGui.QMainWindow):
         self.clip = QtGui.QApplication.clipboard()
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
         
-        self.mapThreads()
 
         #Create the widgets and arrange them as needed.
         self.mainWidget = QtGui.QWidget()
         self.setCentralWidget(self.mainWidget)
+        self.widgetGenerator()
+        self.mapThreads()
         self.quote_thread = AnimalFarm()
         self.quote_thread.quoteSent.connect(self.updateStatusBar)
-        self.widgetGenerator()
         self.widgetLayout()
         #Create all visual and usability aspects of the program.
         self.mapToolTips()

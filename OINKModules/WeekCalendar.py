@@ -117,8 +117,12 @@ class WeekCalendar(QtGui.QCalendarWidget):
             status = self.datesData[date_][0]
             relaxation = self.datesData[date_][1]
             efficiency = self.datesData[date_][2]
-            cfm = self.datesData[date_][3]
-            gseo = self.datesData[date_][4]
+            if len(self.datesData[date_])>3:
+                cfm = self.datesData[date_][3]
+                gseo = self.datesData[date_][4]
+            else:
+                cfm = 0
+                gseo = 0
             if status == "Working":
                 #status, relaxation = MOSES.getWorkingStatus(self.userID, self.password, date.toPyDate())
                 if relaxation >= 0.0:
