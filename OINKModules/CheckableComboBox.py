@@ -2,6 +2,7 @@ from PyQt4 import QtGui, QtCore
 import sys, os
 
 class CheckableComboBox(QtGui.QComboBox):
+    changedSelection = QtCore.pyqtSignal(bool)
     def __init__(self, label):
         super(CheckableComboBox, self).__init__()
         self.label = label
@@ -24,6 +25,7 @@ class CheckableComboBox(QtGui.QComboBox):
                 item.setCheckState(QtCore.Qt.Unchecked)
             else:
                 item.setCheckState(QtCore.Qt.Checked)
+            self.changedSelection.emit(True)
 
     def reset(self):
         checked_items = len(self.getCheckedItems())

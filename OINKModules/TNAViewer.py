@@ -16,7 +16,10 @@ from CategoryFinder import CategoryFinder
 
 class CategorySelector(QtGui.QWidget):
     def __init__(self, category_tree, *args, **kwargs):
-        pass
+        super(CategorySelector,self).__init__(*args, **kwargs)
+        self.createUI()
+        self.mapEvents()
+        
 
 class FilterForm(QtGui.QGroupBox):
     def __init__(self, user_id, password, color, category_tree, viewer_level, *args, **kwargs):
