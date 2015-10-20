@@ -69,7 +69,7 @@ class Porker(QtCore.QThread):
         self.sentStatsData = False #Allow emitting this.
         while True:
             self.start_time = datetime.datetime.now()
-            #print "Running some mode?"
+            #print "Running mode:", self.mode
             if self.mode in [0, 1, 2]:
                 self.modes[self.mode]()
                 self.sendActivity.emit("Completed",datetime.datetime.now(), True)
@@ -87,21 +87,29 @@ class Porker(QtCore.QThread):
             self.broadcastDatesData()
 
     def broadcastEfficiency(self):
+        #print "I'm in broadcastEfficiency"
         if self.start_date == self.end_date:
             if self.start_date in self.current_datesData.keys():
                 #If this has been already calculated, why bother?
                 self.current_efficiency = self.current_datesData[self.start_date][2]
             else:
+                #print "Here0"
                 self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
-
+                #print "Here00"
+        #print "Here"
         self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
+        #print "Here2"
         if self.old_efficiency != self.current_efficiency:
             #Since the efficiency seems to have changed, resend all.
+            #print "Here3"
             self.sentDatesData = False
             self.sentStatsData = False
             self.sendEfficiency.emit(self.current_efficiency)
             self.old_efficiency = self.current_efficiency
+            #print "Here4"
             self.sendActivity.emit("Refreshed efficiency. Moving on to next process.", MOSES.getETA(self.start_time, 2, 3), False)
+        #print "I'm leaving broadcastEfficiency"
+
             
     def broadcastDatesData(self):
         #print "Running mode 1"
@@ -120,6 +128,7 @@ class Porker(QtCore.QThread):
         start_time = datetime.datetime.now()
         total = len(self.dates_list)
         counter = 0
+        #print self.dates_list
         for each_date in self.dates_list:
             if MOSES.isWorkingDay(self.userID, self.password, each_date):
                 status, relaxation = MOSES.getWorkingStatus(self.userID, self.password, each_date)
@@ -135,6 +144,7 @@ class Porker(QtCore.QThread):
             eta = MOSES.getETA(start_time, counter, total)
             cfm = MOSES.getCFMFor(self.userID, self.password, each_date)
             gseo = MOSES.getGSEOFor(self.userID, self.password, each_date)
+            #print cfm, gseo
             self.sendActivity.emit("Refreshing Current Calendar Page (%d/%d)."%(counter,total), eta, False)
             self.current_datesData.update({each_date:[status, relaxation, efficiency, cfm, gseo]})
         if self.current_datesData != self.old_datesData:

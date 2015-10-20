@@ -12,12 +12,120 @@ from ProgressBar import ProgressBar
 from ImageLabel import ImageLabel
 from CheckableComboBox import CheckableComboBox
 from QColorButton import QColorButton
+from CategoryFinder import CategoryFinder
+
+class CategorySelector(QtGui.QWidget):
+    def __init__(self, category_tree, *args, **kwargs):
+        pass
+
+class FilterForm(QtGui.QGroupBox):
+    def __init__(self, user_id, password, color, category_tree, viewer_level, *args, **kwargs):
+        super(FilterForm, self).__init__(*args, **kwargs)
+        self.user_id = user_id
+        self.password = password
+        self.category_tree = category_tree
+        self.viewer_level = viewer_level
+        #the viewer level controls the scope of the program.
+        #A Level 0 limits the visibility to the current user, and shows the team's quality in comparison.
+        #A level 1 allows choosing the users.
+        self.createUI()
+        self.mapEvents()
+
+    def createUI(self):
+        self.writer_label = QtGui.QLabel("Writer(s):")
+        self.writer_combobox = CheckableComboBox("Writer")
+        self.editor_label = QtGui.QLabel("Editor(s):")
+        self.editor_combobox = CheckableComboBox("Editors")
+        self.pd_button = QtGui.QPushButton("PD")
+        self.rpd_button = QtGui.QPushButton("RPD")
+        self.seo_button = QtGui.QPushButton("SEO")
+        self.all_button = QtGui.QPushButton("All")
+        self.date_field_label = QtGui.QLabel("Date Range:")
+        self.date_field_start = QtGui.QDateEdit()
+        self.date_field_end = QtGui.QDateEdit()
+        self.date_field_start.setMinimumDate(datetime.date(2015,1,1))
+        self.date_field_start.setMaximumDate(datetime.date.today())
+        self.date_field_start.setDate(datetime.date.today())
+        self.date_field_start.setCalendarPopup(True)
+        self.date_field_end.setMinimumDate(datetime.date(2015,1,1))
+        self.date_field_end.setMaximumDate(datetime.date.today())
+        self.date_field_end.setDate(datetime.date.today())
+        self.date_field_end.setCalendarPopup(True)
+        self.graph_color_label = QtGui.QLabel("Graph Color")
+        self.graph_color = QColorButton()
+
+        layout = QtGui.QGridLayout()
+        alignment = QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft
+        row = 0
+        column = 0
+        row_width = 1
+        column_width = 1
+        layout.addWidget(self.writer_label, row, column, row_width, column_width)
+        column += column_width
+        column_width = 2
+        layout.addWidget(self.writer_combobox, row, column, row_width, column_width)
+        column += column_width
+        column_width = 1
+        layout.addWidget(self.editor_label, row, column, row_width, column_width)
+        column += column_width
+        column_width = 2
+        layout.addWidget(self.editor_combobox, row, column, row_width, column_width)
+        column += column_width
+        column_width=1
+        layout.addWidget(self.graph_color_label, row, column, row_width, column_width)
+        column += column_width
+        column_width=1
+        layout.addWidget(self.graph_color, row, column, row_width, column_width)
+        row += row_width
+        column = 0
+        row_width = 1
+        column_width = 1
+        layout.addWidget(self.pd_button, row, column, row_width, column_width)
+        column+=column_width
+        layout.addWidget(self.rpd_button, row, column, row_width, column_width)
+        column+=column_width
+        layout.addWidget(self.seo_button, row, column, row_width, column_width)
+        column+=column_width
+        layout.addWidget(self.all_button, row, column, row_width, column_width)
+        column+=column_width
+        layout.addWidget(self.date_field_label, row, column, row_width, column_width)
+        column+=column_width
+        column_width = 2
+        layout.addWidget(self.date_field_start, row, column, row_width, column_width)
+        column+=column_width
+        layout.addWidget(self.date_field_end, row, column, row_width, column_width)
+        self.setLayout(layout)
+
+    def mapEvents(self):
+        pass
+
+    def getFilters(self):
+        pass
+
+    def populateFilter(self):
+        pass
+
+    def populateEditorAndWritersList(self):
+        comparison_date = self.date_field_end.date().toPyDate()
+        self.writer_and_editor_dataframe = MOSES.getWriterAndEditorData(self.user_id, self.password, comparison_date)
+        self.writers_list = list(set(self.writer_and_editor_dataframe["Writer Name"]))
+        self.editors_list = list(set(self.writer_and_editor_dataframe["Editor Name"]))
+        self.writers_list.sort()
+        self.editors_list.sort()
+        self.writer_combobox.clear()
+        self.writer_combobox.addItems(self.writers_list)
+        self.editor_combobox.clear()
+        self.editor_combobox.addItems(self.editors_list)
+    def getDates(self):
+        return self.date_field_start.date().toPyDate(), self.date_field_end.date().toPyDate()
+
 
 class TNAViewer(QtGui.QWidget):
-    def __init__(self, user_id, password, viewer_level=None, *args, **kwargs):
+    def __init__(self, user_id, password, category_tree, viewer_level=None, *args, **kwargs):
         super(TNAViewer, self).__init__(*args, **kwargs)
         self.user_id = user_id
         self.password = password
+        self.category_tree = category_tree
         #the viewer level controls the scope of the program.
         #A Level 0 limits the visibility to the current user, and shows the team's quality in comparison.
         #A level 1 allows choosing the users.
@@ -28,37 +136,23 @@ class TNAViewer(QtGui.QWidget):
         self.createUI()
         self.mapEvents()
         self.initiate()
+
     def initiate(self):
         self.populateInputEditorAndWritersList()
         self.populateComparisonEditorAndWritersList()
         self.populateAuditParameters()
 
     def populateInputEditorAndWritersList(self):
-        input_date = self.input_date_field_end.date().toPyDate()
-        self.input_writer_and_editor_dataframe = MOSES.getWriterAndEditorData(self.user_id, self.password, input_date)
-        self.input_writers_list = list(set(self.input_writer_and_editor_dataframe["Writer Name"]))
-        self.input_editors_list = list(set(self.input_writer_and_editor_dataframe["Editor Name"]))
-        self.input_writers_list.sort()
-        self.input_editors_list.sort()
-        self.input_writer_combobox.clear()
-        self.input_writer_combobox.addItems(self.input_writers_list)
-        self.input_editor_combobox.clear()
-        self.input_editor_combobox.addItems(self.input_editors_list)
+        self.input_data_set_group.populateEditorAndWritersList()
+
+
 
     def populateComparisonEditorAndWritersList(self):
-        comparison_date = self.comparison_date_field_end.date().toPyDate()
-        self.comparison_writer_and_editor_dataframe = MOSES.getWriterAndEditorData(self.user_id, self.password, comparison_date)
-        self.comparison_writers_list = list(set(self.comparison_writer_and_editor_dataframe["Writer Name"]))
-        self.comparison_editors_list = list(set(self.comparison_writer_and_editor_dataframe["Editor Name"]))
-        self.comparison_writers_list.sort()
-        self.comparison_editors_list.sort()
-        self.comparison_writer_combobox.clear()
-        self.comparison_writer_combobox.addItems(self.comparison_writers_list)
-        self.comparison_editor_combobox.clear()
-        self.comparison_editor_combobox.addItems(self.comparison_editors_list)
+        self.comparison_data_set_group.populateEditorAndWritersList()
+
 
     def populateAuditParameters(self):
-        parameters_date = self.input_date_field_start.date().toPyDate()
+        parameters_date = self.input_data_set_group.getDates()[0]
         self.audit_parameters_dataframe = MOSES.getAuditParametersData(self.user_id, self.password, parameters_date)
         self.audit_parameters = self.audit_parameters_dataframe["Column Descriptions"]
         self.parameters_combobox.clear()
@@ -66,138 +160,8 @@ class TNAViewer(QtGui.QWidget):
 
     
     def createUI(self):
-        self.input_data_set_group = QtGui.QGroupBox("Input Data Set")
-
-        self.input_writer_label = QtGui.QLabel("Writer(s):")
-        self.input_writer_combobox = CheckableComboBox("Writer")
-        self.input_editor_label = QtGui.QLabel("Editor(s):")
-        self.input_editor_combobox = CheckableComboBox("Editors")
-        self.input_pd_button = QtGui.QPushButton("PD")
-        self.input_rpd_button = QtGui.QPushButton("RPD")
-        self.input_seo_button = QtGui.QPushButton("SEO")
-        self.input_all_button = QtGui.QPushButton("All")
-        self.input_date_field_label = QtGui.QLabel("Date Range:")
-        self.input_date_field_start = QtGui.QDateEdit()
-        self.input_date_field_end = QtGui.QDateEdit()
-        self.input_date_field_start.setMinimumDate(datetime.date(2015,1,1))
-        self.input_date_field_start.setMaximumDate(datetime.date.today())
-        self.input_date_field_start.setDate(datetime.date.today())
-        self.input_date_field_start.setCalendarPopup(True)
-        self.input_date_field_end.setMinimumDate(datetime.date(2015,1,1))
-        self.input_date_field_end.setMaximumDate(datetime.date.today())
-        self.input_date_field_end.setDate(datetime.date.today())
-        self.input_date_field_end.setCalendarPopup(True)
-        self.input_graph_color_label = QtGui.QLabel("Graph Color")
-        self.input_graph_color = QColorButton()
-
-        input_data_set_layout = QtGui.QGridLayout()
-        alignment = QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft
-        row = 0
-        column = 0
-        row_width = 1
-        column_width = 1
-        input_data_set_layout.addWidget(self.input_writer_label, row, column, row_width, column_width)
-        column += column_width
-        column_width = 2
-        input_data_set_layout.addWidget(self.input_writer_combobox, row, column, row_width, column_width)
-        column += column_width
-        column_width = 1
-        input_data_set_layout.addWidget(self.input_editor_label, row, column, row_width, column_width)
-        column += column_width
-        column_width = 2
-        input_data_set_layout.addWidget(self.input_editor_combobox, row, column, row_width, column_width)
-        column += column_width
-        column_width=1
-        input_data_set_layout.addWidget(self.input_graph_color_label, row, column, row_width, column_width)
-        column += column_width
-        column_width=1
-        input_data_set_layout.addWidget(self.input_graph_color, row, column, row_width, column_width)
-        row += row_width
-        column = 0
-        row_width = 1
-        column_width = 1
-        input_data_set_layout.addWidget(self.input_pd_button, row, column, row_width, column_width)
-        column+=column_width
-        input_data_set_layout.addWidget(self.input_rpd_button, row, column, row_width, column_width)
-        column+=column_width
-        input_data_set_layout.addWidget(self.input_seo_button, row, column, row_width, column_width)
-        column+=column_width
-        input_data_set_layout.addWidget(self.input_all_button, row, column, row_width, column_width)
-        column+=column_width
-        input_data_set_layout.addWidget(self.input_date_field_label, row, column, row_width, column_width)
-        column+=column_width
-        column_width = 2
-        input_data_set_layout.addWidget(self.input_date_field_start, row, column, row_width, column_width)
-        column+=column_width
-        input_data_set_layout.addWidget(self.input_date_field_end, row, column, row_width, column_width)
-        self.input_data_set_group.setLayout(input_data_set_layout)
-
-
-        self.comparison_data_set_group = QtGui.QGroupBox("Comparison Data Set")
-        self.comparison_writer_label = QtGui.QLabel("Writer(s):")
-        self.comparison_writer_combobox = CheckableComboBox("Writers")
-        self.comparison_editor_label = QtGui.QLabel("Editor(s):")
-        self.comparison_editor_combobox = CheckableComboBox("Editors")
-        self.comparison_pd_button = QtGui.QPushButton("PD")
-        self.comparison_rpd_button = QtGui.QPushButton("RPD")
-        self.comparison_seo_button = QtGui.QPushButton("SEO")
-        self.comparison_all_button = QtGui.QPushButton("All")
-        self.comparison_date_field_label = QtGui.QLabel("Date Range:")
-        self.comparison_date_field_start = QtGui.QDateEdit()
-        self.comparison_date_field_end = QtGui.QDateEdit()
-        self.comparison_date_field_start.setMinimumDate(datetime.date(2015,1,1))
-        self.comparison_date_field_start.setMaximumDate(datetime.date.today())
-        self.comparison_date_field_start.setDate(datetime.date.today())
-        self.comparison_date_field_start.setCalendarPopup(True)
-        self.comparison_date_field_end.setMinimumDate(datetime.date(2015,1,1))
-        self.comparison_date_field_end.setMaximumDate(datetime.date.today())
-        self.comparison_date_field_end.setDate(datetime.date.today())
-        self.comparison_date_field_end.setCalendarPopup(True)
-        self.comparison_graph_color_label = QtGui.QLabel("Graph Color")
-        self.comparison_graph_color = QColorButton()
-
-        comparison_data_set_layout = QtGui.QGridLayout()
-        alignment = QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft
-        row = 0
-        column = 0
-        row_width = 1
-        column_width = 1
-        comparison_data_set_layout.addWidget(self.comparison_writer_label, row, column, row_width, column_width)
-        column += column_width
-        column_width = 2
-        comparison_data_set_layout.addWidget(self.comparison_writer_combobox, row, column, row_width, column_width)
-        column += column_width
-        column_width = 1
-        comparison_data_set_layout.addWidget(self.comparison_editor_label, row, column, row_width, column_width)
-        column += column_width
-        column_width = 2
-        comparison_data_set_layout.addWidget(self.comparison_editor_combobox, row, column, row_width, column_width)
-        column += column_width
-        column_width=1
-        comparison_data_set_layout.addWidget(self.comparison_graph_color_label, row, column, row_width, column_width)
-        column += column_width
-        column_width=1
-        comparison_data_set_layout.addWidget(self.comparison_graph_color, row, column, row_width, column_width)
-        row += row_width
-        column = 0
-        row_width = 1
-        column_width = 1
-        comparison_data_set_layout.addWidget(self.comparison_pd_button, row, column, row_width, column_width)
-        column+=column_width
-        comparison_data_set_layout.addWidget(self.comparison_rpd_button, row, column, row_width, column_width)
-        column+=column_width
-        comparison_data_set_layout.addWidget(self.comparison_seo_button, row, column, row_width, column_width)
-        column+=column_width
-        comparison_data_set_layout.addWidget(self.comparison_all_button, row, column, row_width, column_width)
-        column+=column_width
-        comparison_data_set_layout.addWidget(self.comparison_date_field_label, row, column, row_width, column_width)
-        column+=column_width
-        column_width = 2
-        comparison_data_set_layout.addWidget(self.comparison_date_field_start, row, column, row_width, column_width)
-        column+=column_width
-        comparison_data_set_layout.addWidget(self.comparison_date_field_end, row, column, row_width, column_width)
-        self.comparison_data_set_group.setLayout(comparison_data_set_layout)
-
+        self.input_data_set_group = FilterForm(self.user_id, self.password, (0,0,0), self.category_tree, self.viewer_level, "Input Data Set")
+        self.comparison_data_set_group = FilterForm(self.user_id, self.password, (0,0,0), self.category_tree, self.viewer_level, "Comparison Data Set")
 
 
         self.analysis_parameters_group = QtGui.QGroupBox("Analysis Parameters")

@@ -125,6 +125,7 @@ class Pork(QtGui.QMainWindow):
         self.piggybank = PiggyBank()
         #initialize Calendar
         self.workCalendar = WeekCalendar(self.userID, self.password)
+
         self.workCalendar.setMinimumSize(350,350)
         self.workCalendar.setMaximumHeight(350)
 
@@ -542,7 +543,7 @@ class Pork(QtGui.QMainWindow):
         self.alertMessage("Feature unavailable","The Relaxation tool is still under development")
 
     def openTNA(self):
-        self.tna_viewer = TNAViewer(self.userID, self.password)
+        self.tna_viewer = TNAViewer(self.userID, self.password, self.category_tree)
 
     def notify(self,title,message):
         """PORK Window: Method to show a tray notification"""
@@ -1464,6 +1465,11 @@ the existing data in the form with the data in the cell and modify that cell?"""
 
     def mapThreads(self):
         init_date = datetime.date.today()
+        if self.userID == "62487":
+            init_date = datetime.date(2015,6,10)
+            self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
+            print "Heil Vinay!"
+            print "Changing the date to %s so that you have data to look at."%init_date
         self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date)
         self.piggybanker_thread.piggybankChanged.connect(self.populateTableThreaded)
         self.porker_thread = Porker(self.userID, self.password, init_date, mode=2)
