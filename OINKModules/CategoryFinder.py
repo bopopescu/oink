@@ -8,10 +8,13 @@ import numpy
 
 class CategoryFinder(QtGui.QHBoxLayout):
     pickRow = QtCore.pyqtSignal(dict)
-    def __init__(self, category_tree, category_tree_headers, *args, **kwargs):
+    def __init__(self, category_tree, category_tree_headers=None, *args, **kwargs):
         super(CategoryFinder, self).__init__(*args, **kwargs)
         self.category_tree = category_tree
-        self.category_tree_headers = category_tree_headers
+        if category_tree_headers is not None:
+            self.category_tree_headers = category_tree_headers
+        else:
+            self.category_tree_headers = ["BU","Super-Category","Category","Sub-Category","Vertical"]
         self.createUI()
         self.mapEvents()
 

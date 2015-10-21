@@ -63,6 +63,35 @@ class CheckableComboBox(QtGui.QComboBox):
             item.setCheckState(QtCore.Qt.Unchecked)
         self.reset()
 
+    def select(self, query_string):
+        rows = self.model().rowCount()
+        found_item = False
+        for item_index in range(rows)[1:]:
+            if not found_item:
+                item = self.model().item(item_index)
+                item_text = str(item.text())
+                if (item_text == query_string):
+                    found_item = True
+                    if (item.checkState() != QtCore.Qt.Checked):
+                        item.setCheckState(QtCore.Qt.Checked)
+            else:
+                break
+        if found_item:
+            self.reset()
+            self.changedSelection.emit(True)
+
+    def clearSelection(self):
+        rows = self.model().rowCount()
+        for item_index in range(rows)[1:]:
+            item = self.model().item(item_index)
+            if (item.checkState() == QtCore.Qt.Checked):
+                item.setCheckState(QtCore.Qt.Unchecked)
+        self.reset()
+        self.changedSelection.emit(True)
+
+
+
+
         
 class Dialog_01(QtGui.QMainWindow):
     def __init__(self):

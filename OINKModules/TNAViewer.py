@@ -17,9 +17,117 @@ from CategoryFinder import CategoryFinder
 class CategorySelector(QtGui.QWidget):
     def __init__(self, category_tree, *args, **kwargs):
         super(CategorySelector,self).__init__(*args, **kwargs)
+        self.category_tree = category_tree
         self.createUI()
+        self.populateAll()
         self.mapEvents()
-        
+
+    def createUI(self):
+        self.label = QtGui.QLabel("Categories:")
+        self.bu_combo_box = CheckableComboBox("BU")
+        self.super_category_combo_box = CheckableComboBox("Super-Category")
+        self.category_combo_box = CheckableComboBox("Category")
+        self.sub_category_combo_box = CheckableComboBox("Sub-Category")
+        self.vertical_combo_box = CheckableComboBox("Vertical")
+        self.category_finder = CategoryFinder(self.category_tree)
+        self.clear_button = QtGui.QPushButton("Clear\nFilters")
+        layout = QtGui.QGridLayout()
+        layout.addWidget(self.label,0,0,1,1)
+        layout.addWidget(self.bu_combo_box,0,1,1,1)
+        layout.addWidget(self.super_category_combo_box,0,2,1,1)
+        layout.addWidget(self.category_combo_box,1,0,1,1)
+        layout.addWidget(self.sub_category_combo_box,1,1,1,1)
+        layout.addWidget(self.vertical_combo_box,1,2,1,1)
+        layout.addWidget(self.clear_button,0,3,2,1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
+        layout.addLayout(self.category_finder,2,0,1,3)
+        self.setLayout(layout)
+
+    def mapEvents(self):
+        self.category_finder.pickRow.connect(self.selectRow)
+        self.vertical_combo_box.changedSelection.connect(self.changedVerticals)
+        self.sub_category_combo_box.changedSelection.connect(self.changedSubCategories)
+        self.category_combo_box.changedSelection.connect(self.changedCategories)
+        self.super_category_combo_box.changedSelection.connect(self.changedSuperCategories)
+        self.clear_button.clicked.connect(self.clearFilters)
+
+    def populateAll(self):
+        #Populate the values
+        bus = list(set(self.category_tree["BU"]))
+        bus.sort()
+        super_categories = list(set(self.category_tree["Super-Category"]))
+        super_categories.sort()
+        categories = list(set(self.category_tree["Category"]))
+        categories.sort()
+        sub_categories = list(set(self.category_tree["Sub-Category"]))
+        sub_categories.sort()
+        verticals = list(set(self.category_tree["Vertical"]))
+        verticals.sort()
+
+        self.bu_combo_box.clear()
+        self.bu_combo_box.addItems(bus)
+        self.super_category_combo_box.clear()
+        self.super_category_combo_box.addItems(super_categories)
+        self.category_combo_box.clear()
+        self.category_combo_box.addItems(categories)
+        self.sub_category_combo_box.clear()
+        self.sub_category_combo_box.addItems(sub_categories)
+        self.vertical_combo_box.clear()
+        self.vertical_combo_box.addItems(verticals)
+
+    def getSelectedCategories(self):
+        selected_categories_data_frame = []
+        return selected_categories_data_frame
+
+    def selectRow(self, row_dict):
+        self.bu_combo_box.select(row_dict["BU"])
+        self.super_category_combo_box.select(row_dict["Super-Category"])
+        self.category_combo_box.select(row_dict["Category"])
+        self.sub_category_combo_box.select(row_dict["Sub-Category"])
+        self.vertical_combo_box.select(row_dict["Vertical"])
+
+
+    def changedSuperCategories(self):
+        selected_super_categories = self.super_category_combo_box.getCheckedItems()
+        required_bus = []
+        for super_category in selected_super_categories:
+            required_bus+=list(set(self.category_tree.loc[self.category_tree["Super-Category"] == super_category]["BU"]))
+        bus = list(set(required_bus))
+        for bu in bus:
+            self.bu_combo_box.select(bu)
+
+    def changedCategories(self):
+        selected_categories = self.category_combo_box.getCheckedItems()
+        required_super_categories = []
+        for category in selected_categories:
+            required_super_categories+=list(set(self.category_tree.loc[self.category_tree["Category"] == category]["Super-Category"]))
+        super_categories = list(set(required_super_categories))
+        for super_category in super_categories:
+            self.super_category_combo_box.select(super_category)
+
+    def changedSubCategories(self):
+        selected_sub_categories = self.sub_category_combo_box.getCheckedItems()
+        required_categories = []
+        for sub_category in selected_sub_categories:
+            required_categories+=list(set(self.category_tree.loc[self.category_tree["Sub-Category"] == sub_category]["Category"]))
+        categories = list(set(required_categories))
+        for category in categories:
+            self.category_combo_box.select(category)
+
+    def changedVerticals(self):
+        selected_verticals = self.vertical_combo_box.getCheckedItems()
+        required_sub_categories = []
+        for vertical in selected_verticals:
+            required_sub_categories+=list(set(self.category_tree.loc[self.category_tree["Vertical"] == vertical]["Sub-Category"]))
+        sub_categories = list(set(required_sub_categories))
+        for sub_category in sub_categories:
+            self.sub_category_combo_box.select(sub_category)
+
+    def clearFilters(self):
+        self.bu_combo_box.clearSelection()
+        self.super_category_combo_box.clearSelection()
+        self.category_combo_box.clearSelection()
+        self.sub_category_combo_box.clearSelection()
+        self.vertical_combo_box.clearSelection()
 
 class FilterForm(QtGui.QGroupBox):
     def __init__(self, user_id, password, color, category_tree, viewer_level, *args, **kwargs):
@@ -56,6 +164,7 @@ class FilterForm(QtGui.QGroupBox):
         self.date_field_end.setCalendarPopup(True)
         self.graph_color_label = QtGui.QLabel("Graph Color")
         self.graph_color = QColorButton()
+        self.category_selector = CategorySelector(self.category_tree)
 
         layout = QtGui.QGridLayout()
         alignment = QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft
@@ -97,6 +206,11 @@ class FilterForm(QtGui.QGroupBox):
         layout.addWidget(self.date_field_start, row, column, row_width, column_width)
         column+=column_width
         layout.addWidget(self.date_field_end, row, column, row_width, column_width)
+        row+=row_width
+        column_width = column
+        column = 0
+        row_width = 3
+        layout.addWidget(self.category_selector, row, column, row_width, column_width)
         self.setLayout(layout)
 
     def mapEvents(self):
