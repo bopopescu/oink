@@ -88,38 +88,26 @@ class CategorySelector(QtGui.QWidget):
 
     def changedSuperCategories(self):
         selected_super_categories = self.super_category_combo_box.getCheckedItems()
-        required_bus = []
-        for super_category in selected_super_categories:
-            required_bus+=list(set(self.category_tree.loc[self.category_tree["Super-Category"] == super_category]["BU"]))
-        bus = list(set(required_bus))
-        for bu in bus:
+        required_bus = list(set(self.category_tree[self.category_tree["Super-Category"].isin(selected_super_categories)]["BU"]))
+        for bu in required_bus:
             self.bu_combo_box.select(bu)
 
     def changedCategories(self):
         selected_categories = self.category_combo_box.getCheckedItems()
-        required_super_categories = []
-        for category in selected_categories:
-            required_super_categories+=list(set(self.category_tree.loc[self.category_tree["Category"] == category]["Super-Category"]))
-        super_categories = list(set(required_super_categories))
-        for super_category in super_categories:
+        required_super_categories = list(set(self.category_tree[self.category_tree["Category"].isin(selected_categories)]["Super-Category"]))
+        for super_category in required_super_categories:
             self.super_category_combo_box.select(super_category)
 
     def changedSubCategories(self):
         selected_sub_categories = self.sub_category_combo_box.getCheckedItems()
-        required_categories = []
-        for sub_category in selected_sub_categories:
-            required_categories+=list(set(self.category_tree.loc[self.category_tree["Sub-Category"] == sub_category]["Category"]))
-        categories = list(set(required_categories))
-        for category in categories:
+        required_categories = list(set(self.category_tree[self.category_tree["Sub-Category"].isin(selected_sub_categories)]["Category"]))
+        for category in required_categories:
             self.category_combo_box.select(category)
 
     def changedVerticals(self):
         selected_verticals = self.vertical_combo_box.getCheckedItems()
-        required_sub_categories = []
-        for vertical in selected_verticals:
-            required_sub_categories+=list(set(self.category_tree.loc[self.category_tree["Vertical"] == vertical]["Sub-Category"]))
-        sub_categories = list(set(required_sub_categories))
-        for sub_category in sub_categories:
+        required_sub_categories = list(set(self.category_tree[self.category_tree["Vertical"].isin(selected_verticals)]["Sub-Category"]))
+        for sub_category in required_sub_categories:
             self.sub_category_combo_box.select(sub_category)
 
     def clearFilters(self):
@@ -128,6 +116,17 @@ class CategorySelector(QtGui.QWidget):
         self.category_combo_box.clearSelection()
         self.sub_category_combo_box.clearSelection()
         self.vertical_combo_box.clearSelection()
+
+    def getFilters(self):
+        #First, get the checked verticals.
+        verticals = self.vertical_combo_box.getCheckedItems()
+        filter_data_frame = self.category_tree[self.category_tree["Vertical"].isin(verticals)]
+        sub_categories = self.sub_category_combo_box.getCheckedItems()
+        categories = self.category_combo_box.getCheckedItems()
+        sub_categories = self.sub_category_combo_box.getCheckedItems()
+        super_categories = self.super_category_combo_box.getCheckedItems()
+        bus = self.bu_combo_box.getCheckedItems()
+
 
 class FilterForm(QtGui.QGroupBox):
     def __init__(self, user_id, password, color, category_tree, viewer_level, *args, **kwargs):
@@ -233,6 +232,7 @@ class FilterForm(QtGui.QGroupBox):
         self.writer_combobox.addItems(self.writers_list)
         self.editor_combobox.clear()
         self.editor_combobox.addItems(self.editors_list)
+
     def getDates(self):
         return self.date_field_start.date().toPyDate(), self.date_field_end.date().toPyDate()
 
