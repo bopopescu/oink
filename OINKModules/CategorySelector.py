@@ -10,7 +10,6 @@ class CategorySelector(QtGui.QWidget):
         super(CategorySelector,self).__init__(*args, **kwargs)
         self.category_tree = category_tree
         self.category_tree_headers = ["BU","Super-Category","Category","Sub-Category","Vertical"]
-
         self.createUI()
         self.populateAll()
         self.mapEvents()
@@ -32,7 +31,8 @@ class CategorySelector(QtGui.QWidget):
         layout.addWidget(self.sub_category_combo_box,1,1,1,1)
         layout.addWidget(self.vertical_combo_box,1,2,1,1)
         layout.addWidget(self.clear_button,0,3,2,1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
-        layout.addLayout(self.category_finder,2,0,1,3)
+        layout.addLayout(self.category_finder,2,0,1,2)
+
         self.setLayout(layout)
 
     def mapEvents(self):

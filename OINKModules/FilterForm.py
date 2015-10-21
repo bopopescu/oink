@@ -53,6 +53,7 @@ class FilterForm(QtGui.QGroupBox):
         self.category_selector = CategorySelector(self.category_tree)
 
         layout = QtGui.QVBoxLayout()
+        
         row_1_layout = QtGui.QHBoxLayout()
         row_1_layout.addWidget(self.writer_label,0)
         row_1_layout.addWidget(self.writer_combobox,0)
@@ -60,14 +61,18 @@ class FilterForm(QtGui.QGroupBox):
         row_1_layout.addWidget(self.editor_combobox,0)
         row_1_layout.addWidget(self.graph_color_label,0)
         row_1_layout.addWidget(self.graph_color,0)
+        row_1_layout.addWidget(self.pd_button,0)
+        row_1_layout.addWidget(self.rpd_button,0)
+        row_1_layout.addWidget(self.seo_button,0)
+        row_1_layout.addWidget(self.all_button,0)
+        row_1_layout.addStretch(1)
+        
         row_2_layout = QtGui.QHBoxLayout()
-        row_2_layout.addWidget(self.pd_button,0)
-        row_2_layout.addWidget(self.rpd_button,0)
-        row_2_layout.addWidget(self.seo_button,0)
-        row_2_layout.addWidget(self.all_button,0)
         row_2_layout.addWidget(self.date_field_label,0)
         row_2_layout.addWidget(self.date_field_start,0)
         row_2_layout.addWidget(self.date_field_end,0)
+        row_2_layout.addStretch(1)
+
         layout.addLayout(row_1_layout,1)
         layout.addLayout(row_2_layout,1)
         layout.addWidget(self.category_selector,2)
