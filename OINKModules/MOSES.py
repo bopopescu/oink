@@ -1450,6 +1450,7 @@ def buildWritersDataFile():
                 writer_name = writer["Name"]
                 print "Processing %s's data for %s." %(writer_name, each_date)
                 status, relaxation, approval = checkWorkStatus(u, p, each_date, writer_id)
+                cfm, gseo = getCFMGSEOFor(u, p, each_date, writer_id)
                 data = {
                     "Date": each_date,
                     "Writer ID": writer_id, 
@@ -1458,8 +1459,8 @@ def buildWritersDataFile():
                     "Status": status,
                     "Relaxation": relaxation,
                     "Efficiency": getEfficiencyFor(u, p, each_date, writer_id, category_tree),
-                    "CFM": getCFMFor(u, p, each_date, writer_id),
-                    "GSEO":getGSEOFor(u, p, each_date, writer_id),
+                    "CFM": cfm,
+                    "GSEO": gseo,
                     "Article Count": getArticleCount(u, p, each_date, writer_id)
                     }
                 output.writerow(data)
@@ -2005,107 +2006,13 @@ def getAverageTeamGSEOBetween(start_date, end_date, consider_fatal=None):
     #print GSEO_scores
     return GSEO_score_average
 
-def getCFMBetweenDates(user_id, password, start_date, end_date, query_user=None):
+def getCFMGSEOFor(user_id, password, query_date, query_user=None):
     import numpy
     if query_user is None:
         query_user = user_id
-    raw_data_table, CFM_key_list, GSEO__key_list = getRawDataTableAndAuditParameters()
-    conn = getOINKConnector(user_id, password)
-    cursor = conn.cursor()
-    sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
-    cursor.execute(sqlcmdstring)
-    data = cursor.fetchall()
-    conn.close()
-    audits = len(data)
-    #print "Found %d audited articles." % audits
-    counter = 0
-    fat_key_list = ["FAT01","FAT02","FAT03"]
-    CFM_scores = []
-    for each_entry in data:
-        CFM_score = numpy.sum(list(each_entry[CFM_key] for CFM_key in CFM_key_list)) / float(75.0)
-        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
-        if "Yes" in fatals:
-            CFM_score = 0.0
-        counter += 1
-        recorded_cfm = each_entry["CFM Quality"]
-        CFM_score = numpy.around(CFM_score, decimals=3)
-        #if CFM_score < recorded_cfm:
-        #    sign = "<"
-        #elif CFM_score > recorded_cfm:
-        #    sign = ">"
-        #else:
-        #    sign = "=="
-        #print "%f %s %f. Difference = %s" %(CFM_score, sign, recorded_cfm, CFM_score - recorded_cfm)
-        CFM_scores.append(CFM_score) 
-    if audits > 0:
-        CFM_score_average = numpy.mean(CFM_scores)
-        CFM_score_average = numpy.around(CFM_score_average, decimals=6)
-    else:
-        CFM_score_average = None
-    #print CFM_scores
-    return CFM_score_average
+    return getCFMGSEOBetweenDates(user_id, password, query_date, query_date, query_user)
 
-def getCFMForWeek(user_id, password, query_date, query_user=None):
-    """Returns the average CFM for a query_user or the caller ID for the week in
-    which the request date falls.
-    It only considers those dates in the range which occur prior to the queryDate."""
-    #Find out what day the given date falls on. 1 = Monday, 7 = Sunday.
-    if query_user is None:
-        query_user = user_id
-    current_day = query_date.isocalendar()[2]
-    #Get the date of the monday in that week. Week ends on Sunday.
-    subtractor = current_day - 1
-    first_day_of_the_week = query_date - datetime.timedelta(subtractor)
-    CFM = getCFMBetweenDates(user_id, password, first_day_of_the_week, query_date, query_user)
-    return CFM
-
-def getCFMForMonth(user_id, password, query_date, query_user=None):
-    """Returns the average CFM for a query_user or the caller ID for the month in
-    which the request date falls.
-    It only considers those dates in the range which occur prior to the queryDate."""
-    
-    if query_user is None:
-        query_user = user_id
-    first_day_of_the_month = datetime.date(query_date.year, query_date.month, 1)
-    CFM = getCFMBetweenDates(user_id, password, first_day_of_the_month, query_date, query_user)
-    return CFM
-
-def getCFMForQuarter(user_id, password, query_date, query_user=None):
-    """Returns the average CFM for a queryUser or the caller ID for the quarter in
-    which the request date falls.
-    It only considers those dates in the range which occur prior to the queryDate."""
-    #JFM, AMJ, JAS, OND
-    if query_user is None:
-        query_user = user_id
-    query_month = query_date.month
-
-    #Create a dictionary which contains a 1:1 mapping for the first months of a quarter for any given month. 
-    #If asked for the first month of JAS, it should return 7, i.e. July.
-
-    quarter_first_month_mapped_dictionary = {
-        1: 1, 2: 1, 3: 1,
-        4: 4, 5: 4, 6: 4,
-        7: 7, 8: 7, 9: 7,
-        10: 10, 11: 10, 12: 10
-    }
-    first_month_of_the_quarter = quarter_first_month_mapped_dictionary[query_date.month]
-    first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
-    CFM = getCFMBetweenDates(user_id, password, first_day_of_the_quarter, query_date, query_user)
-    return CFM
-
-def getCFMForHalfYear(user_id, password, query_date, query_user=None):
-    if query_user is None:
-        query_user = user_id
-    half_year_start_date = getHalfYearStartDate(query_date)
-    return getCFMBetweenDates(user_id, password, half_year_start_date, query_date, query_user)
-
-def getGSEOFor(user_id, password, query_date, query_user=None):
-    import numpy
-    if query_user is None:
-        query_user = user_id
-    return getGSEOBetweenDates(user_id, password, query_date, query_date, query_user)
-
-def getGSEOBetweenDates(user_id, password, start_date, end_date, query_user=None):
+def getCFMGSEOBetweenDates(user_id, password, start_date, end_date, query_user=None):
     import numpy
     if query_user is None:
         query_user = user_id
@@ -2121,14 +2028,20 @@ def getGSEOBetweenDates(user_id, password, start_date, end_date, query_user=None
     counter = 0
     fat_key_list = ["FAT01","FAT02","FAT03"]
     GSEO_scores = []
+    CFM_scores = []
     for each_entry in data:
+        CFM_score = numpy.sum(list(each_entry[CFM_key] for CFM_key in CFM_key_list)) / float(75.0)
         GSEO_score = numpy.sum(list(each_entry[GSEO_key] for GSEO_key in GSEO_key_list)) / float(25.0)
         fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
         if "Yes" in fatals:
+            CFM_score = 0.0
             GSEO_score = 0.0
         counter += 1
+        recorded_cfm = each_entry["CFM Quality"]
         recorded_GSEO = each_entry["GSEO Quality"]
+        CFM_score = numpy.around(CFM_score, decimals=3)
         GSEO_score = numpy.around(GSEO_score, decimals=4)
+        CFM_scores.append(CFM_score) 
         #if GSEO_score < recorded_GSEO:
         #    sign = "<"
         #elif GSEO_score > recorded_GSEO:
@@ -2138,14 +2051,17 @@ def getGSEOBetweenDates(user_id, password, start_date, end_date, query_user=None
         #print "%f %s %f. Difference = %s" %(GSEO_score, sign, recorded_GSEO, GSEO_score - recorded_GSEO)
         GSEO_scores.append(GSEO_score)
     if audits > 0:
+        CFM_score_average = numpy.mean(CFM_scores)
+        CFM_score_average = numpy.around(CFM_score_average, decimals=6)
         GSEO_score_average = numpy.mean(GSEO_scores)
         GSEO_score_average = numpy.around(GSEO_score_average, decimals=6)
     else:
+        CFM_score_average = None
         GSEO_score_average = None
     #print GSEO_scores
-    return GSEO_score_average
+    return CFM_score_average, GSEO_score_average
 
-def getGSEOForWeek(user_id, password, query_date, query_user=None):
+def getCFMGSEOForWeek(user_id, password, query_date, query_user=None):
     """Returns the average GSEO for a query_user or the caller ID for the week in
     which the request date falls.
     It only considers those dates in the range which occur prior to the queryDate."""
@@ -2156,20 +2072,18 @@ def getGSEOForWeek(user_id, password, query_date, query_user=None):
     #Get the date of the monday in that week. Week ends on Sunday.
     subtractor = current_day - 1
     first_day_of_the_week = query_date - datetime.timedelta(subtractor)
-    GSEO = getGSEOBetweenDates(user_id, password, first_day_of_the_week, query_date, query_user)
-    return GSEO
+    return getCFMGSEOBetweenDates(user_id, password, first_day_of_the_week, query_date, query_user)
 
-def getGSEOForMonth(user_id, password, query_date, query_user=None):
+def getCFMGSEOForMonth(user_id, password, query_date, query_user=None):
     """Returns the average GSEO for a query_user or the caller ID for the month in
     which the request date falls.
     It only considers those dates in the range which occur prior to the queryDate."""
     if query_user is None:
         query_user = user_id
     first_day_of_the_month = datetime.date(query_date.year, query_date.month, 1)
-    GSEO = getGSEOBetweenDates(user_id, password, first_day_of_the_month, query_date, query_user)
-    return GSEO
+    return getCFMGSEOBetweenDates(user_id, password, first_day_of_the_month, query_date, query_user)
 
-def getGSEOForQuarter(user_id, password, query_date, query_user=None):
+def getCFMGSEOForQuarter(user_id, password, query_date, query_user=None):
     """Returns the average GSEO for a queryUser or the caller ID for the quarter in
     which the request date falls.
     It only considers those dates in the range which occur prior to the queryDate."""
@@ -2187,14 +2101,14 @@ def getGSEOForQuarter(user_id, password, query_date, query_user=None):
     }
     first_month_of_the_quarter = quarter_first_month_mapped_dictionary[query_date.month]
     first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
-    GSEO = getGSEOBetweenDates(user_id, password, first_day_of_the_quarter, query_date, query_user)
-    return GSEO
+    return getCFMGSEOBetweenDates(user_id, password, first_day_of_the_quarter, query_date, query_user)
 
-def getGSEOForHalfYear(user_id, password, query_date, query_user=None):
+
+def getCFMGSEOForHalfYear(user_id, password, query_date, query_user=None):
     if query_user is None:
         query_user = user_id
     half_year_start_date = getHalfYearStartDate(query_date)
-    return getGSEOBetweenDates(user_id, password, half_year_start_date, query_date, query_user)
+    return getCFMGSEOBetweenDates(user_id, password, half_year_start_date, query_date, query_user)
 
 
 def getDescriptionTypes(user_id, password):
@@ -2875,28 +2789,6 @@ def getRawDataFrame():
 #############################################################
 #############################################################
 
-#def getCFMForDate():
-#def getGSEOForDate():
-#def getCFMForMultiQuery():
-#def getGSEOForMultiQuery():
-#def 
-#def getCategories()
-#    """Returns all the categories that have been worked on in a particular time-frame."""
-#def getCategoryCoverage():
-#    """Returns the audit percentage of the categories"""
-#def buildAuditQueue():
-#def buildRCAQueue():
-#def 
-def addSubha():
-    u, p = getBigbrotherCredentials()
-    emp = {
-    "Employee ID": "78468",
-    "Name": "Subha Nair",
-    "Role": "Content Writer",
-    "DOJ": "2015-04-06",
-    "Email ID": "subha.nair@flipkart.com"
-    }
-    addEmployee(emp, u, p)
 
 def convertAttendanceTrackerToWorkCalendar():
     user_id, password = getBigbrotherCredentials()
@@ -3089,8 +2981,7 @@ def populateStatsInWorkCalendar():
                 articles = getArticleCount(u, p, query_date, query_id)
                 audits = getAuditCount(u, p, query_date, query_id)
                 efficiency = getEfficiencyFor(u, p, query_date, query_id, category_tree)
-                cfm = getCFMFor(u, p, query_date, query_id)
-                gseo = getGSEOFor(u, p, query_date, query_id)
+                cfm, gseo = getCFMGSEOFor(u, p, query_date, query_id)
                 if articles is None:
                     articles = '\N'
                 if cfm is None:
