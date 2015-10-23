@@ -1845,108 +1845,72 @@ def getHalfYearStartDate(query_date):
 def getbbc():
     return getBigbrotherCredentials()
 
-def getTargetFor(user_id, password, query_dict, query_date=None, retry=None):
-    """A new method to get the target for a particular query_dict.
-    An example query is:
-    SELECT `target`, MAX(`Revision Date`) FROM `categorytree` WHERE `BU`=%s AND ... AND `Revision Date`<='%(date)'
-"""
+def getTargetFor(user_id, password, query_dict, query_date=None, category_tree = None, retry=None):
+    """
+    This method derives the target from the category tree dataframe.
+    """
     import numpy
     import pandas as pd
-    conn = getOINKConnector(user_id, password)
-    cursor = conn.cursor()
+    print "In MOSES.getTargetFor."
     if query_date is None:
         query_date = datetime.date.today()
-    if retry is None:
-        retry = 0
-    sqlcmdstring = """SELECT `Target`, `Revision Date` FROM `CategoryTree` WHERE %s AND `Revision Date` <= "%s";""" % (getOneToOneStringFromDict(query_dict), convertToMySQLDate(query_date))
-    #print sqlcmdstring
-    cursor.execute(sqlcmdstring)
-    data = cursor.fetchall()
-    #Convert the set to a list.
-    entries = []
-    for entry in data:
-        entries.append(entry)
-    if len(entries) == 0:
-        retry += 1
-        if retry == 1:
-            #ignore the vertical and try again
-            new_query = {
-                "Description Type": query_dict["Description Type"],
-                "Source": query_dict["Source"],
-                "BU": query_dict["BU"],
-                "Super-Category": query_dict["Super-Category"],
-                "Category": query_dict["Category"],
-                "Sub-Category": query_dict["Sub-Category"]
-            }
-            target = getTargetFor(user_id, password, new_query, query_date, retry)
-        elif retry == 2:
-            #ignore the sub category and vertical and try again.
-            new_query = {
-                "Description Type": query_dict["Description Type"],
-                "Source": query_dict["Source"],
-                "BU": query_dict["BU"],
-                "Super-Category": query_dict["Super-Category"],
-                "Category": query_dict["Category"]
-            }
-            target = getTargetFor(user_id, password, new_query, query_date, retry)
-        elif retry == 3:
-            #ignore the Category, sub category and vertical and try again.
-            new_query = {
-                "Description Type": query_dict["Description Type"],
-                "Source": query_dict["Source"],
-                "BU": query_dict["BU"],
-                "Super-Category": query_dict["Super-Category"]
-            }
-            target = getTargetFor(user_id, password, new_query, query_date, retry)
-        elif retry == 4:
-            #ignore the super-category, Category, sub category and vertical and try again.
-            new_query = {
-                "Description Type": query_dict["Description Type"],
-                "Source": query_dict["Source"],
-                "BU": query_dict["BU"],
-                "Super-Category": query_dict["Super-Category"]
-            }
-            target = getTargetFor(user_id, password, new_query, query_date, retry)
-        else:
-            target = 0
-            #print "Failed in retrieving a target for the following query:"
-            #print query_dict
-            #print query_date
-            #print "Carrying on...."
-            #give up.
-        #call the function again, without one key-value pair.
-    elif len(entries) == 1:
-        #print "Only one target for query_dict."
-        target = entries[0]["Target"]
-    else:
-        #first check if it has multiple returns for one date.
-            #of all the entries, get the closest data
-        #Else, if it has only one date:
-            #check all the probable targets and return the one with the highest frequency?
-        target = -1
-        #print "Found multiple targets, jack."
+    #First, filter the category tree dataframe down to the valid description type and source.
+    if ("Description Type" in query_dict.keys()) and ("Source" in query_dict.keys()):
+        description_type = query_dict["Description Type"]
+        source = query_dict["Source"]
+        description_type_matches = (category_tree["Description Type"] == description_type)
+        source_matches = (category_tree["Source"] == source)
+        filtered_cat_tree = category_tree[description_type_matches][source_matches]
+        #Now, filter the dataframe again to match the BU, super-category, category, sub-category and vertical.
+        bu = query_dict["BU"]
+        bu_level_cat_tree = filtered_cat_tree[filtered_cat_tree["BU"] == bu]
 
-        possible_targets = []
-        targets_data_frame = pd.DataFrame(entries)
-        max_date = numpy.max(list(targets_data_frame["Revision Date"]))
-        multi_target_on_single_date = False if list(targets_data_frame["Revision Date"]).count(max_date) == 1 else True
-        if not multi_target_on_single_date:
-            target = int(targets_data_frame.loc[targets_data_frame["Revision Date"] == max_date]["Target"])
-        #print "Real Target", target, max_date
+        super_category = query_dict["Super-Category"]
+        super_category_level_cat_tree = bu_level_cat_tree[bu_level_cat_tree["Super-Category"] == super_category]
+
+        category = query_dict["Category"]
+        category_level_cat_tree = super_category_level_cat_tree[super_category_level_cat_tree["Category"] == category]
+
+        sub_category = query_dict["Sub-Category"]
+        sub_category_level_cat_tree = category_level_cat_tree[category_level_cat_tree["Sub-Category"] == sub_category]
+
+        vertical = query_dict["Vertical"]
+        vertical_level_cat_tree = sub_category_level_cat_tree[sub_category_level_cat_tree["Vertical"] == vertical]
+        
+        current_cat_tree = vertical_level_cat_tree
+        valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
+        if len(valid_revision_date_list) ==0:
+            print "No vertical level match for %s. Reverting to Sub-Category."%(vertical)
+            current_cat_tree = sub_category_level_cat_tree
+            valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
+            if len(valid_revision_date_list) ==0:
+                print "No Sub-Category level match for %s. Reverting to Category."%(sub_category)
+                current_cat_tree = category_level_cat_tree
+                valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
+                if len(valid_revision_date_list) ==0:
+                    print "No Category level match for %s. Reverting to Super-Category."%(category)
+                    current_cat_tree = super_category_level_cat_tree
+                    valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
+                    if len(valid_revision_date_list) == 0:
+                        print "No Super-Category level match for %s. Reverting to BU."%(super_category)
+                        current_cat_tree = bu_level_cat_tree
+                        valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
+                        if len(valid_revision_date_list) == 0:
+                            print "There's no category tree match for the requested query. %s."%query_dict
+                            print "Using description type and source level filter."
+                            current_cat_tree = filtered_cat_tree
+                            valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
         else:
-            for entry in entries:
-                possible_targets.append(entry["Target"])
-                try:
-                    target = numpy.bincount(possible_targets).argmax() 
-                except:
-                    #print closest_date
-                    #print entries
-                    #print query_dict
-                    target = -1
-                    pass
-        #print query_dict, target
-    conn.commit()
-    conn.close()
+            print "Found vertical level match for %s."%vertical 
+        if len(valid_revision_date_list) == 0:
+            print "Despite all the precautions, there still doesn't seem to be any match. Returning 0."
+            target = 0
+        else:
+            nearest_revision_date = max(valid_revision_date_list)
+            print nearest_revision_date, " is the nearest date in the category tree."
+            target = max(list(set(current_cat_tree[current_cat_tree["Revision Date"] == nearest_revision_date]["Target"])))
+    else:
+        raise Exception("getTargetFor's query_dict variable needs to have a description type and a source at least.")
     return target
 
 def getEventsForDate(user_id, password, query_date=None, query_dict=None):
@@ -2525,7 +2489,7 @@ def getBrandValues(user_id, password):
     return brandList
 
 def getCategoryTree(user_id, password):
-    """Returns a list containing the appropriate list of values for Sub-Category."""
+    """Returns a dataframe containing all the columns of the category tree."""
     import pandas
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()

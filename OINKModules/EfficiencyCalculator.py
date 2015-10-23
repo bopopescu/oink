@@ -223,7 +223,7 @@ class calculatorRow:
             "Sub-Category": str(self.calcWidgets["Sub-Category"].currentText()),
             "Vertical": str(self.calcWidgets["Vertical"].currentText())
         }
-        target = float(MOSES.getTargetFor(self.userID, self.password, row, self.target_date))
+        target = float(MOSES.getTargetFor(self.userID, self.password, row, self.target_date, self.category_tree))
         self.target = target
 
         self.calcWidgets["Target"].setText("%s"%target)
