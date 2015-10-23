@@ -36,6 +36,7 @@ def main():
             splash = showSplashScreen(app, user_role)
             window = userDict[user_role](userID, password)
             window.setAttribute(QtCore.Qt.WA_QuitOnClose)
+            app.installEventFilter(window)
             QtGui.QApplication.processEvents()
             splash.finish(window)
         else:

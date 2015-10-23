@@ -28,6 +28,7 @@ class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
         """PORK initializer. Takes the userID and password"""
         super(QtGui.QMainWindow, self).__init__()
+        self.x_pos, self.right_pos = "center","middle"
         #pork_style = open("stylesheet.css",'r').read()
         #print pork_style
         #self.setStyleSheet(open("stylesheet.css",'r').read())
@@ -70,6 +71,33 @@ class Pork(QtGui.QMainWindow):
 
     def focusInEvent(self, event):
         print "Pork Focus in"
+
+    def eventFilter(self, source, event):
+        if event.type() == QtCore.QEvent.MouseMove:
+            if event.buttons() == QtCore.Qt.NoButton:
+                pos = QtGui.QCursor().pos()
+                x, y = pos.x(), pos.y()
+                bigbrother_pos = self.bigbrother_icon.pos()
+                x_diff = (x-bigbrother_pos.x())
+                width, height = 64, 64
+                if x_diff>width:
+                    x_pos = "right"
+                elif x_diff<0:
+                    x_pos = "left"
+                else:
+                    x_pos = "center"
+                y_diff = (y - bigbrother_pos.y())
+                if y_diff <0:
+                    y_pos = "above"
+                elif y_diff>height:
+                    y_pos = "below"
+                else:
+                    y_pos = "middle"
+                if (x_pos != self.x_pos) or (y_pos !=self.y_pos):
+                    image_path = os.path.join("Images","bigbrother","sauron","%s_%s.png"%(x_pos,y_pos))
+                    self.bigbrother_icon.showImage(image_path)
+                    self.x_pos, self.y_pos = x_pos, y_pos
+        return QtGui.QMainWindow.eventFilter(self, source, event)
 
     def showAbout(self):
         title = "About OINK"
