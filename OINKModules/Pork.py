@@ -361,6 +361,7 @@ class Pork(QtGui.QMainWindow):
         self.spinBoxWordCount.setToolTip("Type the word count of the article here.")
         self.lineEditUploadLink.setToolTip("If you are not using an FSN or an ISBN, please paste the appropriate upload link here.")
         self.lineEditRefLink.setToolTip("Paste the reference link(s) here.\nMultiple links can be appended by using a comma or a semi-colon.\nAvoid spaces like the plague.")
+    
     def displayPorkerProgress(self, activity, eta, completed):
         if completed:
             #print "Completed one porker cycle."
@@ -369,7 +370,9 @@ class Pork(QtGui.QMainWindow):
         else:
             #print "Porker at work. Message : ", activity
             self.stats_progress_bar.setRange(0,0)
-            self.stats_progress_message.setText(" %s\n ETA: %s" %(activity, datetime.datetime.strftime(eta,"%H:%M")))
+            time_as_string = datetime.datetime.strftime(eta,"%H:%M:%S")
+            time_diff = (eta-datetime.datetime.now()).seconds if eta>datetime.datetime.now() else -1
+            self.stats_progress_message.setText(" %s\n ETA: %s (%d sec)" %(activity, time_as_string, time_diff))
 
     def keyPressEvent(self, e):
         """PORK Window: Found this code online. Go through it and try to improve it."""
