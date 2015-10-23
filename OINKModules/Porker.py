@@ -15,7 +15,7 @@ class Porker(QtCore.QThread):
     sendStatsData = QtCore.pyqtSignal(dict)
     sendActivity = QtCore.pyqtSignal(str, datetime.datetime, bool)
 
-    def __init__(self, userID, password, start_date, end_date=None, query_user=None, mode=None, parent=None):
+    def __init__(self, userID, password, start_date, end_date=None, query_user=None, mode=None, category_tree=None, parent=None):
         """Modes :
             0. Default, this emits sendEfficiency.
             1. Used with WeekCalendar. This emits a dictionary with dates for keys 
@@ -38,6 +38,10 @@ class Porker(QtCore.QThread):
         else:
             self.mode = 0
             print "Error with the Porker Mode."
+        if category_tree is not None:
+            self.category_tree=category_tree
+        else:
+            self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
 
         self.process_date = self.start_date
         self.stats_date = self.start_date
@@ -94,10 +98,10 @@ class Porker(QtCore.QThread):
                 self.current_efficiency = self.current_datesData[self.start_date][2]
             else:
                 #print "Here0"
-                self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
+                self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user, category_tree=self.category_tree)
                 #print "Here00"
         #print "Here"
-        self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
+        self.current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user, category_tree=self.category_tree)
         #print "Here2"
         if self.old_efficiency != self.current_efficiency:
             #Since the efficiency seems to have changed, resend all.
@@ -133,7 +137,7 @@ class Porker(QtCore.QThread):
             if MOSES.isWorkingDay(self.userID, self.password, each_date):
                 status, relaxation = MOSES.getWorkingStatus(self.userID, self.password, each_date)
                 if status == "Working" and relaxation >= 0.0:
-                    efficiency = MOSES.getEfficiencyFor(self.userID, self.password, each_date)
+                    efficiency = MOSES.getEfficiencyFor(self.userID, self.password, each_date, category_tree=self.category_tree)
                 else:
                     efficiency = 0.0
             else:
@@ -172,7 +176,7 @@ class Porker(QtCore.QThread):
             lwd_efficiency = self.current_datesData[last_working_date][2]
             #print "Found %f for %s." %(lwd_efficiency, last_working_date)
         else:
-            lwd_efficiency = MOSES.getEfficiencyFor(self.userID, self.password, last_working_date)
+            lwd_efficiency = MOSES.getEfficiencyFor(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         self.sendActivity.emit("Got the efficiency for the last working date.", MOSES.getETA(start_time, 2, no_of_steps), False)
         if lwd_efficiency is None:
             lwd_efficiency = "-"
@@ -193,7 +197,7 @@ class Porker(QtCore.QThread):
         else:
             lwd_cfm *= 100.00
 
-        cw_efficiency = MOSES.getEfficiencyForWeek(self.userID, self.password, last_working_date)
+        cw_efficiency = MOSES.getEfficiencyForWeek(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         self.sendActivity.emit("Got the efficiency for the week.", MOSES.getETA(start_time, 5, no_of_steps), False)
         if cw_efficiency is None:
             cw_efficiency = "-"
@@ -215,7 +219,7 @@ class Porker(QtCore.QThread):
         else:
             cw_cfm *= 100.00
 
-        cm_efficiency = MOSES.getEfficiencyForMonth(self.userID, self.password, last_working_date)
+        cm_efficiency = MOSES.getEfficiencyForMonth(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         #This is where the lag starts, so increasing the counter in steps of 2
         self.sendActivity.emit("Got the efficiency for the month.", MOSES.getETA(start_time, 9, no_of_steps), False)
         
@@ -239,7 +243,7 @@ class Porker(QtCore.QThread):
         else:
             cm_cfm *= 100.00
 
-        cq_efficiency = MOSES.getEfficiencyForQuarter(self.userID, self.password, last_working_date)
+        cq_efficiency = MOSES.getEfficiencyForQuarter(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         self.sendActivity.emit("Got the efficiency for the quarter.", MOSES.getETA(start_time, 15, no_of_steps), False)
         if cq_efficiency is None:
             cq_efficiency = "-"
@@ -260,7 +264,7 @@ class Porker(QtCore.QThread):
         else:
             cq_cfm *= 100.00
 
-        chy_efficiency = MOSES.getEfficiencyForHalfYear(self.userID, self.password, last_working_date)
+        chy_efficiency = MOSES.getEfficiencyForHalfYear(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         self.sendActivity.emit("Got the Efficiency for the half-year.", MOSES.getETA(start_time, 22, no_of_steps), False)
         if chy_efficiency is None:
             chy_efficiency = "-"
@@ -310,7 +314,7 @@ class Porker(QtCore.QThread):
 
     def getEfficiency(self):
         #work_status = MOSES.getWorkStatus() #Find out if the person/company is working on the given date.
-        current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user)
+        current_efficiency = MOSES.getEfficiencyForDateRange(self.userID, self.password, self.start_date, self.end_date, self.query_user, category_tree=self.category_tree)
         self.sendEfficiency.emit(current_efficiency)
 
     def setDate(self, new_date):

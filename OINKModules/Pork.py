@@ -1472,7 +1472,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
             print "Changing the date to %s so that you have data to look at."%init_date
         self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date)
         self.piggybanker_thread.piggybankChanged.connect(self.populateTableThreaded)
-        self.porker_thread = Porker(self.userID, self.password, init_date, mode=2)
+        self.porker_thread = Porker(self.userID, self.password, init_date, mode=2, category_tree=self.category_tree)
         self.porker_thread.sendEfficiency.connect(self.displayEfficiencyThreaded)
         self.porker_thread.sendDatesData.connect(self.sendDatesDataToCalendar)
         self.porker_thread.sendStatsData.connect(self.updateStatsTable)

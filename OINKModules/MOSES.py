@@ -693,7 +693,7 @@ def populatePiggyBankTargets(user_id, password):
     print "Completed. Time spent: ", timeSpent
     connectdb.close()
     
-def getTargetForPiggyBankRow(user_id, password, query_dict):
+def getTargetForPiggyBankRow(user_id, password, query_dict, category_tree):
     """Gets the target given a Piggy Bank dictionary."""
     piggy_row = {
         "Description Type": query_dict["Description Type"],
@@ -704,7 +704,7 @@ def getTargetForPiggyBankRow(user_id, password, query_dict):
         "Sub-Category": query_dict["Sub-Category"],
         "Vertical": query_dict["Vertical"]
     }
-    target = getTargetFor(user_id, password, piggy_row, query_dict["Article Date"])
+    target = getTargetFor(user_id, password, piggy_row, query_dict["Article Date"], category_tree)
     return target
 
 def rebuildTeamCalendar(user_id, password):
@@ -1426,6 +1426,7 @@ def getWorkingDatesBetween(user_id, password, start_date, end_date, query_user =
 
 def buildWritersDataFile():
     u, p = getBigbrotherCredentials()
+    category_tree = getCategoryTree(u,p)
     start_date = datetime.date(2015,1,1)
     end_date = datetime.date.today()
     dates_list = OINKM.getDatesBetween(start_date, end_date)
@@ -1456,7 +1457,7 @@ def buildWritersDataFile():
                     "Writer Name": writer_name, 
                     "Status": status,
                     "Relaxation": relaxation,
-                    "Efficiency": getEfficiencyFor(u, p, each_date, writer_id),
+                    "Efficiency": getEfficiencyFor(u, p, each_date, writer_id, category_tree),
                     "CFM": getCFMFor(u, p, each_date, writer_id),
                     "GSEO":getGSEOFor(u, p, each_date, writer_id),
                     "Article Count": getArticleCount(u, p, each_date, writer_id)
@@ -1615,8 +1616,10 @@ def getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_us
     conn.close()
     return data
 
-def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_user=None):
+def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_user=None, category_tree=None):
     """
+    New method:
+    1. If the category tree is specified, use the new getTargetFor method. If not, use the old method.
     For a given date range:
     1. Update the entire piggy bank table with the appropriate targets for each.
     2. Fetch the working dates for the query_user.
@@ -1624,36 +1627,46 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     4. For all the dates before 11 May 2015, divide the total efficiency by the efficiency divisor.
     5. For all dates on or after 11 May, add the relaxation efficiency.
     """
+    def printMessage(msg):
+        debugging = False
+        if debugging:
+            print "MOSES.getEfficiencyForDateRange.msg: %s"%msg
     import numpy
     if query_user is None:
         query_user = user_id
+    if category_tree is None:
+        use_category_tree = False
+        printMessage("Forced to using the old method of calculating efficiency because the category tree isn't supplied.")
+    else:
+        use_category_tree = True
     #get all piggybank data between these dates.
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
-    sqlcmdstring = """
-    UPDATE piggybank SET piggybank.target = (
-    SELECT target
-    FROM categorytree
-    WHERE 
-    categorytree.`Revision Date` = (
-    SELECT MAX(categorytree.`Revision Date`)
-    FROM categorytree
-    WHERE
-    categorytree.`Revision Date` <= piggybank.`Article Date` AND categorytree.`Source`=piggybank.`Source` 
-    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
-    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
-    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
-    categorytree.`Description Type` = piggybank.`Description Type`
-    )  AND categorytree.`Source`=piggybank.`Source` 
-    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
-    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
-    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
-    categorytree.`Description Type` = piggybank.`Description Type`
-    ) WHERE
-    piggybank.`Article Date` BETWEEN "%s" AND "%s" AND piggybank.`WriterID` = "%s";
-    """ %(convertToMySQLDate(start_date), convertToMySQLDate(end_date), user_id)
-    cursor.execute(sqlcmdstring)
-    conn.commit()
+    if not use_category_tree:
+        sqlcmdstring = """
+                    UPDATE piggybank SET piggybank.target = (
+                    SELECT target
+                    FROM categorytree
+                    WHERE 
+                    categorytree.`Revision Date` = (
+                    SELECT MAX(categorytree.`Revision Date`)
+                    FROM categorytree
+                    WHERE
+                    categorytree.`Revision Date` <= piggybank.`Article Date` AND categorytree.`Source`=piggybank.`Source` 
+                    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
+                    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
+                    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
+                    categorytree.`Description Type` = piggybank.`Description Type`
+                    )  AND categorytree.`Source`=piggybank.`Source` 
+                    AND categorytree.`BU`=piggybank.`BU` AND categorytree.`Description Type`= piggybank.`Description Type` AND
+                    categorytree.`Category` = piggybank.`Category` AND categorytree.`Super-Category`=piggybank.`Super-Category` AND
+                    categorytree.`Sub-Category` = piggybank.`Sub-Category` AND categorytree.`Vertical` = piggybank.`Vertical` AND
+                    categorytree.`Description Type` = piggybank.`Description Type`
+                    ) WHERE
+                    piggybank.`Article Date` BETWEEN "%s" AND "%s" AND piggybank.`WriterID` = "%s";
+                    """ %(convertToMySQLDate(start_date), convertToMySQLDate(end_date), user_id)
+        cursor.execute(sqlcmdstring)
+        conn.commit()
     sqlcmdstring = """select * from `piggybank` WHERE 
     `WriterID`="%s" AND `Article Date` BETWEEN "%s" AND "%s";""" %(query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
     cursor.execute(sqlcmdstring)
@@ -1677,8 +1690,10 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     #print writer_dates_data
     for piggy_entry in piggy_bank_data:
         entry_date = piggy_entry["Article Date"]
-        target = piggy_entry["Target"]
-        #target = getTargetForPiggyBankRow(user_id, password, piggy_entry)
+        if not use_category_tree:
+            target = piggy_entry["Target"]
+        else:
+            target = getTargetForPiggyBankRow(user_id, password, piggy_entry, category_tree)
         writer_dates_data[entry_date]["Targets"].append(target)
     #print writer_dates_data
     corrected_targets = []
@@ -1704,78 +1719,12 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     efficiency = numpy.sum(utilizations)/len(working_dates)
     return efficiency
 
-def getEfficiencyForDateRange_(user_id, password, start_date, end_date, query_user=None):
-    """Returns the efficiency for an emplyoee for all dates between two dates."""
-    #print "In getEfficiencyForDateRange"
-    #Great, I need to rewrite this too?! Wth.
-    if query_user is None:
-        query_user = user_id
-    datesList = getWorkingDatesBetween(user_id, password, start_date, end_date, query_user)
-    efficiency = 0.0
-    days = 0.0
-    for each_date in datesList:
-        efficiency += getEfficiencyFor(user_id, password, each_date, query_user)
-        days += 1.0
-    #print "Leaving getEfficiencyForDateRange"
-    if days == 0:
-        print "Zero day error for the following dates:", start_date, end_date
-        return 0
-    else:
-        #print "Total efficiency: %f for %d days." % ((efficiency / days), days)
-        return efficiency / days
-
-def getEfficiencyFor(user_id, password, query_date, query_user=None):
+def getEfficiencyFor(user_id, password, query_date, query_user=None, category_tree=None):
     if query_user == None:
         query_user = user_id
-    return getEfficiencyForDateRange(user_id, password, query_date, query_date, query_user)
+    return getEfficiencyForDateRange(user_id, password, query_date, query_date, query_user, category_tree)
 
-def getEfficiencyFor_(user_id, password, queryDate, query_user = None):
-    """Returns the total efficiency for a user for a particular date.
-    NOTE: If calculating efficiency between a range of dates, do not consider
-    dates on which a writer is given a leave.
-    """
-    #print "In getEfficiencyFor"
-    if query_user == None:
-        query_user = user_id
-    requestedData = getUserPiggyBankData(queryDate, user_id, password, query_user)
-    #print "Received a %s of %d length." %(type(requestedData),len(requestedData))
-    efficiency = 0.0
-    status, relaxation, approval = checkWorkStatus(user_id, password, queryDate, query_user)
-    if (status == "Working") or (approval != "Approved"):
-        #Calculate only for working days
-        if relaxation > 0.0:
-            efficiencyDivisor = (1.0-relaxation)
-        else:
-            efficiencyDivisor = 1.0
-        #This doesn't account for negative relaxation, scenarios where a writer must make up. Does it need to? I don't really think so.
-        for entry in requestedData:
-            #pass the classification identifiers to the method.
-            piggy_row = {
-                "Description Type": entry["Description Type"],
-                "Source": entry["Source"],
-                "BU": entry["BU"],
-                "Super-Category": entry["Super-Category"],
-                "Category": entry["Category"],
-                "Sub-Category": entry["Sub-Category"],
-                "Vertical": entry["Vertical"]
-            }
-            target = getTargetFor(user_id, password, piggy_row, queryDate)
-            if target == 0.0:
-                efficiency += 0.0
-            else:
-                if queryDate < datetime.date(2015,6,11):
-                    efficiency += 1.0/(target*efficiencyDivisor)
-                else:
-                    efficiency += 1.0/(target)
-        if queryDate >= datetime.date(2015, 6, 11):
-            efficiency += relaxation
-    #elif status == "Leave" or status == "Company Holiday":
-        #efficiency = 1.0
-    #print efficiency
-    #print "Leaving getEfficiencyFor"
-    return efficiency
-
-def getEfficiencyForWeek(user_id, password, query_date, query_user = None):
+def getEfficiencyForWeek(user_id, password, query_date, query_user=None, category_tree=None):
     """Returns the average efficiency for a query_user or the caller ID for the week in
     which the request date falls.
     It only considers those dates in the range which occur prior to the queryDate."""
@@ -1786,10 +1735,10 @@ def getEfficiencyForWeek(user_id, password, query_date, query_user = None):
     #Get the date of the monday in that week. Week ends on Sunday.
     subtractor = current_day - 1
     first_day_of_the_week = query_date - datetime.timedelta(subtractor)
-    efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_week, query_date, query_user)
+    efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_week, query_date, query_user, category_tree)
     return efficiency
 
-def getEfficiencyForMonth(user_id, password, query_date, query_user = None):
+def getEfficiencyForMonth(user_id, password, query_date, query_user = None, category_tree=None):
     """Returns the average efficiency for a query_user or the caller ID for the month in
     which the request date falls.
     It only considers those dates in the range which occur prior to the queryDate."""
@@ -1798,10 +1747,10 @@ def getEfficiencyForMonth(user_id, password, query_date, query_user = None):
         query_user = user_id
 
     first_day_of_the_month = datetime.date(query_date.year, query_date.month, 1)
-    efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_month, query_date, query_user)
+    efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_month, query_date, query_user, category_tree)
     return efficiency
 
-def getEfficiencyForQuarter(user_id, password, query_date, query_user=None):
+def getEfficiencyForQuarter(user_id, password, query_date, query_user=None, category_tree=None):
     """Returns the average efficiency for a queryUser or the caller ID for the quarter in
     which the request date falls.
     It only considers those dates in the range which occur prior to the queryDate."""
@@ -1822,14 +1771,14 @@ def getEfficiencyForQuarter(user_id, password, query_date, query_user=None):
     }
     first_month_of_the_quarter = quarter_first_month_mapped_dictionary[query_date.month]
     first_day_of_the_quarter = datetime.date(query_date.year, first_month_of_the_quarter, 1)
-    efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_quarter, query_date, query_user)
+    efficiency = getEfficiencyForDateRange(user_id, password, first_day_of_the_quarter, query_date, query_user, category_tree)
     return efficiency
 
-def getEfficiencyForHalfYear(user_id, password, query_date, query_user=None):
+def getEfficiencyForHalfYear(user_id, password, query_date, query_user=None, category_tree=None):
     if query_user is None:
         query_user = user_id
     half_year_start_date = getHalfYearStartDate(query_date)
-    return getEfficiencyForDateRange(user_id, password, half_year_start_date, query_date, query_user)
+    return getEfficiencyForDateRange(user_id, password, half_year_start_date, query_date, query_user, category_tree)
 
 def getHalfYearStartDate(query_date):
     """Given a date, it returns the start of the half-year which contains it.
@@ -1849,9 +1798,12 @@ def getTargetFor(user_id, password, query_dict, query_date=None, category_tree =
     """
     This method derives the target from the category tree dataframe.
     """
+    def printMessage(msg):
+        debugging = False
+        if debugging:
+            print "MOSES.getTargetFor.msg: %s"%msg
     import numpy
     import pandas as pd
-    print "In MOSES.getTargetFor."
     if query_date is None:
         query_date = datetime.date.today()
     #First, filter the category tree dataframe down to the valid description type and source.
@@ -1880,34 +1832,34 @@ def getTargetFor(user_id, password, query_dict, query_date=None, category_tree =
         current_cat_tree = vertical_level_cat_tree
         valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
         if len(valid_revision_date_list) ==0:
-            print "No vertical level match for %s. Reverting to Sub-Category."%(vertical)
+            printMessage("No vertical level match for %s. Reverting to Sub-Category."%(vertical))
             current_cat_tree = sub_category_level_cat_tree
             valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
             if len(valid_revision_date_list) ==0:
-                print "No Sub-Category level match for %s. Reverting to Category."%(sub_category)
+                printMessage("No Sub-Category level match for %s. Reverting to Category."%(sub_category))
                 current_cat_tree = category_level_cat_tree
                 valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
                 if len(valid_revision_date_list) ==0:
-                    print "No Category level match for %s. Reverting to Super-Category."%(category)
+                    printMessage("No Category level match for %s. Reverting to Super-Category."%(category))
                     current_cat_tree = super_category_level_cat_tree
                     valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
                     if len(valid_revision_date_list) == 0:
-                        print "No Super-Category level match for %s. Reverting to BU."%(super_category)
+                        printMessage("No Super-Category level match for %s. Reverting to BU."%(super_category))
                         current_cat_tree = bu_level_cat_tree
                         valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
                         if len(valid_revision_date_list) == 0:
-                            print "There's no category tree match for the requested query. %s."%query_dict
-                            print "Using description type and source level filter."
+                            printMessage("There's no category tree match for the requested query. %s."%query_dict)
+                            printMessage("Using description type and source level filter.")
                             current_cat_tree = filtered_cat_tree
                             valid_revision_date_list = list(set(current_cat_tree[current_cat_tree["Revision Date"] <= query_date]["Revision Date"]))
         else:
-            print "Found vertical level match for %s."%vertical 
+            printMessage("Found vertical level match for %s."%vertical )
         if len(valid_revision_date_list) == 0:
-            print "Despite all the precautions, there still doesn't seem to be any match. Returning 0."
+            printMessage("Despite all the precautions, there still doesn't seem to be any match. Returning 0.")
             target = 0
         else:
             nearest_revision_date = max(valid_revision_date_list)
-            print nearest_revision_date, " is the nearest date in the category tree."
+            printMessage("%s is the nearest date in the category tree."%nearest_revision_date)
             target = max(list(set(current_cat_tree[current_cat_tree["Revision Date"] == nearest_revision_date]["Target"])))
     else:
         raise Exception("getTargetFor's query_dict variable needs to have a description type and a source at least.")
@@ -1927,130 +1879,7 @@ def addUsersToEvent(user_id, password, event_details, query_users=None):
 def calculateRelaxationForEvent(user_id, password, event_details):
     """Given an event's details, this function calculates the reduction in efficiency."""
 
-def getOldTargetFor(user_id, password, **query):
-    #OLD METHOD. DO NOT USE.
-    """Returns target for a combination of queries.
-    If, for a combination of BUxTypexSourcexSupCatxCatxSubCatxVert, no target is defined,
-    then, this method will keep eliminating one parameter after another to get a target.
-    CHANGE PENDING: If it retrieves multiple targets, it should pick the one with the highest frequency.
-"""
-    #print "In getTargetFor"
-    try:
-        BUString = query["BU"]
-        TypeString = query["DescriptionType"]
-        SourceString = query["Source"]
-        SupCatString = query["SuperCategory"]
-    except:
-        print "Error Message: BU, Super-Category, Source and Type are necessary!"
-        raise
-        return 0
-    try:
-        CatString = query["Category"]
-    except:
-        CatString = SupCatString
-    try:
-        SubCatString = query["SubCategory"]
-    except:
-        SubCatString = CatString
-    try:
-        VertString = query["Vertical"]
-    except:
-        VertString = SubCatString
-    try:
-        requestDate = query["QueryDate"] #Needs to be datetime.
-        if type(requestDate) != type(datetime.date.today()):
-            print "Error, date needs to be a datetime date. MOSES is resetting the date to TODAY NOW!"
-            requestDate = datetime.date.today()
-    except:
-        print "No date provided. Fetching target for TODAY."
-        requestDate = datetime.date.today() #Get today's date.
-    #If I've got here, then I have what I need, mostly.
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    sqlcmdstring = """SELECT `Target`, `Revision Date` FROM `categorytree` 
-WHERE `BU`="%s" AND `Super-Category`="%s" AND `Category`="%s" 
-AND `Sub-Category`="%s" AND `Vertical`="%s" 
-AND `Description Type`="%s" AND `Source`="%s";""" % \
-        (BUString,SupCatString,CatString,SubCatString,VertString,TypeString,SourceString)
-    #print sqlcmdstring #debug
-    try:
-        dbcursor.execute(sqlcmdstring)
-        data = dbcursor.fetchall()
-    except Exception, e:
-        print "Error getting target for %s." %query
-        print repr(e)
-        return 0
-    #print data #debug
-    connectdb.commit()
-    connectdb.close()
-    #Data is in a tuple containing dictionaries.
-    #Separate the dates.
-    entriesList = []
-    for entry in data:
-        entriesList.append(entry)
-    #print entriesList #debug
-    if len(entriesList)==1:
-        #print "Only one target found." #debug
-        result = entriesList[0]["Target"]
-    elif len(entriesList) > 1:
-        #print "Found multiple targets across separate dates." #debug
-        #print entriesList
-        result = None
-        datesList = []
-        for entry in entriesList:
-            datesList.append(entry["Revision Date"])
-        #print datesList #debug
-        closestRevisionDate = getClosestDate(datesList,requestDate)
-        #print "Closest revision date is %s." %closestRevisionDate #debug
-        #print "Query Date is %s." %requestDate #debug
-        entry_counter = 0
-        for entry in entriesList:
-            if entry["Revision Date"] == closestRevisionDate:
-                result = entry["Target"]
-                entry_counter +=1
-        if entry_counter >1:
-            print "*******************************************************"
-            print "Trying to get a target for:"
-            print "VertString:", VertString
-            print "There seem to be multiple possible targets for separate dates."
-            print entriesList
-            print "*******************************************************"
-    else:
-        result = 0
 
-    if int(result) == 0:
-        try:
-            retry = query["Retry"]
-        except:
-            retry = 0
-        if retry == 0:
-            #print "*****************************"
-            #print "Got zero target. Trying again."
-            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            #print "*****************************"
-
-            result = getTargetFor(user_id, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, Category=CatString, SubCategory=SubCatString, QueryDate = requestDate, Retry = 1)
-        elif retry == 1:
-            #print "*****************************"
-            #print "Got zero target. Trying again."
-            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            #print "*****************************"
-            result = getTargetFor(user_id, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, Category=CatString, QueryDate = requestDate, Retry = 2)
-        elif retry == 2:
-            #print "*****************************"
-            #print "Got zero target. Trying again."
-            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            #print "*****************************"
-            result = getTargetFor(user_id, password, BU=BUString, DescriptionType=TypeString, Source=SourceString, SuperCategory=SupCatString, QueryDate = requestDate, Retry = 3)
-        else:
-            #print "*****************************"
-            #print "Got zero target. FAILED."
-            #print "Date: %s, BU=%s, DescriptionType=%s, Source=%s, SuperCategory=%s, Category=%s, SubCategory=%s, Vertical=%s" %(requestDate, BUString, TypeString, SourceString, SupCatString, CatString, SubCatString, VertString)
-            #print "*****************************"
-            result = 0
-    #print "Target is %r" %result #debug
-    #print "Leaving getTargetFor"
-    return int(result)
 
 def getClosestDate(datesList, testDate):
     closestDate = None
@@ -2613,8 +2442,8 @@ def modWorkingStatus(user_id, password, querydate, status, relaxation, comment, 
             print "Team Lead!"
             sqlcmdstring = "UPDATE `workcalendar` SET `Status` = '%s', `Relaxation` = '%s', `Entered By` = '%s', `comment` = '%s', `Approval` = '%s', `Rejection Comment` = '%s' WHERE `Employee ID` = '%s' AND `Date` = '%s';" \
             %(status, relaxation, getUserRole(targetuser), comment, approval, rejectionComment, targetuser, convertToMySQLDate(querydate))
-    #print sqlcmdstring #debug
-    dbcursor.execute(sqlcmdstring)
+    #print sqlcmdstring #dbcursor
+    debug.execute(sqlcmdstring)
     connectdb.commit()
     connectdb.close()
 
@@ -3240,6 +3069,7 @@ def populateStatsInWorkCalendar():
     print "Starting the process."
     start_time = datetime.datetime.now()
     u, p = getBigbrotherCredentials()
+    category_tree = getCategoryTree(u,p)
     conn = getOINKConnector(u, p)
     cursor = conn.cursor()
     print "Fetching all required rows of the work calendar."
@@ -3258,7 +3088,7 @@ def populateStatsInWorkCalendar():
             try:
                 articles = getArticleCount(u, p, query_date, query_id)
                 audits = getAuditCount(u, p, query_date, query_id)
-                efficiency = getEfficiencyFor(u, p, query_date, query_id)
+                efficiency = getEfficiencyFor(u, p, query_date, query_id, category_tree)
                 cfm = getCFMFor(u, p, query_date, query_id)
                 gseo = getGSEOFor(u, p, query_date, query_id)
                 if articles is None:
