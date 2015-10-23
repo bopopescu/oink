@@ -181,9 +181,7 @@ class Porker(QtCore.QThread):
             lwd_efficiency = "-"
         else:
             lwd_efficiency *= 100.00
-        lwd_cfm, lwd_gseo = MOSES.getCFMGSEOFor(self.userID, self.password, last_working_date)
-        self.sendActivity.emit("Got the CFM and GSEO for the last working date.", MOSES.getETA(start_time, 3, no_of_steps), False)
-
+        lwd_cfm, lwd_gseo = MOSES.getCFMGSEOFor(self.userID, self.password, last_working_date)        
         if lwd_gseo is None:
             lwd_gseo = "-"
         else:
@@ -193,6 +191,14 @@ class Porker(QtCore.QThread):
             lwd_cfm = "-"
         else:
             lwd_cfm *= 100.00
+        self.sendActivity.emit("Got the CFM and GSEO for the last working date.", MOSES.getETA(start_time, 3, no_of_steps), False)
+        stats_data = {
+            "LWD": last_working_date,
+            "LWD Efficiency": lwd_efficiency,
+            "LWD GSEO": lwd_gseo,
+            "LWD CFM": lwd_cfm
+            }
+        self.sendStatsData.emit(stats_data)
 
         cw_efficiency = MOSES.getEfficiencyForWeek(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         self.sendActivity.emit("Got the efficiency for the week.", MOSES.getETA(start_time, 5, no_of_steps), False)
@@ -202,7 +208,6 @@ class Porker(QtCore.QThread):
             cw_efficiency *= 100.00
         
         cw_cfm, cw_gseo = MOSES.getCFMGSEOForWeek(self.userID, self.password, last_working_date)
-        self.sendActivity.emit("Got the CFM and GSEO for the week.", MOSES.getETA(start_time, 6, no_of_steps), False)
         if cw_gseo is None:
             cw_gseo = "-"
         else:
@@ -211,6 +216,18 @@ class Porker(QtCore.QThread):
             cw_cfm = "-"
         else:
             cw_cfm *= 100.00
+        self.sendActivity.emit("Got the CFM and GSEO for the week.", MOSES.getETA(start_time, 6, no_of_steps), False)
+        stats_data = {
+            "LWD": last_working_date,
+            "Current Week": current_week,
+            "LWD Efficiency": lwd_efficiency,
+            "LWD GSEO": lwd_gseo,
+            "LWD CFM": lwd_cfm,
+            "CW Efficiency": cw_efficiency,
+            "CW GSEO": cw_gseo,
+            "CW CFM": cw_cfm
+            }
+        self.sendStatsData.emit(stats_data)
 
         cm_efficiency = MOSES.getEfficiencyForMonth(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         #This is where the lag starts, so increasing the counter in steps of 2
@@ -222,7 +239,6 @@ class Porker(QtCore.QThread):
             cm_efficiency *= 100.00
 
         cm_cfm, cm_gseo = MOSES.getCFMGSEOForMonth(self.userID, self.password, last_working_date)
-        self.sendActivity.emit("Got the CFM and GSEO for the month.", MOSES.getETA(start_time, 11, no_of_steps), False)
         if cm_gseo is None:
             cm_gseo = "-"
         else:
@@ -232,6 +248,22 @@ class Porker(QtCore.QThread):
             cm_cfm = "-"
         else:
             cm_cfm *= 100.00
+        self.sendActivity.emit("Got the CFM and GSEO for the month.", MOSES.getETA(start_time, 11, no_of_steps), False)
+        stats_data = {
+            "LWD": last_working_date,
+            "Current Week": current_week,
+            "Current Month": current_month,
+            "LWD Efficiency": lwd_efficiency,
+            "LWD GSEO": lwd_gseo,
+            "LWD CFM": lwd_cfm,
+            "CW Efficiency": cw_efficiency,
+            "CW GSEO": cw_gseo,
+            "CW CFM": cw_cfm,
+            "CM Efficiency": cm_efficiency,
+            "CM GSEO": cm_gseo,
+            "CM CFM": cm_cfm
+            }
+        self.sendStatsData.emit(stats_data)
 
         cq_efficiency = MOSES.getEfficiencyForQuarter(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         self.sendActivity.emit("Got the efficiency for the quarter.", MOSES.getETA(start_time, 15, no_of_steps), False)
@@ -241,7 +273,6 @@ class Porker(QtCore.QThread):
             cq_efficiency *= 100.00
 
         cq_cfm, cq_gseo = MOSES.getCFMGSEOForQuarter(self.userID, self.password, last_working_date)
-        self.sendActivity.emit("Got the CFM and GSEO for the quarter.", MOSES.getETA(start_time, 15, no_of_steps), False)
         if cq_gseo is None:
             cq_gseo = "-"
         else:
@@ -250,7 +281,27 @@ class Porker(QtCore.QThread):
             cq_cfm = "-"
         else:
             cq_cfm *= 100.00
-
+        self.sendActivity.emit("Got the CFM and GSEO for the quarter.", MOSES.getETA(start_time, 15, no_of_steps), False)
+        stats_data = {
+            "LWD": last_working_date,
+            "Current Week": current_week,
+            "Current Month": current_month,
+            "Current Quarter": current_quarter,
+            "LWD Efficiency": lwd_efficiency,
+            "LWD GSEO": lwd_gseo,
+            "LWD CFM": lwd_cfm,
+            "CW Efficiency": cw_efficiency,
+            "CW GSEO": cw_gseo,
+            "CW CFM": cw_cfm,
+            "CM Efficiency": cm_efficiency,
+            "CM GSEO": cm_gseo,
+            "CM CFM": cm_cfm,
+            "CQ Efficiency": cq_efficiency,
+            "CQ GSEO": cq_gseo,
+            "CQ CFM": cq_cfm
+            }
+        self.sendStatsData.emit(stats_data)
+        
         chy_efficiency = MOSES.getEfficiencyForHalfYear(self.userID, self.password, last_working_date, category_tree=self.category_tree)
         self.sendActivity.emit("Got the Efficiency for the half-year.", MOSES.getETA(start_time, 22, no_of_steps), False)
         if chy_efficiency is None:
@@ -271,27 +322,27 @@ class Porker(QtCore.QThread):
 
 
         stats_data = {
-        "LWD": last_working_date,
-        "Current Week": current_week,
-        "Current Month": current_month,
-        "Current Quarter": current_quarter,
-        "Current Half Year": current_half_year,
-        "LWD Efficiency": lwd_efficiency,
-        "LWD GSEO": lwd_gseo,
-        "LWD CFM": lwd_cfm,
-        "CW Efficiency": cw_efficiency,
-        "CW GSEO": cw_gseo,
-        "CW CFM": cw_cfm,
-        "CM Efficiency": cm_efficiency,
-        "CM GSEO": cm_gseo,
-        "CM CFM": cm_cfm,
-        "CQ Efficiency": cq_efficiency,
-        "CQ GSEO": cq_gseo,
-        "CQ CFM": cq_cfm,
-        "CHY Efficiency": chy_efficiency,
-        "CHY GSEO": chy_gseo,
-        "CHY CFM": chy_cfm
-        }
+            "LWD": last_working_date,
+            "Current Week": current_week,
+            "Current Month": current_month,
+            "Current Quarter": current_quarter,
+            "Current Half Year": current_half_year,
+            "LWD Efficiency": lwd_efficiency,
+            "LWD GSEO": lwd_gseo,
+            "LWD CFM": lwd_cfm,
+            "CW Efficiency": cw_efficiency,
+            "CW GSEO": cw_gseo,
+            "CW CFM": cw_cfm,
+            "CM Efficiency": cm_efficiency,
+            "CM GSEO": cm_gseo,
+            "CM CFM": cm_cfm,
+            "CQ Efficiency": cq_efficiency,
+            "CQ GSEO": cq_gseo,
+            "CQ CFM": cq_cfm,
+            "CHY Efficiency": chy_efficiency,
+            "CHY GSEO": chy_gseo,
+            "CHY CFM": chy_cfm
+            }
         self.sendStatsData.emit(stats_data)
         self.sendActivity.emit("Refreshed stats data.", MOSES.getETA(self.start_time, 3, 3), False)
         self.sentStatsData = True

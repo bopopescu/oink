@@ -579,311 +579,104 @@ class Pork(QtGui.QMainWindow):
         """PORK Window method that updates the writer's statistics sheet.
         This should be triggered along with the populateTable method
         when the date is changed."""
-        #get data for last working date (lwd)
-        self.last_working_date = stats_data["LWD"]
-        self.lwd_efficiency = stats_data["LWD Efficiency"]
-        self.lwd_CFM = stats_data["LWD CFM"]
-        self.lwd_GSEO = stats_data["LWD GSEO"]
-        #get data for current week (cw)
-        self.current_week = stats_data["Current Week"]
-        self.cw_efficiency = stats_data["CW Efficiency"]
-        self.cw_CFM = stats_data["CW CFM"]
-        self.cw_GSEO = stats_data["CW GSEO"]
-        #get data for current month (cm)
-        self.current_month = stats_data["Current Month"]
-        self.cm_efficiency = stats_data["CM Efficiency"]
-        self.cm_CFM = stats_data["CM CFM"]
-        self.cm_GSEO = stats_data["CM GSEO"]
-        #get data for current quarter (cq)
-        self.current_quarter = stats_data["Current Quarter"]
-        self.cq_efficiency = stats_data["CQ Efficiency"]
-        self.cq_CFM = stats_data["CQ CFM"]
-        self.cq_GSEO = stats_data["CQ GSEO"]
-        self.current_half_year = stats_data["Current Half Year"]
-        self.chy_efficiency = stats_data["CHY Efficiency"]
-        self.chy_CFM = stats_data["CHY CFM"]
-        self.chy_GSEO = stats_data["CHY GSEO"]
-        
-
-        self.stats_table.setRowCount(5)
-        self.stats_table.setColumnCount(4)
-
         red = QtGui.QColor(231, 90, 83)
         green = QtGui.QColor(60, 179, 113)
         blue = QtGui.QColor(23, 136, 216)
         blue1 = QtGui.QColor(1, 172, 218)
+        grey = QtGui.QColor(143,143,143)
 
+        rows = []
+        #get data for last working date (lwd)
+        if "LWD" in stats_data.keys():
+            rows.append([str(stats_data["LWD"]), stats_data["LWD Efficiency"], stats_data["LWD CFM"], stats_data["LWD GSEO"]])
+        #get data for current week (cw)
+        if "Current Week" in stats_data.keys():
+            rows.append(["Current Week: %d"%stats_data["Current Week"], stats_data["CW Efficiency"], stats_data["CW CFM"], stats_data["CW GSEO"]])
+        #get data for current month (cm)
+        if "Current Month" in stats_data.keys():
+            rows.append(["Current Month: %d"%stats_data["Current Month"], stats_data["CM Efficiency"], stats_data["CM CFM"], stats_data["CM GSEO"]])
+        #get data for current quarter (cq)
+        if "Current Quarter" in stats_data.keys():
+            rows.append(["Current Quarter: %s"%stats_data["Current Quarter"], stats_data["CQ Efficiency"], stats_data["CQ CFM"], stats_data["CQ GSEO"]])
+        if "Current Half Year" in stats_data.keys():
+            rows.append(["Current Half Year: %s"%stats_data["Current Half Year"], stats_data["CHY Efficiency"], stats_data["CHY CFM"], stats_data["CHY GSEO"]])
+
+        self.stats_table.setColumnCount(4)
         self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
+        self.stats_table.setRowCount(len(rows))
+        if len(rows)>0:
+            row_counter = 0
+            for row in rows:
+                time_frame = row[0]
+                efficiency = row[1]       
+                cfm = row[2]       
+                gseo = row[3]
+                time_frame_item = QtGui.QTableWidgetItem(str(time_frame))
+                if efficiency is not None:
+                    if type(efficiency) is not str:
+                        efficiency_item = QtGui.QTableWidgetItem("%6.3f%%" %efficiency)
+                        if 0.000 <= efficiency < 100.000:
+                            efficiency_color = red
+                        elif 100.000 <= efficiency < 105.000:
+                            efficiency_color = green
+                        elif 105.000 <= efficiency < 110.000:
+                            efficiency_color = blue
+                        else:
+                            efficiency_color = blue1
+                        efficiency_item.setBackgroundColor(efficiency_color)
+                    else:
+                        efficiency_item = QtGui.QTableWidgetItem(efficiency)
+                        efficiency_item.setBackgroundColor(grey)
+                else:
+                    efficiency_item = QtGui.QTableWidgetItem("-")
 
-        if (self.lwd_efficiency is None): 
-            lwd_efficiency_item = QtGui.QTableWidgetItem("-")
-        elif type(self.lwd_efficiency) == str:
-            lwd_efficiency_item = QtGui.QTableWidgetItem(self.lwd_efficiency)
-        else:
-            self.lwd_efficiency = numpy.around(self.lwd_efficiency, 3)
-            lwd_efficiency_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.lwd_efficiency))
-            if 0.000 <= self.lwd_efficiency < 100.000:
-                lwd_efficiency_item.setBackgroundColor(red)
-            elif 100.000 <= self.lwd_efficiency < 105.000:
-                lwd_efficiency_item.setBackgroundColor(green)
-            elif 105.000 <= self.lwd_efficiency < 110.000:
-                lwd_efficiency_item.setBackgroundColor(blue)
-            else:
-                lwd_efficiency_item.setBackgroundColor(blue1)
-        
-        if (self.lwd_CFM is None):
-            lwd_CFM_item = QtGui.QTableWidgetItem("-")
-        elif type(self.lwd_CFM) == str:
-            lwd_CFM_item = QtGui.QTableWidgetItem(self.lwd_CFM)
-        else:
-            self.lwd_CFM = numpy.around(self.lwd_CFM, 3)
-            lwd_CFM_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.lwd_CFM))
-            if 0.000 <= self.lwd_CFM < 95.000:
-                lwd_CFM_item.setBackgroundColor(red)
-            elif 95.000 <= self.lwd_CFM < 98.000:
-                lwd_CFM_item.setBackgroundColor(green)
-            elif 98.000 <= self.lwd_CFM < 100.000:
-                lwd_CFM_item.setBackgroundColor(blue)
-            elif self.lwd_CFM == 100.000:
-                lwd_CFM_item.setBackgroundColor(blue1)
+                if cfm is not None:
+                    if type(cfm) != str:
+                        cfm_item = QtGui.QTableWidgetItem(str("%6.3f%%" %cfm))
+                        if 0.000 <= cfm < 95.000:
+                            cfm_color = red
+                        elif 95.000 <= cfm < 98.000:
+                            cfm_color = green
+                        elif 98.000 <= cfm < 100.000:
+                            cfm_color = blue
+                        elif cfm == 100.000:
+                            cfm_color = blue1
+                        cfm_item.setBackgroundColor(cfm_color)
+                    else:
+                        cfm_item = QtGui.QTableWidgetItem(cfm)
+                        cfm_item.setBackgroundColor(grey)
+                else:
+                    cfm_item = QtGui.QTableWidgetItem("-")
 
-        if (self.lwd_GSEO is None):
-            lwd_GSEO_item = QtGui.QTableWidgetItem("-")
-        elif type(self.lwd_GSEO) == str:
-            lwd_GSEO_item = QtGui.QTableWidgetItem(self.lwd_GSEO)
-        else:
-            self.lwd_GSEO = numpy.around(self.lwd_GSEO, 3)
-            lwd_GSEO_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.lwd_GSEO))
-            if 0.000 <= self.lwd_GSEO < 95.000:
-                lwd_GSEO_item.setBackgroundColor(red)
-            elif 95.000 <= self.lwd_GSEO < 98.000:
-                lwd_GSEO_item.setBackgroundColor(green)
-            elif 98.000 <= self.lwd_GSEO < 100.000:
-                lwd_GSEO_item.setBackgroundColor(blue)
-            elif self.lwd_GSEO == 100.000:
-                lwd_GSEO_item.setBackgroundColor(blue1)
-
-        if (self.cw_efficiency is None):
-            cw_efficiency_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cw_efficiency) == str:
-            cw_efficiency_item = QtGui.QTableWidgetItem(self.cw_efficiency)
-        else:
-            self.cw_efficiency = numpy.around(self.cw_efficiency, 3)
-            cw_efficiency_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cw_efficiency))
-            if 0.000 <= self.cw_efficiency < 100.000:
-                cw_efficiency_item.setBackgroundColor(red)
-            elif 100.000 <= self.cw_efficiency < 105.000:
-                cw_efficiency_item.setBackgroundColor(green)
-            elif 105.000 <= self.cw_efficiency < 110.000:
-                cw_efficiency_item.setBackgroundColor(blue)
-            else:
-                cw_efficiency_item.setBackgroundColor(blue1)
-        
-        if (self.cw_CFM is None):
-            cw_CFM_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cw_CFM) == str:
-            cw_CFM_item = QtGui.QTableWidgetItem(self.cw_CFM)
-        else:
-            self.cw_CFM = numpy.around(self.cw_CFM, 3)
-            cw_CFM_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cw_CFM))
-            if 0.000 <= self.cw_CFM < 95.000:
-                cw_CFM_item.setBackgroundColor(red)
-            elif 95.000 <= self.cw_CFM < 98.000:
-                cw_CFM_item.setBackgroundColor(green)
-            elif 98.000 <= self.cw_CFM < 100.000:
-                cw_CFM_item.setBackgroundColor(blue)
-            elif self.cw_CFM == 100.000:
-                cw_CFM_item.setBackgroundColor(blue1)
-
-        if (self.cw_GSEO is None):
-            cw_GSEO_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cw_GSEO) == str:
-            cw_GSEO_item = QtGui.QTableWidgetItem(self.cw_GSEO)
-        else:
-            self.cw_GSEO = numpy.around(self.cw_GSEO, 3)
-            cw_GSEO_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cw_GSEO))
-            if 0.000 <= self.cw_GSEO < 95.000:
-                cw_GSEO_item.setBackgroundColor(red)
-            elif 95.000 <= self.cw_GSEO < 98.000:
-                cw_GSEO_item.setBackgroundColor(green)
-            elif 98.000 <= self.cw_GSEO < 100.000:
-                cw_GSEO_item.setBackgroundColor(blue)
-            elif self.cw_GSEO == 100.000:
-                cw_GSEO_item.setBackgroundColor(blue1)
-
-        if (self.cm_efficiency is None):
-            cm_efficiency_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cm_efficiency) == str:
-            cm_efficiency_item = QtGui.QTableWidgetItem(self.cm_efficiency)
-        else:
-            self.cm_efficiency = numpy.around(self.cm_efficiency, 3)
-            cm_efficiency_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cm_efficiency))
-            if 0.000 <= self.cm_efficiency < 100.000:
-                cm_efficiency_item.setBackgroundColor(red)
-            elif 100.000 <= self.cm_efficiency < 105.000:
-                cm_efficiency_item.setBackgroundColor(green)
-            elif 105.000 <= self.cm_efficiency < 110.000:
-                cm_efficiency_item.setBackgroundColor(blue)
-            else:
-                cm_efficiency_item.setBackgroundColor(blue1)
-        
-        if (self.cm_CFM is None):
-            cm_CFM_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cm_CFM) == str:
-            cm_CFM_item = QtGui.QTableWidgetItem(self.cm_CFM)
-        else:
-            self.cm_CFM = numpy.around(self.cm_CFM, 3)
-            cm_CFM_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cm_CFM))
-            if 0.000 <= self.cm_CFM < 95.000:
-                cm_CFM_item.setBackgroundColor(red)
-            elif 95.000 <= self.cm_CFM < 98.000:
-                cm_CFM_item.setBackgroundColor(green)
-            elif 98.000 <= self.cm_CFM < 100.000:
-                cm_CFM_item.setBackgroundColor(blue)
-            elif self.cm_CFM == 100.000:
-                cm_CFM_item.setBackgroundColor(blue1)
-
-        if (self.cm_GSEO is None):
-            cm_GSEO_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cm_GSEO) == str:
-            cm_GSEO_item = QtGui.QTableWidgetItem(self.cm_GSEO)
-        else:
-            self.cm_GSEO = numpy.around(self.cm_GSEO, 3)
-            cm_GSEO_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cm_GSEO))
-            if 0.000 <= self.cm_GSEO < 95.000:
-                cm_GSEO_item.setBackgroundColor(red)
-            elif 95.000 <= self.cm_GSEO < 98.000:
-                cm_GSEO_item.setBackgroundColor(green)
-            elif 98.000 <= self.cm_GSEO < 100.000:
-                cm_GSEO_item.setBackgroundColor(blue)
-            elif self.cm_GSEO == 100.000:
-                cm_GSEO_item.setBackgroundColor(blue1)
-
-        if (self.cq_efficiency is None):
-            cq_efficiency_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cq_efficiency) == str:
-            cq_efficiency_item = QtGui.QTableWidgetItem(self.cq_efficiency)
-        else:
-            self.cq_efficiency = numpy.around(self.cq_efficiency, 3)
-            cq_efficiency_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cq_efficiency))
-            if 0.000 <= self.cq_efficiency < 100.000:
-                cq_efficiency_item.setBackgroundColor(red)
-            elif 100.000 <= self.cq_efficiency < 105.000:
-                cq_efficiency_item.setBackgroundColor(green)
-            elif 105.000 <= self.cq_efficiency < 110.000:
-                cq_efficiency_item.setBackgroundColor(blue)
-            else:
-                cq_efficiency_item.setBackgroundColor(blue1)
-        
-        if (self.cq_CFM is None):
-            cq_CFM_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cq_CFM) == str:
-            cq_CFM_item = QtGui.QTableWidgetItem(self.cq_CFM)
-        else:
-            self.cq_CFM = numpy.around(self.cq_CFM, 3)
-            cq_CFM_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cq_CFM))
-            if 0.000 <= self.cq_CFM < 95.000:
-                cq_CFM_item.setBackgroundColor(red)
-            elif 95.000 <= self.cq_CFM < 98.000:
-                cq_CFM_item.setBackgroundColor(green)
-            elif 98.000 <= self.cq_CFM < 100.000:
-                cq_CFM_item.setBackgroundColor(blue)
-            elif self.cq_CFM == 100.000:
-                cq_CFM_item.setBackgroundColor(blue1)
-
-        if (self.cq_GSEO is None):
-            cq_GSEO_item = QtGui.QTableWidgetItem("-")
-        elif type(self.cq_GSEO) == str:
-            cq_GSEO_item = QtGui.QTableWidgetItem(self.cq_GSEO)
-        else:
-            self.cq_GSEO = numpy.around(self.cq_GSEO, 3)
-            cq_GSEO_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.cq_GSEO))
-            if 0.000 <= self.cq_GSEO < 95.000:
-                cq_GSEO_item.setBackgroundColor(red)
-            elif 95.000 <= self.cq_GSEO < 98.000:
-                cq_GSEO_item.setBackgroundColor(green)
-            elif 98.000 <= self.cq_GSEO < 100.000:
-                cq_GSEO_item.setBackgroundColor(blue)
-            elif self.cq_GSEO == 100.000:
-                cq_GSEO_item.setBackgroundColor(blue1)
-
-        if (self.chy_efficiency is None):
-            chy_efficiency_item = QtGui.QTableWidgetItem("-")
-        elif type(self.chy_efficiency) == str:
-            chy_efficiency_item = QtGui.QTableWidgetItem(self.chy_efficiency)
-        else:
-            self.chy_efficiency = numpy.around(self.chy_efficiency, 3)
-            chy_efficiency_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.chy_efficiency))
-            if 0.000 <= self.chy_efficiency < 100.000:
-                chy_efficiency_item.setBackgroundColor(red)
-            elif 100.000 <= self.chy_efficiency < 105.000:
-                chy_efficiency_item.setBackgroundColor(green)
-            elif 105.000 <= self.chy_efficiency < 110.000:
-                chy_efficiency_item.setBackgroundColor(blue)
-            else:
-                chy_efficiency_item.setBackgroundColor(blue1)
-        
-        if (self.chy_CFM is None):
-            chy_CFM_item = QtGui.QTableWidgetItem("-")
-        elif type(self.chy_CFM) == str:
-            chy_CFM_item = QtGui.QTableWidgetItem(self.chy_CFM)
-        else:
-            self.chy_CFM = numpy.around(self.chy_CFM, 3)
-            chy_CFM_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.chy_CFM))
-            if 0.000 <= self.chy_CFM < 95.000:
-                chy_CFM_item.setBackgroundColor(red)
-            elif 95.000 <= self.chy_CFM < 98.000:
-                chy_CFM_item.setBackgroundColor(green)
-            elif 98.000 <= self.chy_CFM < 100.000:
-                chy_CFM_item.setBackgroundColor(blue)
-            elif self.chy_CFM == 100.000:
-                chy_CFM_item.setBackgroundColor(blue1)
-
-        if (self.chy_GSEO is None):
-            chy_GSEO_item = QtGui.QTableWidgetItem("-")
-        elif type(self.chy_GSEO) == str:
-            chy_GSEO_item = QtGui.QTableWidgetItem(self.chy_GSEO)
-        else:
-            self.chy_GSEO = numpy.around(self.chy_GSEO, 3)
-            chy_GSEO_item = QtGui.QTableWidgetItem(str("%6.3f%%" %self.chy_GSEO))
-            if 0.000 <= self.chy_GSEO < 95.000:
-                chy_GSEO_item.setBackgroundColor(red)
-            elif 95.000 <= self.chy_GSEO < 98.000:
-                chy_GSEO_item.setBackgroundColor(green)
-            elif 98.000 <= self.chy_GSEO < 100.000:
-                chy_GSEO_item.setBackgroundColor(blue)
-            elif self.chy_GSEO == 100.000:
-                chy_GSEO_item.setBackgroundColor(blue1)
-
-
-        self.stats_table.setItem(0,0,QtGui.QTableWidgetItem(str(self.last_working_date)))
-        self.stats_table.setItem(0,1,lwd_efficiency_item)
-        self.stats_table.setItem(0,2,lwd_CFM_item)
-        self.stats_table.setItem(0,3,lwd_GSEO_item)
-        self.stats_table.setItem(1,0,QtGui.QTableWidgetItem(("Week: %d" %self.current_week)))
-        self.stats_table.setItem(1,1,cw_efficiency_item)
-        self.stats_table.setItem(1,2,cw_CFM_item)
-        self.stats_table.setItem(1,3,cw_GSEO_item)
-        self.stats_table.setItem(2,0,QtGui.QTableWidgetItem(("Month: %d" %self.current_month)))
-        self.stats_table.setItem(2,1,cm_efficiency_item)
-        self.stats_table.setItem(2,2,cm_CFM_item)
-        self.stats_table.setItem(2,3,cm_GSEO_item)
-        self.stats_table.setItem(3,0,QtGui.QTableWidgetItem(("Quarter: %s" %self.current_quarter)))
-        self.stats_table.setItem(3,1,cq_efficiency_item)
-        self.stats_table.setItem(3,2,cq_CFM_item)
-        self.stats_table.setItem(3,3,cq_GSEO_item)
-        self.stats_table.setItem(4,0,QtGui.QTableWidgetItem(("Half-Year: %s" %self.current_half_year)))
-        self.stats_table.setItem(4,1,chy_efficiency_item)
-        self.stats_table.setItem(4,2,chy_CFM_item)
-        self.stats_table.setItem(4,3,chy_GSEO_item)
-
-        self.stats_table.setStyleSheet("gridline-color: rgb(0, 0, 0); font: Georgia 18 pt;")
+                if gseo is not None:
+                    if type(gseo) != str:
+                        gseo_item = QtGui.QTableWidgetItem(str("%6.3f%%" %gseo))
+                        if 0.000 <= gseo < 95.000:
+                            gseo_color = red
+                        elif 95.000 <= gseo < 98.000:
+                            gseo_color = green
+                        elif 98.000 <= gseo < 100.000:
+                            gseo_color = blue
+                        elif gseo == 100.000:
+                            gseo_color = blue1
+                        gseo_item.setBackgroundColor(gseo_color)
+                    else:
+                        gseo_item = QtGui.QTableWidgetItem(gseo)
+                        gseo_item.setBackgroundColor(grey)
+                else:
+                    gseo_item = QtGui.QTableWidgetItem("-")
+                self.stats_table.setItem(row_counter,0,time_frame_item)
+                self.stats_table.setItem(row_counter,1,efficiency_item)
+                self.stats_table.setItem(row_counter,2,cfm_item)
+                self.stats_table.setItem(row_counter,3,gseo_item)
+                row_counter+=1
+        self.stats_table.setStyleSheet("gridline-color: rgb(0, 0, 0); font: 10px;")
         self.stats_table.resizeColumnsToContents()
         self.stats_table.resizeRowsToContents()
         self.stats_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.stats_table.horizontalHeader().setStretchLastSection(True)
         self.stats_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.stats_table.verticalHeader().setStretchLastSection(True)
+        self.stats_table.verticalHeader().setStretchLastSection(False)
         self.stats_table.verticalHeader().setVisible(False)
         
 
@@ -1470,7 +1263,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
             self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
             print "Heil Vinay!"
             print "Changing the date to %s so that you have data to look at."%init_date
-        self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date)
+        self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date, category_tree=self.category_tree)
         self.piggybanker_thread.piggybankChanged.connect(self.populateTableThreaded)
         self.porker_thread = Porker(self.userID, self.password, init_date, mode=2, category_tree=self.category_tree)
         self.porker_thread.sendEfficiency.connect(self.displayEfficiencyThreaded)
@@ -1487,7 +1280,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
 
     def sendDatesDataToCalendar(self, dates_data):
         self.workCalendar.setDatesData(dates_data)
-
 
     def center(self):
         frameGm = self.frameGeometry()

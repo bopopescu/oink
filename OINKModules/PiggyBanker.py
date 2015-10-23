@@ -6,7 +6,7 @@ from PyQt4 import QtCore
 class PiggyBanker(QtCore.QThread):
     piggybankChanged = QtCore.pyqtSignal(list, list)
 
-    def __init__(self, user_id, password, start_date, end_date = None, query_dict = None, parent = None):
+    def __init__(self, user_id, password, start_date, end_date = None, query_dict = None, category_tree = None, parent = None):
         super(PiggyBanker, self).__init__(parent)
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
@@ -25,6 +25,10 @@ class PiggyBanker(QtCore.QThread):
             self.end_date = self.start_date
         else:
             self.end_date = end_date
+        if category_tree is None:
+            self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
+        else:
+            self.category_tree = category_tree
         if not self.isRunning():
             self.start(QtCore.QThread.LowPriority)
 
@@ -93,7 +97,7 @@ class PiggyBanker(QtCore.QThread):
                         "Vertical": entry["Vertical"]
                     }
                     article_date = entry["Article Date"]
-                    target = MOSES.getTargetFor(self.user_id, self.password, piggy_row, article_date)
+                    target = MOSES.getTargetFor(self.user_id, self.password, piggy_row, article_date, category_tree=self.category_tree)
                     targets_data.append(target)
                 self.piggybankChanged.emit(cleaned_data, targets_data)
             self.past_data = cleaned_data
@@ -102,7 +106,6 @@ class PiggyBanker(QtCore.QThread):
 
     def getPiggyBank(self):
         #self.sleeper = sleeper
-        print "In get getPiggyBank."
         data = MOSES.getPiggyBankDataBetweenDates(self.start_date, self.end_date, self.query_dict, self.user_id, self.password)
         cleaned_data = list(itertools.chain(*data))
         targets_data = []
@@ -116,7 +119,7 @@ class PiggyBanker(QtCore.QThread):
                         "Sub-Category": entry["Sub-Category"],
                         "Vertical": entry["Vertical"]
                     }
-            target = MOSES.getTargetFor(self.user_id, self.password, piggy_row, entry["Article Date"])
+            target = MOSES.getTargetFor(self.user_id, self.password, piggy_row, entry["Article Date"], category_tree=self.category_tree)
             targets_data.append(target)
         
         self.piggybankChanged.emit(cleaned_data, targets_data)
