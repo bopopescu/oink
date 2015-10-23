@@ -2029,6 +2029,7 @@ def getCFMGSEOBetweenDates(user_id, password, start_date, end_date, query_user=N
     fat_key_list = ["FAT01","FAT02","FAT03"]
     GSEO_scores = []
     CFM_scores = []
+    got_fatal = False
     for each_entry in data:
         CFM_score = numpy.sum(list(each_entry[CFM_key] for CFM_key in CFM_key_list)) / float(75.0)
         GSEO_score = numpy.sum(list(each_entry[GSEO_key] for GSEO_key in GSEO_key_list)) / float(25.0)
@@ -2036,6 +2037,7 @@ def getCFMGSEOBetweenDates(user_id, password, start_date, end_date, query_user=N
         if "Yes" in fatals:
             CFM_score = 0.0
             GSEO_score = 0.0
+            got_fatal = True
         counter += 1
         recorded_cfm = each_entry["CFM Quality"]
         recorded_GSEO = each_entry["GSEO Quality"]
@@ -2059,7 +2061,7 @@ def getCFMGSEOBetweenDates(user_id, password, start_date, end_date, query_user=N
         CFM_score_average = None
         GSEO_score_average = None
     #print GSEO_scores
-    return CFM_score_average, GSEO_score_average
+    return CFM_score_average, GSEO_score_average, got_fatal
 
 def getCFMGSEOForWeek(user_id, password, query_date, query_user=None):
     """Returns the average GSEO for a query_user or the caller ID for the week in

@@ -84,7 +84,6 @@ class Pork(QtGui.QMainWindow):
         """PORK Window."""
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
-
         self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
         self.bigbrother_icon = ImageButton(os.path.join("Images","bigbrother.png"), 64, 64)
         self.pork_icon = ImageLabel(os.path.join("Images","pork_logo.png"),64, 64)
@@ -103,16 +102,22 @@ class Pork(QtGui.QMainWindow):
         height, width = 32, 32
         self.calculator_button = ImageButton(os.path.join("Images","calculator.png"),height, width)
         self.calculator_button.setToolTip("Open the Efficiency calculator tool.")
+        self.calculator_button.setFlat(True)
         self.tna_button = ImageButton(os.path.join("Images","tna.png"),height, width)
         self.tna_button.setToolTip("Open the training needs assessment window")
+        self.tna_button.setFlat(True)
         self.find_button = ImageButton(os.path.join("Images","find.png"),height, width)
         self.find_button.setToolTip("Open Seeker to find who wrote an FSN.")
-        self.leave_button = ImageButton(os.path.join("Images","leaves.png"),height, width)
+        self.find_button.setFlat(True)
+        self.leave_button = ImageButton(os.path.join("Images","AskForLeave.png"),height, width)
         self.leave_button.setToolTip("Apply for leaves on the OINK server")
+        self.leave_button.setFlat(True)
         self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),height, width)
         self.relaxation_button.setToolTip("Apply for relaxation")
+        self.relaxation_button.setFlat(True)
         self.project_button = ImageButton(os.path.join("Images","projects.png"),height, width)
         self.project_button.setToolTip("Open Project Log")
+        self.project_button.setFlat(True)
 
         self.icon_panel = QtGui.QHBoxLayout()
         self.icon_panel.addWidget(self.calculator_button,0)
@@ -150,6 +155,7 @@ class Pork(QtGui.QMainWindow):
         self.stats_table.setToolTip("This report displays your statistics for the last working date.\nIf you've selected a Monday, this will show you\nyour data for last Friday, provided you weren't on leave on that day.\nIf you were, it'll search for the date\non which you last worked and show you that.")
         self.stats_table.setFixedSize(300,160)
         self.refresh_stats_button = ImageButton(os.path.join("Images","refresh.png"),24,24)
+        self.refresh_stats_button.setFlat(True)
 
         self.stats_progress_bar = QtGui.QProgressBar()
         progressbar_style = """

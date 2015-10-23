@@ -146,10 +146,10 @@ class Porker(QtCore.QThread):
                 efficiency = 0.0
             counter += 1
             eta = MOSES.getETA(start_time, counter, total)
-            cfm, gseo = MOSES.getCFMGSEOFor(self.userID, self.password, each_date)
+            cfm, gseo, fatals = MOSES.getCFMGSEOFor(self.userID, self.password, each_date)
             #print cfm, gseo
             self.sendActivity.emit("Refreshing Current Calendar Page (%d/%d)."%(counter,total), eta, False)
-            self.current_datesData.update({each_date:[status, relaxation, efficiency, cfm, gseo]})
+            self.current_datesData.update({each_date:[status, relaxation, efficiency, cfm, gseo, fatals]})
         if self.current_datesData != self.old_datesData:
             self.sendDatesData.emit(self.current_datesData)
             self.sendActivity.emit("Compiled Calendar Dates Data. Moving on to next process.", MOSES.getETA(self.start_time,1,3), False)
@@ -183,7 +183,7 @@ class Porker(QtCore.QThread):
         else:
             lwd_efficiency *= 100.00
         self.sendActivity.emit("Calculating the CFM and GSEO for the last working date.", MOSES.getETA(start_time, 6, no_of_steps), False)
-        lwd_cfm, lwd_gseo = MOSES.getCFMGSEOFor(self.userID, self.password, last_working_date)        
+        lwd_cfm, lwd_gseo, lwd_fatals = MOSES.getCFMGSEOFor(self.userID, self.password, last_working_date)        
         if lwd_gseo is None:
             lwd_gseo = "-"
         else:
@@ -209,7 +209,7 @@ class Porker(QtCore.QThread):
             cw_efficiency *= 100.00
         
         self.sendActivity.emit("Calculating the CFM and GSEO for the week.", MOSES.getETA(start_time, 24, no_of_steps), False)
-        cw_cfm, cw_gseo = MOSES.getCFMGSEOForWeek(self.userID, self.password, last_working_date)
+        cw_cfm, cw_gseo, cw_fatals = MOSES.getCFMGSEOForWeek(self.userID, self.password, last_working_date)
         if cw_gseo is None:
             cw_gseo = "-"
         else:
@@ -240,7 +240,7 @@ class Porker(QtCore.QThread):
             cm_efficiency *= 100.00
 
         self.sendActivity.emit("Calculating the CFM and GSEO for the month.", MOSES.getETA(start_time, 33, no_of_steps), False)
-        cm_cfm, cm_gseo = MOSES.getCFMGSEOForMonth(self.userID, self.password, last_working_date)
+        cm_cfm, cm_gseo, cm_fatals = MOSES.getCFMGSEOForMonth(self.userID, self.password, last_working_date)
         if cm_gseo is None:
             cm_gseo = "-"
         else:
@@ -275,7 +275,7 @@ class Porker(QtCore.QThread):
             cq_efficiency *= 100.00
 
         self.sendActivity.emit("Calculating the CFM and GSEO for the quarter.", MOSES.getETA(start_time, 100, no_of_steps), False)
-        cq_cfm, cq_gseo = MOSES.getCFMGSEOForQuarter(self.userID, self.password, last_working_date)
+        cq_cfm, cq_gseo, cq_fatals = MOSES.getCFMGSEOForQuarter(self.userID, self.password, last_working_date)
         if cq_gseo is None:
             cq_gseo = "-"
         else:
@@ -312,7 +312,7 @@ class Porker(QtCore.QThread):
             chy_efficiency *= 100.00
 
         self.sendActivity.emit("Calculating the CFM and GSEO for the half-year.", MOSES.getETA(start_time, 900, no_of_steps), False)
-        chy_cfm, chy_gseo = MOSES.getCFMGSEOForHalfYear(self.userID, self.password, last_working_date)
+        chy_cfm, chy_gseo, chy_fatals = MOSES.getCFMGSEOForHalfYear(self.userID, self.password, last_working_date)
         if chy_gseo is None:
             chy_gseo = "-"
         else:

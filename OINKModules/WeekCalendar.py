@@ -85,16 +85,20 @@ class WeekCalendar(QtGui.QCalendarWidget):
             if len(self.datesData[date_])>3:
                 cfm = self.datesData[date_][3]
                 gseo = self.datesData[date_][4]
+                fatals = self.datesData[date_][5]
             else:
                 cfm = None
                 gseo = None
+                fatals = False
             #Start painting the cell.
             if status == "Working":
                 if (date == datetime.date.today()):
                     cell_color = selection_color
                 else:
                     cell_color = white_color
-            elif status == "Leave" or status == "Holiday":
+            elif status == "Leave":
+                cell_color = white_color
+            elif status == "Holiday":
                 cell_color = holiday_color
             else:
                 cell_color = disabled_color
@@ -117,7 +121,7 @@ class WeekCalendar(QtGui.QCalendarWidget):
             if status == "Working":
                 if relaxation is not None:
                     if relaxation >0:
-                        image_path = os.path.join("Images","download.png")
+                        image_path = os.path.join("Images","relaxation.png")
                         type = os.path.splitext(os.path.basename(str(image_path)))[1]
                         relaxation_pixmap = QtGui.QPixmap(image_path, type)
                         width, height = 10, 10
@@ -129,6 +133,19 @@ class WeekCalendar(QtGui.QCalendarWidget):
                         x = int(x_right-width*1.1)
                         y = int(y_top+height*0.1)
                         painter.drawPixmap(x, y, relaxation_pixmap)
+            elif status == "Leave":
+                image_path = os.path.join("Images","leave.png")
+                type = os.path.splitext(os.path.basename(str(image_path)))[1]
+                relaxation_pixmap = QtGui.QPixmap(image_path, type)
+                width, height = 10, 10
+                relaxation_pixmap = relaxation_pixmap.scaled(
+                                                        QtCore.QSize(width, height),
+                                                        QtCore.Qt.KeepAspectRatio, 
+                                                        QtCore.Qt.SmoothTransformation
+                                                        )
+                x = int(x_right-width*1.1)
+                y = int(y_top+height*0.1)
+                painter.drawPixmap(x, y, relaxation_pixmap)
                 #print "Drew relaxation pixmap"
             #if status == "Working":
 
@@ -224,6 +241,19 @@ class WeekCalendar(QtGui.QCalendarWidget):
                 gseo_gradient.setColorAt(1, gseo_color)
                 gseo_marker_rect = QtCore.QRect(gseo_marker_topleft, gseo_marker_bottomright)
                 painter.fillRect(gseo_marker_rect, gseo_gradient)
+            if fatals:
+                image_path = os.path.join("Images","fatal.png")
+                type = os.path.splitext(os.path.basename(str(image_path)))[1]
+                fatal_pixmap = QtGui.QPixmap(image_path, type)
+                width, height = 10, 10
+                fatal_pixmap = fatal_pixmap.scaled(
+                                                        QtCore.QSize(width, height),
+                                                        QtCore.Qt.KeepAspectRatio, 
+                                                        QtCore.Qt.SmoothTransformation
+                                                        )
+                x = int(x_left+width*0.1)
+                y = int(y_top+height*0.1)
+                painter.drawPixmap(x, y, fatal_pixmap)
         #Finally, paint the date over the cell.
         day_number = date.toPyDate().day
         if day_number > 9:
