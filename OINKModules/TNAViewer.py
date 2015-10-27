@@ -34,6 +34,7 @@ class TNAViewer(QtGui.QWidget):
         self.populateInputEditorAndWritersList()
         self.populateComparisonEditorAndWritersList()
         self.populateAuditParameters()
+        self.parameters_all_button.setChecked(True)
 
     def populateInputEditorAndWritersList(self):
         self.input_data_set_group.populateEditorAndWritersList()
@@ -72,6 +73,9 @@ class TNAViewer(QtGui.QWidget):
         self.parameters_all_button = QtGui.QPushButton("All")
         self.parameters_cfm_button = QtGui.QPushButton("CFM")
         self.parameters_gseo_button = QtGui.QPushButton("GSEO")
+        self.parameters_all_button.setCheckable(True)
+        self.parameters_gseo_button.setCheckable(True)
+        self.parameters_cfm_button.setCheckable(True)
 
         parameters_layout = QtGui.QGridLayout()
         row = 0
@@ -198,5 +202,31 @@ class TNAViewer(QtGui.QWidget):
         self.load_data_button.clicked.connect(self.loadData)
     
     def loadData(self):
-        self.filter = self.input_data_set_group.getFilters()
-        #print self.filter
+        self.input_filter = self.input_data_set_group.getFilters()
+        self.output_filter = self.output_data_set_group.getFilters()
+        self.audit_parameters = self.parameters_combobox.getCheckedItems()
+
+    def toggleAllParameters(self):
+        if self.parameters_all_button.isChecked():
+            self.parameters_all_button.setEnabled(True)
+            self.parameters_gseo_button.setChecked(True)
+            self.parameters_cfm_button.setChecked(True)
+        self.selectParameters()
+
+    def toggleParameters(self):
+        if self.parameters_gseo_button.isChecked() and self.parameters_cfm_button.isChecked():
+            self.parameters_all_button.setChecked(True)
+        self.selectParameters()
+
+    def selectParameters(self):
+        if self.parameters_gseo_button.isChecked():
+            gseo_parameters = self.audit_parameters_dataframe["Column Descriptions"][self.audit_parameters_dataframe["Parameter Class"] == "GSEO"]
+            for gseo_parameter in gseo_parameters:
+                self.parameters_combobox.select(gseo_parameter)
+
+        if self.parameters_cfm_button.isChecked():
+            cfm_parameters = self.audit_parameters_dataframe["Column Descriptions"][self.audit_parameters_dataframe["Parameter Class"] == "CFM"]
+            for cfm_parameter in cfm_parameters:
+                self.parameters_combobox.select(cfm_parameter)
+
+
