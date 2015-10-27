@@ -101,7 +101,7 @@ class Pork(QtGui.QMainWindow):
 
     def showAbout(self):
         title = "About OINK"
-        message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2015, by Vinay Keerthi. The  <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding the development."
+        message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2014, by Vinay Keerthi. The <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding development."
         QtGui.QMessageBox.about(self, title, message)
 
 
