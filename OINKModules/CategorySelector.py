@@ -5,7 +5,7 @@ from PyQt4 import QtGui, QtCore
 from CheckableComboBox import CheckableComboBox
 from CategoryFinder import CategoryFinder
 
-class CategorySelector(QtGui.QGridLayout):
+class CategorySelector(QtGui.QVBoxLayout):
     def __init__(self, category_tree, *args, **kwargs):
         super(CategorySelector,self).__init__(*args, **kwargs)
         self.category_tree = category_tree
@@ -23,14 +23,20 @@ class CategorySelector(QtGui.QGridLayout):
         self.vertical_combo_box = CheckableComboBox("Vertical")
         self.category_finder = CategoryFinder(self.category_tree)
         self.clear_button = QtGui.QPushButton("Clear\nFilters")
-        self.addWidget(self.label,0,0,1,1)
-        self.addWidget(self.bu_combo_box,0,1,1,1)
-        self.addWidget(self.super_category_combo_box,0,2,1,1)
-        self.addWidget(self.category_combo_box,1,0,1,1)
-        self.addWidget(self.sub_category_combo_box,1,1,1,1)
-        self.addWidget(self.vertical_combo_box,1,2,1,1)
-        self.addWidget(self.clear_button,0,3,2,1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
-        self.addLayout(self.category_finder,2,0,1,4)
+        row_1 = QtGui.QHBoxLayout()
+        row_1.addWidget(self.label,0)
+        row_1.addWidget(self.bu_combo_box,1)
+        row_1.addWidget(self.super_category_combo_box,1)
+        row_1.addWidget(self.category_combo_box,1)
+        row_2 = QtGui.QHBoxLayout()
+        row_2.addWidget(self.sub_category_combo_box)
+        row_2.addWidget(self.vertical_combo_box)
+        row_2.addStretch(2)
+        row_2.addWidget(self.clear_button)
+
+        self.addLayout(row_1)
+        self.addLayout(row_2)
+        self.addLayout(self.category_finder)
 
     def mapEvents(self):
         self.category_finder.pickRow.connect(self.selectRow)

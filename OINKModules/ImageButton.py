@@ -25,17 +25,7 @@ class ImageButton(QtGui.QPushButton):
         else:
             self.mouseover_image_path = mouseover_image_path
 
-
-        type = os.path.splitext(os.path.basename(str(image_path)))[1]
-        image_pixmap = QtGui.QPixmap(image_path, type)
-        image_pixmap = image_pixmap.scaled(
-                                        QtCore.QSize(self.width, self.height),
-                                        QtCore.Qt.KeepAspectRatio, 
-                                        QtCore.Qt.SmoothTransformation)
-        icon = QtGui.QIcon(image_pixmap)
-        self.setIcon(icon)
-        self.setIconSize(image_pixmap.rect().size())
-        self.setFixedSize(image_pixmap.rect().size())
+        self.showImage(self.image_path)
 
     def showImage(self, image_path):
         type = os.path.splitext(os.path.basename(str(image_path)))[1]
@@ -56,6 +46,6 @@ class ImageButton(QtGui.QPushButton):
 
     def leaveEvent(self, evnt):
         self.showImage(self.image_path)
-        
+
         super(ImageButton, self).leaveEvent(evnt)
                 

@@ -30,6 +30,17 @@ class FilterForm(QtGui.QGroupBox):
         self.writer_combobox = CheckableComboBox("Writer")
         self.editor_label = QtGui.QLabel("Editor(s):")
         self.editor_combobox = CheckableComboBox("Editors")
+
+        self.writer_all_button = QtGui.QPushButton("All")
+        self.writer_all_button.setToolTip("Select all writers")
+        self.writer_clear_button = QtGui.QPushButton("Clear")
+        self.writer_clear_button.setToolTip("Clear writer selection")
+
+        self.editor_all_button = QtGui.QPushButton("All")
+        self.editor_all_button.setToolTip("Select all editors")        
+        self.editor_clear_button = QtGui.QPushButton("Clear")
+        self.editor_clear_button.setToolTip("Clear editor selection")
+
         self.pd_button = QtGui.QPushButton("PD")
         self.rpd_button = QtGui.QPushButton("RPD")
         self.seo_button = QtGui.QPushButton("SEO")
@@ -56,6 +67,7 @@ class FilterForm(QtGui.QGroupBox):
         self.date_field_end.setMaximumDate(datetime.date.today())
         self.date_field_end.setDate(datetime.date.today())
         self.date_field_end.setCalendarPopup(True)
+        self.select_all_data = QtGui.QCheckBox("Select all audits")
         self.graph_color_label = QtGui.QLabel("Graph Color")
         self.graph_color_button = QColorButton()
         self.category_selector = CategorySelector(self.category_tree)
@@ -63,26 +75,35 @@ class FilterForm(QtGui.QGroupBox):
         
         row_1_layout = QtGui.QHBoxLayout()
         row_1_layout.addWidget(self.writer_label,0)
-        row_1_layout.addWidget(self.writer_combobox,0)
-        row_1_layout.addWidget(self.editor_label,0)
-        row_1_layout.addWidget(self.editor_combobox,0)
-        row_1_layout.addWidget(self.graph_color_label,0)
-        row_1_layout.addWidget(self.graph_color_button,0)
-        row_1_layout.addWidget(self.pd_button,0)
-        row_1_layout.addWidget(self.rpd_button,0)
-        row_1_layout.addWidget(self.seo_button,0)
-        row_1_layout.addWidget(self.all_button,0)
+        row_1_layout.addWidget(self.writer_combobox,1)
+        row_1_layout.addWidget(self.writer_all_button,0)
+        row_1_layout.addWidget(self.writer_clear_button,0)
         row_1_layout.addStretch(1)
         
         row_2_layout = QtGui.QHBoxLayout()
-        row_2_layout.addWidget(self.date_field_label,0)
-        row_2_layout.addWidget(self.date_field_start,0)
-        row_2_layout.addWidget(self.date_field_end,0)
+        row_2_layout.addWidget(self.editor_label,0)
+        row_2_layout.addWidget(self.editor_combobox,1)
+        row_2_layout.addWidget(self.editor_all_button,0)
+        row_2_layout.addWidget(self.editor_clear_button,0)
+        row_2_layout.addWidget(self.graph_color_label,0)
+        row_2_layout.addWidget(self.graph_color_button,0)
         row_2_layout.addStretch(1)
+        
+        row_3_layout = QtGui.QHBoxLayout()
+        row_3_layout.addWidget(self.date_field_label,0)
+        row_3_layout.addWidget(self.date_field_start,0)
+        row_3_layout.addWidget(self.date_field_end,0)
+        row_3_layout.addWidget(self.select_all_data,0)
+        row_3_layout.addWidget(self.pd_button,0)
+        row_3_layout.addWidget(self.rpd_button,0)
+        row_3_layout.addWidget(self.seo_button,0)
+        row_3_layout.addWidget(self.all_button,0)
+        row_3_layout.addStretch(1)
 
         layout = QtGui.QVBoxLayout()
         layout.addLayout(row_1_layout,1)
         layout.addLayout(row_2_layout,1)
+        layout.addLayout(row_3_layout,1)
         layout.addLayout(self.category_selector,2)
         self.setLayout(layout)
 
@@ -91,6 +112,32 @@ class FilterForm(QtGui.QGroupBox):
         self.pd_button.toggled.connect(self.toggleTypes)
         self.rpd_button.toggled.connect(self.toggleTypes)
         self.seo_button.toggled.connect(self.toggleTypes)
+        self.select_all_data.toggled.connect(self.changeDateType)
+        self.writer_all_button.clicked.connect(self.selectAllWriters)
+        self.writer_clear_button.clicked.connect(self.clearWriters)
+        self.editor_all_button.clicked.connect(self.selectAllEditors)
+        self.editor_clear_button.clicked.connect(self.clearEditors)
+
+    def selectAllWriters(self):
+        self.writer_combobox.selectAll()
+    
+    def selectAllEditors(self):
+        self.editor_combobox.selectAll()
+
+    def clearWriters(self):
+        self.writer_combobox.clearSelection()
+    
+    def clearEditors(self):
+        self.editor_combobox.clearSelection()
+
+
+    def changeDateType(self):
+        if self.select_all_data.isChecked():
+            self.date_field_start.setEnabled(False)
+            self.date_field_end.setEnabled(False)
+        else:
+            self.date_field_start.setEnabled(True)
+            self.date_field_end.setEnabled(True)
 
     def toggleAll(self):
         if self.all_button.isChecked():
@@ -110,6 +157,7 @@ class FilterForm(QtGui.QGroupBox):
 
     def getFilters(self):
         category_tree_filter = self.category_selector.getFilters()
+
         writer_filter = self.writer_combobox.getCheckedItems()
         editor_filter = self.editor_combobox.getCheckedItems()
         
@@ -140,17 +188,18 @@ class FilterForm(QtGui.QGroupBox):
         if get_seo:
             description_type.append("SEO")
 
-        graph_color = self.graph_color_button.getColor()
 
         filter_settings = {
-                    "Category Tree":category_tree_filter,
-                    "Writers": writer_filter,
-                    "Editors": editor_filter,
-                    "Dates": [start_date, end_date],
-                    "Description Type": description_type,
-                    "Chart Color": graph_color
+                    "Category Tree":category_tree_filter if category_tree_filter.shape[0]>0 else None,
+                    "Writers": writer_filter if len(writer_filter)>0 else None,
+                    "Editors": editor_filter if len(editor_filter)>0 else None,
+                    "Dates": [start_date, end_date] if not(self.select_all_data.isChecked()) else None,
+                    "Description Types": description_type if len(description_type)>0 else None
         }
         return filter_settings
+
+    def getGraphColor(self):
+        return self.graph_color_button.getColor()
 
     def populateFilter(self):
         pass

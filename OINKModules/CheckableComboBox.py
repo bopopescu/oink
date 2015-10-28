@@ -80,6 +80,15 @@ class CheckableComboBox(QtGui.QComboBox):
             self.reset()
             self.changedSelection.emit(True)
 
+    def selectAll(self):
+        rows = self.model().rowCount()
+        for item_index in range(rows)[1:]:
+            item = self.model().item(item_index)
+            if (item.checkState() != QtCore.Qt.Checked):
+                item.setCheckState(QtCore.Qt.Checked)
+        self.reset()
+        self.changedSelection.emit(True)
+
     def clearSelection(self):
         rows = self.model().rowCount()
         for item_index in range(rows)[1:]:

@@ -53,6 +53,7 @@ class Peeves(QtCore.QThread):
         counter = 1
         last_update_time = datetime.datetime.now()
         initial_search_strings = self.search_strings
+
         for search_string in initial_search_strings:
             #print "Looping in Peeves!"
             try:
@@ -70,7 +71,7 @@ class Peeves(QtCore.QThread):
                         try:
                             search_result= self.search_function[self.search_type](self.user_id, self.password, search_string)
                         except:
-                            raise                        
+                            raise
             search_results.append(search_result)
             if initial_search_strings != self.search_strings:
                 #If the search string list isn't the same as we started with, stop.
@@ -90,6 +91,6 @@ class Peeves(QtCore.QThread):
         if total > 0:
             if (not self.sent) and (not self.stop_sending):
                     #If the search string list is the same as the one we started with, then emit.
-                print "Sending data!"
+                #print "Sending data!"
                 self.sendData.emit(search_results)
                 self.sent = True

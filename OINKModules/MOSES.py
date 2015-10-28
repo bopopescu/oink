@@ -1605,6 +1605,75 @@ def getRawDataForDate(user_id, password, query_date, query_user=None):
     conn.close()
     return data
 
+def getRawDataWithFilters(user_id, password, data_set_filters, required_columns):
+    """Returns the raw data as a pandas dataframe given a set of filters."""
+    import pandas as pd
+    def printMessage(msg):
+        if True:
+            print "MOSES.getRawDataWithFilters: ",msg
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    rawdata_table, cfm_keys, gseo_keys = getRawDataTableAndAuditParameters()
+
+    if data_set_filters["Description Types"] is not None:
+        description_filter_list = []
+        if "PD" in data_set_filters["Description Types"]:
+            description_filter_list.append("Regular Description")
+        if "RPD" in data_set_filters["Description Types"]:
+            description_filter_list.extend(["Rich Product Description", "Rich Product Description Plan A", "Rich Product Description Plan B", "RPD Variant", "RPD Updation"])
+        if "SEO" in data_set_filters["Description Types"]:
+            description_filter_list.extend(["SEO Big", "SEO Small","SEO Project"])
+        description_filter = "`Description Type` in (%s)"%", ".join(["'%s'"%x for x in description_filter_list]) 
+    else:
+        description_filter = None
+
+    if data_set_filters["Dates"] is not None:
+        date_filter = "`Audit Date` BETWEEN '%s' and '%s'"%(data_set_filters["Dates"][0], data_set_filters["Dates"][1])
+    else:
+        date_filter = None
+
+    if data_set_filters["Writers"] is not None:
+        writer_filter = "`Writer Name` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Writers"])
+    else:
+        writer_filter = None
+    
+    if data_set_filters["Editors"] is not None:
+        editor_filter = "`Editor Name` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Editors"])
+    else:
+        editor_filter = None
+
+    filter_string = ""
+
+    if (description_filter is not None) or (date_filter is not None) or (writer_filter is not None) or (editor_filter is not None):
+        filter_string = " WHERE "
+        if description_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, description_filter)
+        if date_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, date_filter)
+        if writer_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, writer_filter)
+        if editor_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, editor_filter)
+
+
+    sqlcmdstring = """SELECT * from %s%s;"""%(rawdata_table, filter_string)
+    printMessage(sqlcmdstring)
+
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return pd.DataFrame.from_records(data) if len(data)>0 else None
+
+
+
 def getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_user=None):
     #What the fuck. I shouldn't be using this ever.
     if query_user is None:

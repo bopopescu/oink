@@ -24,7 +24,7 @@ class PorkLane(QtCore.QThread):
     sendProgress = QtCore.pyqtSignal(str, datetime.datetime, int, bool)
     sendReport = QtCore.pyqtSignal(list)
     sendGraphs = QtCore.pyqtSignal(bool)
-    def __init__(self, user_id, password, mode=None):
+    def __init__(self, user_id, password, category_tree, mode=None):
         super(PorkLane, self).__init__()
         self.user_id = user_id
         self.password = password
@@ -34,6 +34,7 @@ class PorkLane(QtCore.QThread):
         else:
             self.allowRun = True
             self.mode = mode
+        self.category_tree = category_tree
         self.enablePlotting = False
         self.start_date = datetime.date.today()
         self.end_date = datetime.date.today()
@@ -155,7 +156,7 @@ class PorkLane(QtCore.QThread):
         if "Daily Article Count" in self.mode:
             writer_summary["Daily Article Count"] = MOSES.getArticleCount(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Daily Efficiency" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily Efficiency KRA"):
-            writer_summary["Daily Efficiency"] = MOSES.getEfficiencyFor(self.user_id, self.password, self.start_date, self.writer_id)
+            writer_summary["Daily Efficiency"] = MOSES.getEfficiencyFor(self.user_id, self.password, self.start_date, self.writer_id, self.category_tree)
             if (type(writer_summary["Daily Efficiency"]) != str) and (not math.isnan(writer_summary["Daily Efficiency"])):
                 try:
                     writer_summary["Daily Efficiency KRA"] = self.getEffKRA(writer_summary["Daily Efficiency"])
@@ -164,13 +165,10 @@ class PorkLane(QtCore.QThread):
         if ("Daily Audit Count" in self.mode) or ("Daily CFM" in self.mode) or ("Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily CFM KRA") or ("Daily GSEO KRA"):
             writer_summary["Daily Audit Count"] = MOSES.getAuditCount(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Daily Audit Count"] > 0:
-                if ("Daily CFM" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily CFM KRA"):
-                    writer_summary["Daily CFM"] = MOSES.getCFMFor(self.user_id, self.password, self.start_date, self.writer_id)
+                if ("Daily CFM" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily CFM KRA") or ("Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily GSEO KRA"):
+                    writer_summary["Daily CFM"], writer_summary["Daily GSEO"], fatals = MOSES.getCFMGSEOFor(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Daily CFM"]) != str:
                         writer_summary["Daily CFM KRA"] = self.getQKRA(writer_summary["Daily CFM"])
-
-                if( "Daily GSEO" in self.mode) or ("Daily Stack Rank Index" in self.mode) or ("Daily GSEO KRA"):
-                    writer_summary["Daily GSEO"] = MOSES.getGSEOFor(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Daily GSEO"])!= str:
                         writer_summary["Daily GSEO KRA"] = self.getQKRA(writer_summary["Daily GSEO"])
 
@@ -180,7 +178,7 @@ class PorkLane(QtCore.QThread):
         if "Average Article Count" in self.mode:
             writer_summary["Average Article Count"] = MOSES.getArticleCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
         if ("Average Efficiency" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average Efficiency KRA" in self.mode):
-            writer_summary["Average Efficiency"] = MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+            writer_summary["Average Efficiency"] = MOSES.getEfficiencyForDateRange(self.user_id, self.password, self.start_date, self.end_date, self.writer_id, self.category_tree)
             if (type(writer_summary["Average Efficiency"]) != str) and (not math.isnan(writer_summary["Average Efficiency"])):
                 try:
                     writer_summary["Average Efficiency KRA"] = self.getEffKRA(writer_summary["Average Efficiency"])
@@ -189,12 +187,10 @@ class PorkLane(QtCore.QThread):
         if ("Average Audit Count" in self.mode) or ("Average CFM" in self.mode) or ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average CFM KRA" in self.mode) or ("Average GSEO KRA" in self.mode):
             writer_summary["Average Audit Count"] = MOSES.getAuditCountBetween(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
             if writer_summary["Average Audit Count"] > 0:
-                if ("Average CFM" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average CFM KRA" in self.mode):
-                    writer_summary["Average CFM"] = MOSES.getCFMBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
+                if ("Average CFM" in self.mode) or ("Average Stack Rank Index" in self.mode) or ("Average CFM KRA" in self.mode) or ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode)  or ("Average GSEO KRA" in self.mode):
+                    writer_summary["Average CFM"], writer_summary["Average GSEO"], fatals = MOSES.getCFMGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
                     if type(writer_summary["Average CFM"])!= str:
                         writer_summary["Average CFM KRA"] = MOSES.getQKRA(writer_summary["Average CFM"])
-                if ("Average GSEO" in self.mode) or ("Average Stack Rank Index" in self.mode)  or ("Average GSEO KRA" in self.mode):
-                    writer_summary["Average GSEO"] = MOSES.getGSEOBetweenDates(self.user_id, self.password, self.start_date, self.end_date, self.writer_id)
                     if type(writer_summary["Average GSEO"])!= str:
                         writer_summary["Average GSEO KRA"] = MOSES.getQKRA(writer_summary["Average GSEO"])
                 if ("Average Stack Rank Index" in self.mode):
@@ -203,7 +199,7 @@ class PorkLane(QtCore.QThread):
         if "Weekly Article Count" in self.mode:
             writer_summary["Weekly Article Count"] = MOSES.getArticleCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Weekly Efficiency" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly Efficiency KRA" in self.mode):
-            writer_summary["Weekly Efficiency"] = MOSES.getEfficiencyForWeek(self.user_id, self.password, self.start_date, self.writer_id)
+            writer_summary["Weekly Efficiency"] = MOSES.getEfficiencyForWeek(self.user_id, self.password, self.start_date, self.writer_id, self.category_tree)
             if (type(writer_summary["Weekly Efficiency"]) != str) and (not math.isnan(writer_summary["Weekly Efficiency"])):
                 try:
                     writer_summary["Weekly Efficiency KRA"] = self.getEffKRA(writer_summary["Weekly Efficiency"])
@@ -212,12 +208,10 @@ class PorkLane(QtCore.QThread):
         if ("Weekly Audit Count" in self.mode) or ("Weekly CFM" in self.mode) or ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly CFM KRA" in self.mode) or ("Weekly GSEO KRA" in self.mode):
             writer_summary["Weekly Audit Count"] = MOSES.getAuditCountForWeek(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Weekly Audit Count"] > 0:
-                if ("Weekly CFM" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly CFM KRA" in self.mode):
-                    writer_summary["Weekly CFM"] = MOSES.getCFMForWeek(self.user_id, self.password, self.start_date, self.writer_id)
+                if ("Weekly CFM" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly CFM KRA" in self.mode) or ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly GSEO KRA" in self.mode):
+                    writer_summary["Weekly CFM"], writer_summary["Weekly GSEO"], fatals = MOSES.getCFMGSEOForWeek(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Weekly CFM"])!= str:
                         writer_summary["Weekly CFM KRA"] = self.getQKRA(writer_summary["Weekly CFM"])
-                if ("Weekly GSEO" in self.mode) or ("Weekly Stack Rank Index" in self.mode) or ("Weekly GSEO KRA" in self.mode):
-                    writer_summary["Weekly GSEO"] = MOSES.getGSEOForWeek(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Weekly GSEO"])!= str:
                         writer_summary["Weekly GSEO KRA"] = self.getQKRA(writer_summary["Weekly GSEO"])
                 if ("Weekly Stack Rank Index" in self.mode):
@@ -226,7 +220,7 @@ class PorkLane(QtCore.QThread):
         if "Monthly Article Count" in self.mode:
             writer_summary["Monthly Article Count"] = MOSES.getArticleCountForMonth(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Monthly Efficiency" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly Efficiency KRA" in self.mode):
-            writer_summary["Monthly Efficiency"] = MOSES.getEfficiencyForMonth(self.user_id, self.password, self.start_date, self.writer_id)
+            writer_summary["Monthly Efficiency"] = MOSES.getEfficiencyForMonth(self.user_id, self.password, self.start_date, self.writer_id, self.category_tree)
             if (type(writer_summary["Monthly Efficiency"]) != str) and (not math.isnan(writer_summary["Monthly Efficiency"])):
                 try:
                     writer_summary["Monthly Efficiency KRA"] = self.getEffKRA(writer_summary["Monthly Efficiency"])
@@ -235,12 +229,10 @@ class PorkLane(QtCore.QThread):
         if ("Monthly Audit Count" in self.mode) or ("Monthly CFM" in self.mode) or ("Monthly GSEO" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode) or ("Monthly GSEO KRA" in self.mode):
             writer_summary["Monthly Audit Count"] = MOSES.getAuditCountForMonth(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Monthly Audit Count"] > 0:
-                if ("Monthly CFM" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode):
-                    writer_summary["Monthly CFM"] = MOSES.getCFMForMonth(self.user_id, self.password, self.start_date, self.writer_id)
+                if ("Monthly CFM" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode) or ("Monthly GSEO" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode):
+                    writer_summary["Monthly CFM"], writer_summary["Monthly GSEO"], fatals = MOSES.getCFMGSEOForMonth(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Monthly CFM"])!= str:
                         writer_summary["Monthly CFM KRA"] = self.getQKRA(writer_summary["Monthly CFM"])
-                if ("Monthly GSEO" in self.mode) or ("Monthly Stack Rank Index" in self.mode) or ("Monthly CFM KRA" in self.mode):
-                    writer_summary["Monthly GSEO"] = MOSES.getGSEOForMonth(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Monthly GSEO"])!= str:
                         writer_summary["Monthly GSEO KRA"] = self.getQKRA(writer_summary["Monthly GSEO"])
 
@@ -250,7 +242,7 @@ class PorkLane(QtCore.QThread):
         if "Quarterly Article Count" in self.mode:
             writer_summary["Quarterly Article Count"] = MOSES.getArticleCountForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Quarterly Efficiency" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly Efficiency KRA" in self.mode):
-            writer_summary["Quarterly Efficiency"] = MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
+            writer_summary["Quarterly Efficiency"] = MOSES.getEfficiencyForQuarter(self.user_id, self.password, self.start_date, self.writer_id, self.category_tree)
             if (type(writer_summary["Quarterly Efficiency"]) != str) and (not math.isnan(writer_summary["Quarterly Efficiency"])):
                 try:
                     writer_summary["Quarterly Efficiency KRA"] = self.getEffKRA(writer_summary["Quarterly Efficiency"])
@@ -259,12 +251,10 @@ class PorkLane(QtCore.QThread):
         if ("Quarterly Audit Count" in self.mode) or ("Quarterly CFM" in self.mode) or ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly CFM KRA" in self.mode) or ("Quarterly GSEO KRA" in self.mode):
             writer_summary["Quarterly Audit Count"] = MOSES.getAuditCountForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Quarterly Audit Count"] > 0:
-                if ("Quarterly CFM" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly CFM KRA" in self.mode):
-                    writer_summary["Quarterly CFM"] = MOSES.getCFMForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
+                if ("Quarterly CFM" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly CFM KRA" in self.mode) or ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly GSEO KRA" in self.mode):
+                    writer_summary["Quarterly CFM"], writer_summary["Quarterly GSEO"], fatals = MOSES.getCFMGSEOForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Quarterly CFM"])!= str:
                         writer_summary["Quarterly CFM KRA"] = self.getQKRA(writer_summary["Quarterly CFM"])
-                if ("Quarterly GSEO" in self.mode) or ("Quarterly Stack Rank Index" in self.mode) or ("Quarterly GSEO KRA" in self.mode):
-                    writer_summary["Quarterly GSEO"] = MOSES.getGSEOForQuarter(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Quarterly GSEO"])!= str:
                         writer_summary["Quarterly GSEO KRA"] = self.getQKRA(writer_summary["Quarterly GSEO"])
                 if ("Quarterly Stack Rank Index" in self.mode):
@@ -273,7 +263,7 @@ class PorkLane(QtCore.QThread):
         if "Half-Yearly Article Count" in self.mode:
             writer_summary["Half-Yearly Article Count"] = MOSES.getArticleCountForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
         if ("Half-Yearly Efficiency" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly Efficiency KRA" in self.mode):
-            writer_summary["Half-Yearly Efficiency"] = MOSES.getEfficiencyForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
+            writer_summary["Half-Yearly Efficiency"] = MOSES.getEfficiencyForHalfYear(self.user_id, self.password, self.start_date, self.writer_id, self.category_tree)
             if (type(writer_summary["Half-Yearly Efficiency"]) != str) and (not math.isnan(writer_summary["Half-Yearly Efficiency"])):
                 try:
                     writer_summary["Half-Yearly Efficiency KRA"] = self.getEffKRA(writer_summary["Half-Yearly Efficiency"])
@@ -283,13 +273,9 @@ class PorkLane(QtCore.QThread):
             writer_summary["Half-Yearly Audit Count"] = MOSES.getAuditCountForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
             if writer_summary["Half-Yearly Audit Count"] > 0:
                 if ("Half-Yearly CFM" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly CFM KRA" in self.mode):
-                    writer_summary["Half-Yearly CFM"] = MOSES.getCFMForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
-                    print type(writer_summary["Half-Yearly CFM"])
+                    writer_summary["Half-Yearly CFM"], writer_summary["Half-Yearly GSEO"], fatals = MOSES.getCFMGSEOForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Half-Yearly CFM"])!= str:
                         writer_summary["Half-Yearly CFM KRA"] = self.getQKRA(writer_summary["Half-Yearly CFM"])
-                        print writer_summary["Half-Yearly CFM KRA"]
-                if ("Half-Yearly GSEO" in self.mode) or ("Half-Yearly Stack Rank Index" in self.mode) or ("Half-Yearly GSEO KRA" in self.mode):
-                    writer_summary["Half-Yearly GSEO"] = MOSES.getGSEOForHalfYear(self.user_id, self.password, self.start_date, self.writer_id)
                     if type(writer_summary["Half-Yearly GSEO"])!= str:
                         writer_summary["Half-Yearly GSEO KRA"] = self.getQKRA(writer_summary["Half-Yearly GSEO"])
                 if ("Half-Yearly Stack Rank Index" in self.mode):
@@ -343,7 +329,7 @@ class PorkLane(QtCore.QThread):
         return kra
 
 class DailyPorker(QtGui.QWidget):
-    def __init__(self, user_id, password):
+    def __init__(self, user_id, password, category_tree=None):
         super(DailyPorker, self).__init__()
         self.user_id, self.password = user_id, password
         self.report_selection_dict = {
@@ -354,6 +340,10 @@ class DailyPorker(QtGui.QWidget):
                     "Half-Yearly": False,
                     "Average": False
         }
+        if category_tree is None:
+            self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
+        else:
+            self.category_tree = category_tree
         #self.pork_kent = PorkKent(self.user_id, self.password)
         style_string = """
         .QTableWidget {
@@ -515,7 +505,7 @@ class DailyPorker(QtGui.QWidget):
         self.build_stop_button.clicked.connect(self.buildStop)
         self.end_date_check_box.stateChanged.connect(self.toggleEndDate)
         self.start_date_edit.dateChanged.connect(self.limitEndDate)
-        self.pork_lane = PorkLane(self.user_id, self.password)
+        self.pork_lane = PorkLane(self.user_id, self.password, self.category_tree)
         self.pork_lane.sendReport.connect(self.populateReport)
         self.pork_lane.sendProgress.connect(self.displayProgress)
         self.pork_lane.sendGraphs.connect(self.displayGraphs)

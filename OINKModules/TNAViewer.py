@@ -73,31 +73,27 @@ class TNAViewer(QtGui.QWidget):
         self.parameters_all_button = QtGui.QPushButton("All")
         self.parameters_cfm_button = QtGui.QPushButton("CFM")
         self.parameters_gseo_button = QtGui.QPushButton("GSEO")
-        self.parameters_all_button.setCheckable(True)
-        self.parameters_gseo_button.setCheckable(True)
-        self.parameters_cfm_button.setCheckable(True)
+        self.parameters_fatal_button = QtGui.QPushButton("Fatals")
+        self.parameters_clear_button = QtGui.QPushButton("None")
 
-        parameters_layout = QtGui.QGridLayout()
-        row = 0
-        column = 0
-        row_width = 1
-        column_width = 1
-        alignment = QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft
-        parameters_layout.addWidget(self.parameters_label, row, column, row_width, column_width, alignment)
-        column += column_width
-        column_width = 6
-        parameters_layout.addWidget(self.parameters_combobox, row, column, row_width, column_width)
-        row += row_width
-        column_width = int(math.floor(column/3))
-        column = column_width
-        column_width = 1
-        parameters_layout.addWidget(self.parameters_all_button, row, column, row_width, column_width, alignment)
-        column += column_width
-        column_width = 1
-        parameters_layout.addWidget(self.parameters_cfm_button, row, column, row_width, column_width, alignment)
-        column += column_width
-        column_width = 1
-        parameters_layout.addWidget(self.parameters_gseo_button, row, column, row_width, column_width, alignment)
+
+
+        parameters_layout = QtGui.QVBoxLayout()
+        
+        parameter_selection_row = QtGui.QHBoxLayout()
+        parameter_selection_row.addWidget(self.parameters_label)
+        parameter_selection_row.addWidget(self.parameters_combobox)
+
+        parameters_buttons_layout = QtGui.QHBoxLayout()
+        parameters_buttons_layout.addWidget(self.parameters_all_button, QtCore.Qt.AlignTop)
+        parameters_buttons_layout.addWidget(self.parameters_cfm_button, QtCore.Qt.AlignTop)
+        parameters_buttons_layout.addWidget(self.parameters_gseo_button, QtCore.Qt.AlignTop)
+        parameters_buttons_layout.addWidget(self.parameters_fatal_button, QtCore.Qt.AlignTop)
+        parameters_buttons_layout.addWidget(self.parameters_clear_button, QtCore.Qt.AlignTop)
+
+        parameters_layout.addLayout(parameter_selection_row)
+        parameters_layout.addLayout(parameters_buttons_layout)
+        
         self.analysis_parameters_group.setLayout(parameters_layout)
 
         self.plot_options_group = QtGui.QGroupBox("Plotting Options")
@@ -128,39 +124,24 @@ class TNAViewer(QtGui.QWidget):
         self.plot_zoom_slider.setTickInterval(10)
         self.plot_zoom_slider.setTickPosition(2)
 
-        plot_options_layout = QtGui.QGridLayout()
-        row = 0
-        column = 0
-        row_width = 1
-        column_width = 1
-        alignment = QtCore.Qt.AlignVCenter
-        plot_options_layout.addWidget(self.plot_type_label, row, column, row_width, column_width, alignment)
-        column+=column_width
-        column_width = 2
-        plot_options_layout.addWidget(self.plot_type_combobox, row, column, row_width, column_width, alignment)
-        column+=column_width
-        column_width = 3        
-        plot_options_layout.addWidget(self.plot_separate_charts_for_each_parameter, row, column, row_width, column_width, alignment)
-        row += row_width
-        column_width = int(math.floor(column/3))
-        column = column_width
-        column_width = 1
-        plot_options_layout.addWidget(self.load_data_button, row, column, row_width, column_width, alignment)
-        column+=column_width
-        column_width = 1
-        plot_options_layout.addWidget(self.plot_button, row, column, row_width, column_width, alignment)
-        column+=column_width
-        column_width = 1
-        plot_options_layout.addWidget(self.plot_save_button, row, column, row_width, column_width, alignment)
-        row += row_width
-        column = 0
-        column_width = 3
-        plot_options_layout.addWidget(self.plot_zoom_slider, row, column, row_width, column_width, alignment)
-        column+=column_width
-        column_width = 1
-        alignment = QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
-        plot_options_layout.addWidget(self.plot_zoom_label, row, column, row_width, column_width, alignment)
+        plot_options_layout = QtGui.QVBoxLayout()
+        plot_options_row_1 = QtGui.QHBoxLayout()
+        plot_options_row_1.addWidget(self.plot_type_label,0)
+        plot_options_row_1.addWidget(self.plot_type_combobox,0)
+        plot_options_row_1.addWidget(self.plot_separate_charts_for_each_parameter,0)
+        plot_options_layout.addLayout(plot_options_row_1)
+        plot_options_row_2 = QtGui.QHBoxLayout()
+        plot_options_row_2.addWidget(self.load_data_button,0)
+        plot_options_row_2.addWidget(self.plot_button,0)
+        plot_options_row_2.addWidget(self.plot_save_button,0)
+        plot_options_row_2.addStretch(1)
+        plot_options_layout.addLayout(plot_options_row_2)
+        plot_options_row_3 = QtGui.QHBoxLayout()
+        plot_options_row_3.addWidget(self.plot_zoom_slider,3)
+        plot_options_row_3.addWidget(self.plot_zoom_label,1)
+        plot_options_layout.addLayout(plot_options_row_3)
 
+        
         self.plot_options_group.setLayout(plot_options_layout)
 
         self.plot_viewer_group = QtGui.QGroupBox("Charts")
@@ -172,22 +153,25 @@ class TNAViewer(QtGui.QWidget):
         self.progress_bar = ProgressBar()
         self.status_label = QtGui.QLabel("He who seeks glory, finds death.")
 
-        tna_viewer_layout = QtGui.QVBoxLayout()
         row_1_layout = QtGui.QHBoxLayout()
-        row_1_layout.addWidget(self.input_data_set_group, 0)
-        row_1_layout.addWidget(self.comparison_data_set_group, 0)
-        row_1_layout.addStretch(1)
+        row_1_layout.addWidget(self.input_data_set_group)
+        row_1_layout.addWidget(self.comparison_data_set_group)
+        
         column_1_layout = QtGui.QVBoxLayout()
         column_1_layout.addWidget(self.analysis_parameters_group,1)
         column_1_layout.addWidget(self.plot_options_group,1)
         column_1_layout.addStretch(3)
+        
         row_2_layout = QtGui.QHBoxLayout()
         row_2_layout.addLayout(column_1_layout,0)
-        row_2_layout.addWidget(self.plot_viewer,3)
-        row_2_layout.addStretch(3)
+        row_2_layout.addWidget(self.plot_viewer_group,3)
+
+        
         row_3_layout = QtGui.QVBoxLayout()
         row_3_layout.addWidget(self.progress_bar,0)
         row_3_layout.addWidget(self.status_label,0)
+        
+        tna_viewer_layout = QtGui.QVBoxLayout()
         tna_viewer_layout.addLayout(row_1_layout,1)
         tna_viewer_layout.addLayout(row_2_layout,3)
         tna_viewer_layout.addLayout(row_3_layout,0)
@@ -200,33 +184,58 @@ class TNAViewer(QtGui.QWidget):
 
     def mapEvents(self):
         self.load_data_button.clicked.connect(self.loadData)
+        self.parameters_all_button.clicked.connect(self.selectAllParameters)
+        self.parameters_cfm_button.clicked.connect(self.selectCFMParameters)
+        self.parameters_gseo_button.clicked.connect(self.selectGSEOParameters)
+        self.parameters_fatal_button.clicked.connect(self.selectFatalParameters)
+        self.parameters_clear_button.clicked.connect(self.clearParameterSelections)
     
     def loadData(self):
-        self.input_filter = self.input_data_set_group.getFilters()
-        self.output_filter = self.output_data_set_group.getFilters()
-        self.audit_parameters = self.parameters_combobox.getCheckedItems()
+        input_filter = self.input_data_set_group.getFilters()
+        comparison_filter = self.comparison_data_set_group.getFilters()
+        audit_parameter_selection = self.parameters_combobox.getCheckedItems()
+        audit_parameters = audit_parameter_selection if len(audit_parameter_selection)>0 else None
 
-    def toggleAllParameters(self):
-        if self.parameters_all_button.isChecked():
-            self.parameters_all_button.setEnabled(True)
-            self.parameters_gseo_button.setChecked(True)
-            self.parameters_cfm_button.setChecked(True)
-        self.selectParameters()
+        input_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, input_filter, audit_parameters)
+        comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter, audit_parameters)
+        if input_data_set is not None:
+            input_count = input_data_set.shape[0]
+        else:
+            input_count = 0
 
-    def toggleParameters(self):
-        if self.parameters_gseo_button.isChecked() and self.parameters_cfm_button.isChecked():
-            self.parameters_all_button.setChecked(True)
-        self.selectParameters()
 
-    def selectParameters(self):
-        if self.parameters_gseo_button.isChecked():
-            gseo_parameters = self.audit_parameters_dataframe["Column Descriptions"][self.audit_parameters_dataframe["Parameter Class"] == "GSEO"]
-            for gseo_parameter in gseo_parameters:
-                self.parameters_combobox.select(gseo_parameter)
+        if comparison_data_set is not None:
+            comparison_count = comparison_data_set.shape[0]
+        else:
+            comparison_count = 0
 
-        if self.parameters_cfm_button.isChecked():
-            cfm_parameters = self.audit_parameters_dataframe["Column Descriptions"][self.audit_parameters_dataframe["Parameter Class"] == "CFM"]
-            for cfm_parameter in cfm_parameters:
-                self.parameters_combobox.select(cfm_parameter)
+        self.alertMessage("Retrieved Data","Retrieved %d rows for the input filters and %d rows for output."%(input_count, comparison_count))
+
+    def alertMessage(self, title, message):
+        QtGui.QMessageBox.about(self, title, message)
+    def selectAllParameters(self):
+        self.selectGSEOParameters()
+        self.selectCFMParameters()
+        self.selectFatalParameters()
+
+
+    def selectGSEOParameters(self):
+        gseo_parameters = self.audit_parameters_dataframe["Column Descriptions"][self.audit_parameters_dataframe["Parameter Class"] == "GSEO"]
+        for gseo_parameter in gseo_parameters:
+            self.parameters_combobox.select(gseo_parameter)
+
+    def selectCFMParameters(self):
+        cfm_parameters = self.audit_parameters_dataframe["Column Descriptions"][self.audit_parameters_dataframe["Parameter Class"] == "CFM"]
+        for cfm_parameter in cfm_parameters:
+            self.parameters_combobox.select(cfm_parameter)
+
+    def selectFatalParameters(self):
+        fatal_parameters = self.audit_parameters_dataframe["Column Descriptions"][self.audit_parameters_dataframe["Parameter Class"] == "FAT"]
+        for fatal_parameter in fatal_parameters:
+            self.parameters_combobox.select(fatal_parameter)
+
+    def clearParameterSelections(self):
+        self.parameters_combobox.clearSelection()
+
 
 

@@ -33,6 +33,7 @@ class Vindaloo(QtGui.QMainWindow):
         super(QtGui.QMainWindow,self).__init__()
         self.user_id = user_id
         self.password = password
+        self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         MOSES.createLoginStamp(self.user_id, self.password)
         self.createUI()
         self.createEvents()
@@ -142,7 +143,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.piggy_bank.show()
     
     def openDailyPorker(self):
-        self.daily_porker = DailyPorker(self.user_id, self.password)
+        self.daily_porker = DailyPorker(self.user_id, self.password, self.category_tree)
         self.daily_porker.show()
 
     def openFarmHand(self):
