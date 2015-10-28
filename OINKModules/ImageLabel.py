@@ -7,11 +7,16 @@ class ImageLabel(QtGui.QLabel):
     def __init__(self, image_path=None, height=None, width=None, *args, **kwargs):
         super(ImageLabel, self).__init__(*args, **kwargs)
         if height is None:
-            height = 75
+            self.height = 75
+        else:
+            self.height = height
         if width is None:
-            width = 75
+            self.width = 75
+        else:
+            self.width = width
+            
         if image_path is not None:
-            self.showImage(image_path, height, width)
+            self.showImage(image_path, self.height, self.width)
         else:
             self.setText("No image.")
             self.setFixedSize(150,20)

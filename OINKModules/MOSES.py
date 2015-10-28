@@ -1805,6 +1805,8 @@ def getTargetFor(user_id, password, query_dict, query_date=None, category_tree =
             print "MOSES.getTargetFor.msg: %s"%msg
     import numpy
     import pandas as pd
+    if category_tree is None:
+        category_tree = getCategoryTree(user_id, password)
     if query_date is None:
         query_date = datetime.date.today()
     #First, filter the category tree dataframe down to the valid description type and source.
