@@ -124,6 +124,9 @@ class TNAViewer(QtGui.QWidget):
         self.plot_zoom_slider.setTickInterval(10)
         self.plot_zoom_slider.setTickPosition(2)
 
+        self.plot_button.setEnabled(False)
+        self.plot_save_button.setEnabled(False)
+
         plot_options_layout = QtGui.QVBoxLayout()
         plot_options_row_1 = QtGui.QHBoxLayout()
         plot_options_row_1.addWidget(self.plot_type_label,0)
@@ -191,25 +194,30 @@ class TNAViewer(QtGui.QWidget):
         self.parameters_clear_button.clicked.connect(self.clearParameterSelections)
     
     def loadData(self):
+        self.plot_button.setEnabled(False)
         input_filter = self.input_data_set_group.getFilters()
         comparison_filter = self.comparison_data_set_group.getFilters()
         audit_parameter_selection = self.parameters_combobox.getCheckedItems()
         audit_parameters = audit_parameter_selection if len(audit_parameter_selection)>0 else None
 
-        input_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, input_filter, audit_parameters)
-        comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter, audit_parameters)
+        self.input_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, input_filter, audit_parameters)
+        self.comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter, audit_parameters)
 
         if input_data_set is not None:
-            input_count = input_data_set.shape[0]
+            self.input_count = self.input_data_set.shape[0]
         else:
             input_count = 0
 
-        if comparison_data_set is not None:
-            comparison_count = comparison_data_set.shape[0]
+        if self.comparison_data_set is not None:
+            comparison_count = self.comparison_data_set.shape[0]
         else:
             comparison_count = 0
 
         self.alertMessage("Retrieved Data","Retrieved %d rows for the input filters and %d rows for output."%(input_count, comparison_count))
+        if input_count >0:
+            self.plot_button.setEnabled(True)
+        else:
+            self.plot_button.setEnabled(False)
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
