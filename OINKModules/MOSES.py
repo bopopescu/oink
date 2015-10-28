@@ -1642,9 +1642,14 @@ def getRawDataWithFilters(user_id, password, data_set_filters, required_columns)
     else:
         editor_filter = None
 
+    if data_set_filters["Category Tree"] is not None:
+        category_tree_filter = "`Vertical` in (%s)"%", ".join("'%s'"%x for x in list(data_set_filters["Category Tree"]["Vertical"]))
+    else:
+        category_tree_filter = None
+
     filter_string = ""
 
-    if (description_filter is not None) or (date_filter is not None) or (writer_filter is not None) or (editor_filter is not None):
+    if (description_filter is not None) or (date_filter is not None) or (writer_filter is not None) or (editor_filter is not None) or (category_tree_filter is not None):
         filter_string = " WHERE "
         if description_filter is not None:
             if filter_string != " WHERE ":
@@ -1662,7 +1667,10 @@ def getRawDataWithFilters(user_id, password, data_set_filters, required_columns)
             if filter_string != " WHERE ":
                 filter_string = "%s AND "%filter_string
             filter_string = "%s %s"%(filter_string, editor_filter)
-
+        if category_tree_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, category_tree_filter)
 
     sqlcmdstring = """SELECT * from %s%s;"""%(rawdata_table, filter_string)
     printMessage(sqlcmdstring)

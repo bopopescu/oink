@@ -198,11 +198,11 @@ class TNAViewer(QtGui.QWidget):
 
         input_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, input_filter, audit_parameters)
         comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter, audit_parameters)
+
         if input_data_set is not None:
             input_count = input_data_set.shape[0]
         else:
             input_count = 0
-
 
         if comparison_data_set is not None:
             comparison_count = comparison_data_set.shape[0]
