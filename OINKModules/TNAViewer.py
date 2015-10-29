@@ -7,6 +7,8 @@ import MySQLdb
 import numpy as np
 import pandas as pd
 from PyQt4 import QtGui, QtCore
+import matplotlib
+
 import MOSES
 from ProgressBar import ProgressBar
 from ImageLabel import ImageLabel
@@ -19,6 +21,8 @@ class TNAViewer(QtGui.QWidget):
         self.user_id = user_id
         self.password = password
         self.category_tree = category_tree
+        parameters_date = datetime.date.today()
+        self.audit_parameters_dataframe = MOSES.getAuditParametersData(self.user_id, self.password, parameters_date)
         #the viewer level controls the scope of the program.
         #A Level 0 limits the visibility to the current user, and shows the team's quality in comparison.
         #A level 1 allows choosing the users.
@@ -34,7 +38,6 @@ class TNAViewer(QtGui.QWidget):
         self.populateInputEditorAndWritersList()
         self.populateComparisonEditorAndWritersList()
         self.populateAuditParameters()
-        self.parameters_all_button.setChecked(True)
 
     def populateInputEditorAndWritersList(self):
         self.input_data_set_group.populateEditorAndWritersList()
@@ -109,7 +112,6 @@ class TNAViewer(QtGui.QWidget):
                             "Half-Yearly Trend",
                             "Radar Scatter Chart"
                         ]
-        self.plot_types.sort()
         self.plot_type_combobox.addItems(self.plot_types)
         self.plot_separate_charts_for_each_parameter = QtGui.QCheckBox("Parameter Charts")
         self.load_data_button = QtGui.QPushButton("Load Data")
@@ -192,19 +194,94 @@ class TNAViewer(QtGui.QWidget):
         self.parameters_gseo_button.clicked.connect(self.selectGSEOParameters)
         self.parameters_fatal_button.clicked.connect(self.selectFatalParameters)
         self.parameters_clear_button.clicked.connect(self.clearParameterSelections)
+        self.plot_button.clicked.connect(self.plotCharts)
+        self.input_data_set_group.changedStartDate.connect(self.populateAuditParameters)
+
+    def plotCharts(self):
+        audit_parameter_selection = self.parameters_combobox.getCheckedItems()
+        audit_parameters = audit_parameter_selection
+        plot_types = self.plot_type_combobox.getCheckedItems()
+
+        if len(plot_types)==0:
+            self.printMessage("Select at least one type of chart!")
+        else:
+            if len(audit_parameters)==0:
+                self.selectGSEOParameters()
+                self.selectCFMParameters()
+                audit_parameters = self.parameters_combobox.getCheckedItems()
+                self.printMessage("Defaulted to CFM and GSEO since no audit parameters were selected.")
+            else:
+                self.printMessage("Selected %d audit parameters."%len(audit_parameters))
+            self.printMessage("Selected plot types: %s"%plot_types)
+            if "Pareto" in plot_types:
+                pareto_image = self.plotPareto(audit_parameters)
+
+    def plotPareto(self, audit_parameter_selection):
+        #print self.audit_parameters_dataframe
+        parameter_column_names = self.getParameterColumnNames(audit_parameter_selection)
+        self.printMessage(parameter_column_names)
+        pareto_image_object = True
+        parameter_summary_data = []
+        counter = 0
+        for parameter in audit_parameter_selection:
+            parameter_column_name = parameter_column_names[counter]
+            maximum_score = self.getMaximumScoreForParameter(parameter)
+            deviant_positions = self.input_data_set[parameter_column_name]<maximum_score
+            deviation_frequency = self.input_data_set[deviant_positions][parameter_column_name].count()
+
+            parameter_data = {
+                                "Parameter Description": parameter,
+                                "Deviation Frequency": deviation_frequency,
+            }
+            counter +=1
+            parameter_summary_data.append(parameter_data)
+
+        #self.printMessage(parameter_summary_data)
+        input_summary_data_frame = pd.DataFrame.from_records(parameter_summary_data).sort_values(["Deviation Frequency"], ascending=False)
+        self.printMessage(input_summary_data_frame)
+
+        input_deviation = list(input_summary_data_frame["Deviation Frequency"])
+        parameters = list(input_summary_data_frame["Parameter Description"])
+
+        input_summary_data_frame.plot(kind="bar")
+
+        return pareto_image_object
     
+    def getMaximumScoreForParameter(self, parameter_name):
+        maximum_score = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"]==parameter_name]["Maximum Score"])[0]
+        return maximum_score
+
+    def getParameterColumnNames(self, audit_parameter_selection):
+        audit_parameter_classes = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"].isin(audit_parameter_selection)]["Parameter Class"])
+        
+        audit_parameter_class_indices = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"].isin(audit_parameter_selection)]["Parameter Class Index"])
+
+
+        #self.printMessage(audit_parameter_selection)
+        #self.printMessage(audit_parameter_classes)
+        #self.printMessage(audit_parameter_class_indices)
+        
+        column_names = ["%s%02d"%(x,y) for (x,y) in zip(audit_parameter_classes, audit_parameter_class_indices)]
+        self.printMessage(column_names)
+        return column_names
+
+
+
+    def printMessage(self, msg):
+        allow_print = True
+        if allow_print:
+            print "TNAViewer: %s"%msg
+        
     def loadData(self):
         self.plot_button.setEnabled(False)
         input_filter = self.input_data_set_group.getFilters()
         comparison_filter = self.comparison_data_set_group.getFilters()
-        audit_parameter_selection = self.parameters_combobox.getCheckedItems()
-        audit_parameters = audit_parameter_selection if len(audit_parameter_selection)>0 else None
 
-        self.input_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, input_filter, audit_parameters)
-        self.comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter, audit_parameters)
+        self.input_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, input_filter)
+        self.comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter)
 
-        if input_data_set is not None:
-            self.input_count = self.input_data_set.shape[0]
+        if self.input_data_set is not None:
+            input_count = self.input_data_set.shape[0]
         else:
             input_count = 0
 
@@ -221,6 +298,7 @@ class TNAViewer(QtGui.QWidget):
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
+
     def selectAllParameters(self):
         self.selectGSEOParameters()
         self.selectCFMParameters()

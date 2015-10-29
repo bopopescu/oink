@@ -1605,11 +1605,38 @@ def getRawDataForDate(user_id, password, query_date, query_user=None):
     conn.close()
     return data
 
-def getRawDataWithFilters(user_id, password, data_set_filters, required_columns):
+def getAuditParametersData(user_id, password, query_date):
+    import pandas as pd
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * from `auditscoresheet` where `Revision Date`= (SELECT MAX(`Revision Date`) from `auditscoresheet` WHERE `Revision Date`<='%s');"""%query_date
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return pd.DataFrame.from_records(data).drop_duplicates()
+
+def getRawDataScoringTable(user_id, password, query_date):
+    import pandas as pd
+    def printMessage(msg):
+        if False:
+            print "MOSES.getRawDataTable: ",msg
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    rawdata_table, cfm_keys, gseo_keys = getRawDataTableAndAuditParameters()
+    sqlcmdstring = """SELECT * from auditscoresheet WHERE `Revision Date`= (SELECT MAX(`Revision Date`) from auditscoresheet WHERE `Revision Date`<='%s');"""%(query_date)
+    printMessage(sqlcmdstring)
+
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    return pd.DataFrame.from_records(data) if len(data)>0 else None
+     
+
+def getRawDataWithFilters(user_id, password, data_set_filters):
     """Returns the raw data as a pandas dataframe given a set of filters."""
     import pandas as pd
     def printMessage(msg):
-        if True:
+        if False:
             print "MOSES.getRawDataWithFilters: ",msg
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
@@ -3569,15 +3596,7 @@ def getWritersListForEditor(user_id, password, editor_name=None):
     writers_list = list(set(writers_list))
     return writers_list
 
-def getAuditParametersData(user_id, password, query_date):
-    import pandas as pd
-    conn = getOINKConnector(user_id, password)
-    cursor = conn.cursor()
-    sqlcmdstring = """SELECT `Parameter Class`, `Parameter Class Index`, `Column Descriptions` from `auditscoresheet` where `Revision Date`= (SELECT MAX(`Revision Date`) from `auditscoresheet` WHERE `Revision Date`<='%s');"""%query_date
-    cursor.execute(sqlcmdstring)
-    data = cursor.fetchall()
-    conn.close()
-    return pd.DataFrame.from_records(data).drop_duplicates()
+
     
 if __name__ == "__main__":
     print "Never call Moses mainly."

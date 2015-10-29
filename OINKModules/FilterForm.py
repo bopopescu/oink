@@ -12,6 +12,7 @@ from QColorButton import QColorButton
 from CategorySelector import CategorySelector
 
 class FilterForm(QtGui.QGroupBox):
+    changedStartDate = QtCore.pyqtSignal()
     def __init__(self, user_id, password, color, category_tree, viewer_level, *args, **kwargs):
         super(FilterForm, self).__init__(*args, **kwargs)
         self.user_id = user_id
@@ -117,6 +118,10 @@ class FilterForm(QtGui.QGroupBox):
         self.writer_clear_button.clicked.connect(self.clearWriters)
         self.editor_all_button.clicked.connect(self.selectAllEditors)
         self.editor_clear_button.clicked.connect(self.clearEditors)
+        self.date_field_start.dateChanged.connect(self.changedDate)
+
+    def changedDate(self):
+        self.changedStartDate.emit()
 
     def selectAllWriters(self):
         self.writer_combobox.selectAll()
@@ -145,6 +150,7 @@ class FilterForm(QtGui.QGroupBox):
             self.rpd_button.setChecked(True)
             self.seo_button.setChecked(True)
             self.all_button.setEnabled(False)
+
         
 
     def toggleTypes(self):
@@ -217,7 +223,10 @@ class FilterForm(QtGui.QGroupBox):
         self.editor_combobox.addItems(self.editors_list)
 
     def getDates(self):
-        return self.date_field_start.date().toPyDate(), self.date_field_end.date().toPyDate()
+        if self.select_all_data.isChecked():
+            return datetime.date(2015,1,1), datetime.date.today()
+        else:
+            return self.date_field_start.date().toPyDate(), self.date_field_end.date().toPyDate()
 
     def getData(self):
         pass
