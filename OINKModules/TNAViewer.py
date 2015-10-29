@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from PyQt4 import QtGui, QtCore
 import matplotlib
-
+from matplotlib import pyplot as plt
 import MOSES
 from ProgressBar import ProgressBar
 from ImageLabel import ImageLabel
@@ -149,10 +149,16 @@ class TNAViewer(QtGui.QWidget):
         
         self.plot_options_group.setLayout(plot_options_layout)
 
-        self.plot_viewer_group = QtGui.QGroupBox("Charts")
+        self.plot_viewer_group = QtGui.QGroupBox("Charts and Data")
         self.plot_viewer = ImageLabel()
+        self.plot_data_table = QtGui.QTableWidget(0,0)
+
+        self.plot_tabs = QtGui.QTabWidget()
+        self.plot_tabs.addTab(self.plot_data_table, "Data")
+        self.plot_tabs.addTab(self.plot_viewer, "Charts")
+
         plot_viewer_layout = QtGui.QHBoxLayout()
-        plot_viewer_layout.addWidget(self.plot_viewer)
+        plot_viewer_layout.addWidget(self.plot_tabs)
         self.plot_viewer_group.setLayout(plot_viewer_layout)
 
         self.progress_bar = ProgressBar()
@@ -219,6 +225,7 @@ class TNAViewer(QtGui.QWidget):
     def plotPareto(self, audit_parameter_selection):
         #print self.audit_parameters_dataframe
         parameter_column_names = self.getParameterColumnNames(audit_parameter_selection)
+        parameter_class_list = [x[:(len(x)-2)] for x in parameter_column_names]
         self.printMessage(parameter_column_names)
         pareto_image_object = True
         parameter_summary_data = []
@@ -226,29 +233,60 @@ class TNAViewer(QtGui.QWidget):
         for parameter in audit_parameter_selection:
             parameter_column_name = parameter_column_names[counter]
             maximum_score = self.getMaximumScoreForParameter(parameter)
-            deviant_positions = self.input_data_set[parameter_column_name]<maximum_score
-            deviation_frequency = self.input_data_set[deviant_positions][parameter_column_name].count()
+            if "FAT" in parameter_column_name:
+                self.printMessage("%s-%s: Max. Score: %s"%(parameter_column_name, parameter, maximum_score))
+            
+            input_deviant_positions = self.input_data_set[parameter_column_name] != maximum_score
+            input_deviation_frequency = self.input_data_set[input_deviant_positions][parameter_column_name].count()
+            input_deviation_frequency_percentage = input_deviation_frequency/self.input_data_set.shape[0]*100
+            if self.comparison_data_set is None:
+                print "Got a none here!"
+                comparison_deviation_frequency_percentage = "-"
+            else:
+                comparison_deviant_positions = self.comparison_data_set[parameter_column_name]<maximum_score
+                comparison_deviation_frequency = self.comparison_data_set[comparison_deviant_positions][parameter_column_name].count()
+                comparison_deviation_frequency_percentage = comparison_deviation_frequency/self.comparison_data_set.shape[0]*100
 
-            parameter_data = {
-                                "Parameter Description": parameter,
-                                "Deviation Frequency": deviation_frequency,
-            }
+            parameter_data = [parameter, input_deviation_frequency_percentage, comparison_deviation_frequency_percentage]
             counter +=1
             parameter_summary_data.append(parameter_data)
 
         #self.printMessage(parameter_summary_data)
-        input_summary_data_frame = pd.DataFrame.from_records(parameter_summary_data).sort_values(["Deviation Frequency"], ascending=False)
-        self.printMessage(input_summary_data_frame)
-
-        input_deviation = list(input_summary_data_frame["Deviation Frequency"])
-        parameters = list(input_summary_data_frame["Parameter Description"])
-
-        input_summary_data_frame.plot(kind="bar")
-
+        summary_data_frame = pd.DataFrame(parameter_summary_data, index=parameter_class_list, columns =["Parameter Description", "Input Deviation Frequency", "Comparison Deviation Frequency"]).sort_values(["Input Deviation Frequency"], ascending=False)
+        self.printMessage(summary_data_frame)
+        self.showDataFrames(summary_data_frame)
         return pareto_image_object
+
+    def showDataFrames(self, dataframe):
+        row_count = dataframe.shape[0]
+        column_count = dataframe.shape[1]
+        self.plot_data_table.setRowCount(row_count)
+        self.plot_data_table.setColumnCount(column_count)
+
+        for row_index in range(row_count):
+            for col_index in range(column_count):
+                self.plot_data_table.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iget_value(row_index, col_index))))
+        self.plot_data_table.setHorizontalHeaderLabels(list(dataframe.columns))
+        self.plot_data_table.setVerticalHeaderLabels(list(dataframe.index))
+        self.plot_data_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.plot_data_table.verticalHeader().setStretchLastSection(False)
+        self.plot_data_table.verticalHeader().setVisible(True)
+
+        self.plot_data_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.plot_data_table.horizontalHeader().setStretchLastSection(True)
+        self.plot_data_table.horizontalHeader().setVisible(True)     
+
+
+
+        
     
     def getMaximumScoreForParameter(self, parameter_name):
-        maximum_score = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"]==parameter_name]["Maximum Score"])[0]
+        matching_indices = self.audit_parameters_dataframe["Column Descriptions"]==parameter_name
+        rating_type = list(self.audit_parameters_dataframe[matching_indices]["Rating Type"])[0]
+        if rating_type!="Mandatory":
+            maximum_score = list(self.audit_parameters_dataframe[matching_indices]["Maximum Score"])[0]
+        else:
+            maximum_score = "No" #No denotes that there's no fatal.
         return maximum_score
 
     def getParameterColumnNames(self, audit_parameter_selection):
