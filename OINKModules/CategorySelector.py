@@ -6,6 +6,7 @@ from CheckableComboBox import CheckableComboBox
 from CategoryFinder import CategoryFinder
 
 class CategorySelector(QtGui.QVBoxLayout):
+    changedCategorySelection = QtCore.pyqtSignal()
     def __init__(self, category_tree, *args, **kwargs):
         super(CategorySelector,self).__init__(*args, **kwargs)
         self.category_tree = category_tree
@@ -45,6 +46,14 @@ class CategorySelector(QtGui.QVBoxLayout):
         self.category_combo_box.changedSelection.connect(self.changedCategories)
         self.super_category_combo_box.changedSelection.connect(self.changedSuperCategories)
         self.clear_button.clicked.connect(self.clearFilters)
+
+
+        self.vertical_combo_box.changedSelection.connect(self.changedCategorySelection)
+        self.sub_category_combo_box.changedSelection.connect(self.changedCategorySelection)
+        self.category_combo_box.changedSelection.connect(self.changedCategorySelection)
+        self.super_category_combo_box.changedSelection.connect(self.changedCategorySelection)
+        self.bu_combo_box.changedSelection.connect(self.changedCategorySelection)
+        
 
     def populateAll(self):
         #Populate the values
@@ -122,7 +131,7 @@ class CategorySelector(QtGui.QVBoxLayout):
         accounted_sub_categories = list(set(vertical_filter_data_frame["Sub-Category"]))
         unaccounted_sub_categories = [sub_category for sub_category in sub_categories if sub_category not in accounted_sub_categories]
         if len(unaccounted_sub_categories) > 0:
-            print "Found unaccounted_sub_categories", unaccounted_sub_categories
+            #print "Found unaccounted_sub_categories", unaccounted_sub_categories
             sub_category_filter_data_frame = self.category_tree[self.category_tree["Sub-Category"].isin(unaccounted_sub_categories)]
             sub_cat_vert_filter_data_frame = pd.concat([sub_category_filter_data_frame, vertical_filter_data_frame])
         else:
@@ -132,7 +141,7 @@ class CategorySelector(QtGui.QVBoxLayout):
         accounted_categories = list(set(sub_cat_vert_filter_data_frame["Category"]))
         unaccounted_categories = [category for category in categories if category not in accounted_categories]
         if len(unaccounted_categories) >0:
-            print "Found unaccounted_categories", unaccounted_categories
+            #print "Found unaccounted_categories", unaccounted_categories
             category_filter_data_frame = self.category_tree[self.category_tree["Category"].isin(unaccounted_categories)]
             cat_sub_cat_vert_filter_data_frame = pd.concat([category_filter_data_frame, sub_cat_vert_filter_data_frame])
         else:
@@ -143,7 +152,7 @@ class CategorySelector(QtGui.QVBoxLayout):
         accounted_super_categories = list(set(cat_sub_cat_vert_filter_data_frame["Super-Category"]))
         unaccounted_super_categories = [super_category for super_category in super_categories if super_category not in accounted_super_categories]
         if len(unaccounted_super_categories) >0:
-            print "Found unaccounted_super_categories", unaccounted_super_categories
+            #print "Found unaccounted_super_categories", unaccounted_super_categories
             super_category_filter_data_frame = self.category_tree[self.category_tree["Super-Category"].isin(unaccounted_super_categories)]
             supcat_cat_sub_cat_vert_filter_data_frame = pd.concat([super_category_filter_data_frame, cat_sub_cat_vert_filter_data_frame])
         else:
@@ -153,7 +162,7 @@ class CategorySelector(QtGui.QVBoxLayout):
         accounted_bus = list(set(supcat_cat_sub_cat_vert_filter_data_frame["BU"]))
         unaccounted_bus = [bu for bu in bus if bu not in accounted_bus]
         if len(unaccounted_bus) >0:
-            print "Found unaccounted_bus", unaccounted_bus
+            #print "Found unaccounted_bus", unaccounted_bus
             bu_filter_data_frame = self.category_tree[self.category_tree["BU"].isin(unaccounted_bus)]
             filter_data_frame = pd.concat([bu_filter_data_frame, supcat_cat_sub_cat_vert_filter_data_frame])
         else:

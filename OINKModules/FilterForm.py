@@ -1,3 +1,30 @@
+#
+#TNAViewer class definition
+#This class allows users to plot various charts to 
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
 from __future__ import division
 import math
 import os
@@ -26,8 +53,14 @@ class FilterForm(QtGui.QGroupBox):
         self.createUI()
         self.mapEvents()
         self.all_button.setChecked(True)
+        label = str(args[0]) if args is not None else "Data Set"
+        self.filter_legend.setText(label)
 
     def createUI(self):
+        self.filter_label = QtGui.QLabel("Label:")
+        self.filter_legend = QtGui.QLineEdit()
+        self.filter_legend.setToolTip("Type a meaningful name for this data set here.\nTry avoiding special characters as they could result in errors.")
+
         self.writer_label = QtGui.QLabel("Writer(s):")
         self.writer_combobox = CheckableComboBox("Writer")
         self.editor_label = QtGui.QLabel("Editor(s):")
@@ -74,6 +107,9 @@ class FilterForm(QtGui.QGroupBox):
         self.graph_color_button = QColorButton()
         self.category_selector = CategorySelector(self.category_tree)
 
+        row_0_layout = QtGui.QHBoxLayout()
+        row_0_layout.addWidget(self.filter_label,0)
+        row_0_layout.addWidget(self.filter_legend,1)
         
         row_1_layout = QtGui.QHBoxLayout()
         row_1_layout.addWidget(self.writer_label,0)
@@ -83,30 +119,31 @@ class FilterForm(QtGui.QGroupBox):
         row_1_layout.addStretch(1)
         
         row_2_layout = QtGui.QHBoxLayout()
-        row_2_layout.addWidget(self.editor_label,0)
-        row_2_layout.addWidget(self.editor_combobox,1)
-        row_2_layout.addWidget(self.editor_all_button,0)
-        row_2_layout.addWidget(self.editor_clear_button,0)
-        row_2_layout.addWidget(self.graph_color_label,0)
-        row_2_layout.addWidget(self.graph_color_button,0)
+        row_2_layout.addWidget(self.editor_label, 0)
+        row_2_layout.addWidget(self.editor_combobox, 1)
+        row_2_layout.addWidget(self.editor_all_button, 0)
+        row_2_layout.addWidget(self.editor_clear_button, 0)
+        row_2_layout.addWidget(self.graph_color_label, 0)
+        row_2_layout.addWidget(self.graph_color_button, 0)
         row_2_layout.addStretch(1)
         
         row_3_layout = QtGui.QHBoxLayout()
-        row_3_layout.addWidget(self.date_field_label,0)
-        row_3_layout.addWidget(self.date_field_start,0)
-        row_3_layout.addWidget(self.date_field_end,0)
-        row_3_layout.addWidget(self.select_all_data,0)
-        row_3_layout.addWidget(self.pd_button,0)
-        row_3_layout.addWidget(self.rpd_button,0)
-        row_3_layout.addWidget(self.seo_button,0)
-        row_3_layout.addWidget(self.all_button,0)
+        row_3_layout.addWidget(self.date_field_label, 0)
+        row_3_layout.addWidget(self.date_field_start, 0)
+        row_3_layout.addWidget(self.date_field_end, 0)
+        row_3_layout.addWidget(self.select_all_data, 0)
+        row_3_layout.addWidget(self.pd_button, 0)
+        row_3_layout.addWidget(self.rpd_button, 0)
+        row_3_layout.addWidget(self.seo_button, 0)
+        row_3_layout.addWidget(self.all_button, 0)
         row_3_layout.addStretch(1)
 
         layout = QtGui.QVBoxLayout()
-        layout.addLayout(row_1_layout,1)
-        layout.addLayout(row_2_layout,1)
-        layout.addLayout(row_3_layout,1)
-        layout.addLayout(self.category_selector,2)
+        layout.addLayout(row_0_layout, 1)
+        layout.addLayout(row_1_layout, 1)
+        layout.addLayout(row_2_layout, 1)
+        layout.addLayout(row_3_layout, 1)
+        layout.addLayout(self.category_selector, 2)
         self.setLayout(layout)
 
     def mapEvents(self):
@@ -114,12 +151,27 @@ class FilterForm(QtGui.QGroupBox):
         self.pd_button.toggled.connect(self.toggleTypes)
         self.rpd_button.toggled.connect(self.toggleTypes)
         self.seo_button.toggled.connect(self.toggleTypes)
+
         self.select_all_data.toggled.connect(self.changeDateType)
         self.writer_all_button.clicked.connect(self.selectAllWriters)
         self.writer_clear_button.clicked.connect(self.clearWriters)
         self.editor_all_button.clicked.connect(self.selectAllEditors)
         self.editor_clear_button.clicked.connect(self.clearEditors)
+
         self.date_field_start.dateChanged.connect(self.changedDate)
+        
+        
+        #Any change in the filter form should result in emitting the changedFilter signal.
+        self.date_field_start.dateChanged.connect(self.changedFilter)
+        self.date_field_end.dateChanged.connect(self.changedFilter)
+        self.all_button.toggled.connect(self.changedFilter)
+        self.pd_button.toggled.connect(self.changedFilter)
+        self.rpd_button.toggled.connect(self.changedFilter)
+        self.seo_button.toggled.connect(self.changedFilter)
+        self.select_all_data.toggled.connect(self.changedFilter)
+        self.writer_combobox.changedSelection.connect(self.changedFilter)
+        self.editor_combobox.changedSelection.connect(self.changedFilter)
+        self.category_selector.changedCategorySelection.connect(self.changedFilter)
 
     def changedDate(self):
         self.changedStartDate.emit()
@@ -152,7 +204,9 @@ class FilterForm(QtGui.QGroupBox):
             self.seo_button.setChecked(True)
             self.all_button.setEnabled(False)
 
-        
+
+    def getLabel(self):
+        return str(self.filter_legend.text()).strip()
 
     def toggleTypes(self):
         if self.pd_button.isChecked() and self.rpd_button.isChecked() and self.seo_button.isChecked():
@@ -231,4 +285,3 @@ class FilterForm(QtGui.QGroupBox):
 
     def getData(self):
         pass
-

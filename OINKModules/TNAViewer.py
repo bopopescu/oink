@@ -36,18 +36,18 @@ class TNAViewer(QtGui.QWidget):
         self.initiate()
 
     def initiate(self):
-        self.populateInputEditorAndWritersList()
+        self.populateBaseEditorAndWritersList()
         self.populateComparisonEditorAndWritersList()
         self.populateAuditParameters()
 
-    def populateInputEditorAndWritersList(self):
-        self.input_data_set_group.populateEditorAndWritersList()
+    def populateBaseEditorAndWritersList(self):
+        self.base_data_set_group.populateEditorAndWritersList()
 
     def populateComparisonEditorAndWritersList(self):
         self.comparison_data_set_group.populateEditorAndWritersList()
 
     def populateAuditParameters(self):
-        parameters_date = self.input_data_set_group.getDates()[0]
+        parameters_date = self.base_data_set_group.getDates()[0]
         self.audit_parameters_dataframe = MOSES.getAuditParametersData(self.user_id, self.password, parameters_date)
         self.audit_parameters = self.audit_parameters_dataframe["Column Descriptions"]
         self.parameters_combobox.clear()
@@ -55,13 +55,13 @@ class TNAViewer(QtGui.QWidget):
 
     
     def createUI(self):
-        self.input_data_set_group = FilterForm(
+        self.base_data_set_group = FilterForm(
                                             self.user_id,   
                                             self.password,    
                                             (0,0,0),   
                                             self.category_tree,   
                                             self.viewer_level,    
-                                            "Input Data Set")
+                                            "Base Data Set")
         self.comparison_data_set_group = FilterForm(
                                             self.user_id, 
                                             self.password, 
@@ -115,8 +115,8 @@ class TNAViewer(QtGui.QWidget):
                         ]
         self.plot_type_combobox.addItems(self.plot_types)
         self.plot_separate_charts_for_each_parameter = QtGui.QCheckBox("Parameter Charts")
-        self.plot_input_data_name_label = QtGui.QLabel("Label for the Base Data:")
-        self.plot_input_data_name_lineedit = QtGui.QLineEdit()
+        self.plot_base_data_name_label = QtGui.QLabel("Label for the Base Data:")
+        self.plot_base_data_name_lineedit = QtGui.QLineEdit()
         self.plot_comparison_data_name_label = QtGui.QLabel("Label for the Base Data:")
         self.plot_comparison_data_name_lineedit = QtGui.QLineEdit()
 
@@ -142,24 +142,18 @@ class TNAViewer(QtGui.QWidget):
         plot_options_row_1.addWidget(self.plot_separate_charts_for_each_parameter,0)
         plot_options_layout.addLayout(plot_options_row_1)
 
-
         plot_options_row_2 = QtGui.QHBoxLayout()
-        plot_options_row_2.addWidget(self.plot_input_data_name_label,0)
-        plot_options_row_2.addWidget(self.plot_input_data_name_lineedit,1)
-        plot_options_row_2.addWidget(self.plot_comparison_data_name_label,0)
-        plot_options_row_2.addWidget(self.plot_comparison_data_name_lineedit,1)
-        plot_options_layout.addLayout(plot_options_row_2)
-        plot_options_row_3 = QtGui.QHBoxLayout()
         
-        plot_options_row_3.addWidget(self.load_data_button,0)
-        plot_options_row_3.addWidget(self.plot_button,0)
-        plot_options_row_3.addWidget(self.plot_save_button,0)
-        plot_options_row_3.addStretch(1)
+        plot_options_row_2.addWidget(self.load_data_button,0)
+        plot_options_row_2.addWidget(self.plot_button,0)
+        plot_options_row_2.addWidget(self.plot_save_button,0)
+        plot_options_row_2.addStretch(1)
+        plot_options_layout.addLayout(plot_options_row_2)
+
+        plot_options_row_3 = QtGui.QHBoxLayout()
+        plot_options_row_3.addWidget(self.plot_zoom_slider,3)
+        plot_options_row_3.addWidget(self.plot_zoom_label,1)
         plot_options_layout.addLayout(plot_options_row_3)
-        plot_options_row_4 = QtGui.QHBoxLayout()
-        plot_options_row_4.addWidget(self.plot_zoom_slider,3)
-        plot_options_row_4.addWidget(self.plot_zoom_label,1)
-        plot_options_layout.addLayout(plot_options_row_4)
 
         
         self.plot_options_group.setLayout(plot_options_layout)
@@ -180,7 +174,7 @@ class TNAViewer(QtGui.QWidget):
         self.status_label = QtGui.QLabel("He who seeks glory, finds death.")
 
         row_1_layout = QtGui.QHBoxLayout()
-        row_1_layout.addWidget(self.input_data_set_group)
+        row_1_layout.addWidget(self.base_data_set_group)
         row_1_layout.addWidget(self.comparison_data_set_group)
         
         column_1_layout = QtGui.QVBoxLayout()
@@ -216,7 +210,13 @@ class TNAViewer(QtGui.QWidget):
         self.parameters_fatal_button.clicked.connect(self.selectFatalParameters)
         self.parameters_clear_button.clicked.connect(self.clearParameterSelections)
         self.plot_button.clicked.connect(self.plotCharts)
-        self.input_data_set_group.changedStartDate.connect(self.populateAuditParameters)
+        self.base_data_set_group.changedStartDate.connect(self.populateAuditParameters)
+
+        self.base_data_set_group.changedFilter.connect(self.changedFilters)
+        self.comparison_data_set_group.changedFilter.connect(self.changedFilters)
+
+    def changedFilters(self):
+        self.plot_button.setEnabled(False)
 
     def plotCharts(self):
         audit_parameter_selection = self.parameters_combobox.getCheckedItems()
@@ -224,16 +224,13 @@ class TNAViewer(QtGui.QWidget):
         plot_types = self.plot_type_combobox.getCheckedItems()
 
         if len(plot_types)==0:
-            self.printMessage("Select at least one type of chart!")
+            self.alertMessage("No chart types selected!","You'll need to select a type of chart that you want to plot.")
         else:
             if len(audit_parameters)==0:
                 self.selectGSEOParameters()
                 self.selectCFMParameters()
                 audit_parameters = self.parameters_combobox.getCheckedItems()
-                self.printMessage("Defaulted to CFM and GSEO since no audit parameters were selected.")
-            else:
-                self.printMessage("Selected %d audit parameters."%len(audit_parameters))
-            self.printMessage("Selected plot types: %s"%plot_types)
+                self.alertMessage("No parameters selected!","Since you've not selected any audit parameters, GSEO and CFM have been auto selected for you.")
             if "Pareto" in plot_types:
                 pareto_image = self.plotPareto(audit_parameters)
 
@@ -241,32 +238,39 @@ class TNAViewer(QtGui.QWidget):
         #print self.audit_parameters_dataframe
         parameter_column_names = self.getParameterColumnNames(audit_parameter_selection)
         parameter_class_list = [x[:(len(x)-2)] for x in parameter_column_names]
-        self.printMessage(parameter_column_names)
+        #self.printMessage(parameter_column_names)
         pareto_image_object = True
         parameter_summary_data = []
         counter = 0
         for parameter in audit_parameter_selection:
             parameter_column_name = parameter_column_names[counter]
             maximum_score = self.getMaximumScoreForParameter(parameter)
-            if "FAT" in parameter_column_name:
-                self.printMessage("%s-%s: Max. Score: %s"%(parameter_column_name, parameter, maximum_score))
+            #if "FAT" in parameter_column_name:
+            #    self.printMessage("%s-%s: Max. Score: %s"%(parameter_column_name, parameter, maximum_score))
             
-            input_deviant_positions = self.input_data_set[parameter_column_name] != maximum_score
-            input_deviation_frequency = self.input_data_set[input_deviant_positions][parameter_column_name].count()
-            input_deviation_frequency_percentage = input_deviation_frequency/self.input_data_set.shape[0]
+            base_deviant_positions = self.base_data_set[parameter_column_name] != maximum_score
+            base_deviation_frequency = self.base_data_set[base_deviant_positions][parameter_column_name].count()
+            base_deviation_frequency_percentage = base_deviation_frequency/self.base_data_set.shape[0]
             if self.comparison_data_set is None:
                 comparison_deviation_frequency_percentage = "-"
+                verdict = "NA"
             else:
-                comparison_deviant_positions = self.comparison_data_set[parameter_column_name]<maximum_score
+                comparison_deviant_positions = self.comparison_data_set[parameter_column_name] != maximum_score
                 comparison_deviation_frequency = self.comparison_data_set[comparison_deviant_positions][parameter_column_name].count()
                 comparison_deviation_frequency_percentage = comparison_deviation_frequency/self.comparison_data_set.shape[0]
+                if base_deviation_frequency_percentage<comparison_deviation_frequency_percentage:
+                    verdict = "Better"
+                elif base_deviation_frequency_percentage==comparison_deviation_frequency_percentage:
+                    verdict = "No Change"
+                else:
+                    verdict = "Worse"
 
-            parameter_data = [parameter, input_deviation_frequency_percentage, comparison_deviation_frequency_percentage]
+            parameter_data = [parameter, base_deviation_frequency_percentage, comparison_deviation_frequency_percentage, verdict]
             counter +=1
             parameter_summary_data.append(parameter_data)
 
         #self.printMessage(parameter_summary_data)
-        summary_data_frame = pd.DataFrame(parameter_summary_data, index=parameter_class_list, columns =["Parameter Description", "Input Deviation Frequency", "Comparison Deviation Frequency"]).sort_values(["Input Deviation Frequency"], ascending=False)
+        summary_data_frame = pd.DataFrame(parameter_summary_data, index=parameter_class_list, columns =["Parameter Description", "Base Deviation Frequency", "Comparison Deviation Frequency","Verdict"]).sort_values(["Base Deviation Frequency"], ascending=False)
         #self.printMessage(summary_data_frame)
         #Clear the canvas
         fig, ax = plt.subplots()
@@ -274,22 +278,22 @@ class TNAViewer(QtGui.QWidget):
         x_positions = np.arange(len(summary_data_frame.index))
         width = 0.35
 
-        base_data_list = [x*100 for x in summary_data_frame["Input Deviation Frequency"]]
+        base_data_list = [x*100 for x in summary_data_frame["Base Deviation Frequency"]]
         base_bar_graphs = ax.bar(x_positions, base_data_list, width, color='y')
         ax.set_xticks(x_positions+width)
         parameter_names = [self.wordWrap(x) for x in list(summary_data_frame["Parameter Description"])]
         ax.set_xticklabels(parameter_names, rotation=90)
         #Set x and y labels.
         ax.set_xlabel("Quality Parameters")
-        ax.set_ylabel("Deviation Frequency Percentage")
+        ax.set_ylabel("Deviation Frequency Percentage\n(Lower the bar, better the performance)")
         
         user_name = MOSES.getEmpName(self.user_id)
         time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
         ax.set_title("Pareto Chart\n[Generated by OINK for %s at %s]"%(user_name, time_stamp))
         
-        base_label = str(self.plot_input_data_name_lineedit.text()).strip()
-        reference_label = str(self.plot_comparison_data_name_lineedit.text()).strip()
+        base_label = self.base_data_set_group.getLabel()
+        reference_label = self.comparison_data_set_group.getLabel()
 
         if self.comparison_data_set is not None:
             comparison_data_list = [x*100 for x in summary_data_frame["Comparison Deviation Frequency"]]
@@ -301,12 +305,15 @@ class TNAViewer(QtGui.QWidget):
         filename = os.path.join(os.getcwd(),"cache","Pareto_%s_vs_%s_%s.png"%(base_label.replace(" ","_"), reference_label.replace(" ","_"), time_stamp))
 
         plt.savefig("%s"%filename)
-        self.plot_viewer.showImage(filename, 200,200)
+        self.plot_viewer.showImage(filename, int(self.plot_data_table.size().width()),int(self.plot_data_table.size().height()))
         plt.show()
         return pareto_image_object
 
-    def wordWrap(self, input_text):
-        output_text = input_text[:input_text.find(" ")] + "\n" + input_text[input_text.find(" ")+1:]
+    def wordWrap(self, base_text):
+        if " " in base_text:
+            output_text = base_text[:base_text.find(" ")] + "\n" + base_text[base_text.find(" ")+1:]
+        else:
+            output_text = base_text
         return output_text
 
     def showDataFrames(self, dataframe):
@@ -317,7 +324,7 @@ class TNAViewer(QtGui.QWidget):
 
         for row_index in range(row_count):
             for col_index in range(column_count):
-                self.plot_data_table.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iget_value(row_index, col_index))))
+                self.plot_data_table.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iat[row_index, col_index])))
         self.plot_data_table.setHorizontalHeaderLabels(list(dataframe.columns))
         self.plot_data_table.setVerticalHeaderLabels(list(dataframe.index))
         self.plot_data_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
@@ -349,7 +356,7 @@ class TNAViewer(QtGui.QWidget):
         #self.printMessage(audit_parameter_class_indices)
         
         column_names = ["%s%02d"%(x,y) for (x,y) in zip(audit_parameter_classes, audit_parameter_class_indices)]
-        self.printMessage(column_names)
+        #self.printMessage(column_names)
         return column_names
 
 
@@ -360,28 +367,34 @@ class TNAViewer(QtGui.QWidget):
             print "TNAViewer: %s"%msg
         
     def loadData(self):
+        self.alertMessage("Please wait...","Depending on the filters you have chosen, this step could take a second or a minute, though definitely not more than 60s. Please wait, and remember, <i>Roma die uno non aedificata est</i>.")
         self.plot_button.setEnabled(False)
-        input_filter = self.input_data_set_group.getFilters()
+        base_filter = self.base_data_set_group.getFilters()
         comparison_filter = self.comparison_data_set_group.getFilters()
 
-        self.input_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, input_filter)
+        self.base_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, base_filter)
         self.comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter)
 
-        if self.input_data_set is not None:
-            input_count = self.input_data_set.shape[0]
+        if self.base_data_set is not None:
+            base_count = self.base_data_set.shape[0]
         else:
-            input_count = 0
+            base_count = 0
 
         if self.comparison_data_set is not None:
             comparison_count = self.comparison_data_set.shape[0]
         else:
             comparison_count = 0
 
-        self.alertMessage("Retrieved Data","Retrieved %d rows for the input filters and %d rows for output."%(input_count, comparison_count))
-        if input_count >0:
+        if base_count >0:
             self.plot_button.setEnabled(True)
+            if comparison_count == 0:
+                self.alertMessage("Retrieved Data","Retrieved %d audits for the base filters. There don't seem to be any for the comparison data set. You can go ahead and still plot a chart to analyse the base data, albeit without a reference plotted against it."%(base_count))
+            else:
+                self.alertMessage("Retrieved Data","Retrieved %d audits matching the base filters and %d audits matching the comparison filters."%(base_count, comparison_count))
+
         else:
             self.plot_button.setEnabled(False)
+            self.alertMessage("Insufficient Base Data","There are no audits matching the selected filters for the base data. It is impossible to plot a chart without base data. This could have occurred for several reasons:\n1. You may have selected too many filters which have no result in the base form, or\n2. You could have selected a date range between which there have been zero audits.")
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
