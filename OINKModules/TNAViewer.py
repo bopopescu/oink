@@ -115,10 +115,8 @@ class TNAViewer(QtGui.QWidget):
                         ]
         self.plot_type_combobox.addItems(self.plot_types)
         self.plot_separate_charts_for_each_parameter = QtGui.QCheckBox("Parameter Charts")
-        self.plot_base_data_name_label = QtGui.QLabel("Label for the Base Data:")
-        self.plot_base_data_name_lineedit = QtGui.QLineEdit()
-        self.plot_comparison_data_name_label = QtGui.QLabel("Label for the Base Data:")
-        self.plot_comparison_data_name_lineedit = QtGui.QLineEdit()
+        self.use_minimum_acceptable_scores = QtGui.QCheckBox("Consider an acceptable article to be the base")
+        self.use_minimum_acceptable_scores.setToolTip("If checked, the tool will plot charts by considering an article with\n96% CFM and 95% GSEO article to be the base.\nOtherwise, it compares scores against a 100 article.")
 
         self.load_data_button = QtGui.QPushButton("Load Data")
         self.plot_button = QtGui.QPushButton("Plot Charts")
@@ -136,6 +134,7 @@ class TNAViewer(QtGui.QWidget):
         self.plot_save_button.setEnabled(False)
 
         plot_options_layout = QtGui.QVBoxLayout()
+
         plot_options_row_1 = QtGui.QHBoxLayout()
         plot_options_row_1.addWidget(self.plot_type_label,0)
         plot_options_row_1.addWidget(self.plot_type_combobox,0)
@@ -143,17 +142,20 @@ class TNAViewer(QtGui.QWidget):
         plot_options_layout.addLayout(plot_options_row_1)
 
         plot_options_row_2 = QtGui.QHBoxLayout()
-        
-        plot_options_row_2.addWidget(self.load_data_button,0)
-        plot_options_row_2.addWidget(self.plot_button,0)
-        plot_options_row_2.addWidget(self.plot_save_button,0)
-        plot_options_row_2.addStretch(1)
+        plot_options_row_2.addWidget(self.use_minimum_acceptable_scores,1)
         plot_options_layout.addLayout(plot_options_row_2)
-
+        
         plot_options_row_3 = QtGui.QHBoxLayout()
-        plot_options_row_3.addWidget(self.plot_zoom_slider,3)
-        plot_options_row_3.addWidget(self.plot_zoom_label,1)
+        plot_options_row_3.addWidget(self.load_data_button,0)
+        plot_options_row_3.addWidget(self.plot_button,0)
+        plot_options_row_3.addWidget(self.plot_save_button,0)
+        plot_options_row_3.addStretch(1)
         plot_options_layout.addLayout(plot_options_row_3)
+
+        plot_options_row_4 = QtGui.QHBoxLayout()
+        plot_options_row_4.addWidget(self.plot_zoom_slider,3)
+        plot_options_row_4.addWidget(self.plot_zoom_label,1)
+        plot_options_layout.addLayout(plot_options_row_4)
 
         
         self.plot_options_group.setLayout(plot_options_layout)
@@ -239,23 +241,33 @@ class TNAViewer(QtGui.QWidget):
         parameter_column_names = self.getParameterColumnNames(audit_parameter_selection)
         parameter_class_list = [x[:(len(x)-2)] for x in parameter_column_names]
         #self.printMessage(parameter_column_names)
-        pareto_image_object = True
         parameter_summary_data = []
         counter = 0
         for parameter in audit_parameter_selection:
             parameter_column_name = parameter_column_names[counter]
-            maximum_score = self.getMaximumScoreForParameter(parameter)
+            if not self.use_minimum_acceptable_scores.isChecked():
+                acceptable_score = self.getMaximumScoreForParameter(parameter)
+            else:
+                acceptable_score = self.getMinimumScoreForParameter(parameter)
             #if "FAT" in parameter_column_name:
-            #    self.printMessage("%s-%s: Max. Score: %s"%(parameter_column_name, parameter, maximum_score))
-            
-            base_deviant_positions = self.base_data_set[parameter_column_name] != maximum_score
+            #    self.printMessage("%s-%s: Max. Score: %s"%(parameter_column_name, parameter, acceptable_score))
+            if type(acceptable_score) == str:
+                #The acceptable score can be a string or a number.
+                base_deviant_positions = self.base_data_set[parameter_column_name] != acceptable_score
+            else:
+                base_deviant_positions = self.base_data_set[parameter_column_name] < acceptable_score
+
             base_deviation_frequency = self.base_data_set[base_deviant_positions][parameter_column_name].count()
             base_deviation_frequency_percentage = base_deviation_frequency/self.base_data_set.shape[0]
             if self.comparison_data_set is None:
                 comparison_deviation_frequency_percentage = "-"
                 verdict = "NA"
             else:
-                comparison_deviant_positions = self.comparison_data_set[parameter_column_name] != maximum_score
+                if type(acceptable_score) == str:
+                    comparison_deviant_positions = self.comparison_data_set[parameter_column_name] != acceptable_score
+                else:
+                    comparison_deviant_positions = self.comparison_data_set[parameter_column_name] < acceptable_score
+
                 comparison_deviation_frequency = self.comparison_data_set[comparison_deviant_positions][parameter_column_name].count()
                 comparison_deviation_frequency_percentage = comparison_deviation_frequency/self.comparison_data_set.shape[0]
                 if base_deviation_frequency_percentage<comparison_deviation_frequency_percentage:
@@ -307,6 +319,8 @@ class TNAViewer(QtGui.QWidget):
         plt.savefig("%s"%filename)
         self.plot_viewer.showImage(filename, int(self.plot_data_table.size().width()),int(self.plot_data_table.size().height()))
         plt.show()
+
+        pareto_image_object = True
         return pareto_image_object
 
     def wordWrap(self, base_text):
@@ -344,6 +358,14 @@ class TNAViewer(QtGui.QWidget):
         else:
             maximum_score = "No" #No denotes that there's no fatal.
         return maximum_score
+    def getMinimumScoreForParameter(self, parameter_name):
+        matching_indices = self.audit_parameters_dataframe["Column Descriptions"]==parameter_name
+        rating_type = list(self.audit_parameters_dataframe[matching_indices]["Rating Type"])[0]
+        if rating_type!="Mandatory":
+            minimum_score = list(self.audit_parameters_dataframe[matching_indices]["Minimum Acceptable Score"])[0]
+        else:
+            minimum_score = "No" #No denotes that there's no fatal.
+        return minimum_score
 
     def getParameterColumnNames(self, audit_parameter_selection):
         audit_parameter_classes = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"].isin(audit_parameter_selection)]["Parameter Class"])
@@ -367,6 +389,7 @@ class TNAViewer(QtGui.QWidget):
             print "TNAViewer: %s"%msg
         
     def loadData(self):
+        self.load_data_button.setEnabled(False)
         self.alertMessage("Please wait...","Depending on the filters you have chosen, this step could take a second or a minute, though definitely not more than 60s. Please wait, and remember, <i>Roma die uno non aedificata est</i>.")
         self.plot_button.setEnabled(False)
         base_filter = self.base_data_set_group.getFilters()
@@ -395,6 +418,8 @@ class TNAViewer(QtGui.QWidget):
         else:
             self.plot_button.setEnabled(False)
             self.alertMessage("Insufficient Base Data","There are no audits matching the selected filters for the base data. It is impossible to plot a chart without base data. This could have occurred for several reasons:\n1. You may have selected too many filters which have no result in the base form, or\n2. You could have selected a date range between which there have been zero audits.")
+        self.load_data_button.setEnabled(True)
+
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
