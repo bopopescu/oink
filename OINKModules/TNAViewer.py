@@ -297,10 +297,12 @@ class TNAViewer(QtGui.QWidget):
             ax.legend((base_bar_graphs[0], comparison_bar_graphs[0]), (base_label, reference_label))
         
         self.showDataFrames(summary_data_frame)
+        plt.subplots.adjust(left=0.1, right=0.9, top=0.9, bottom=0.5)
+        filename = os.path.join(os.getcwd(),"cache","Pareto_%s_vs_%s_%s.png"%(base_label.replace(" ","_"), reference_label.replace(" ","_"), time_stamp))
+
+        plt.savefig("%s"%filename)
+        self.plot_viewer.showImage(filename, 200,200)
         plt.show()
-        
-        
-        
         return pareto_image_object
 
     def wordWrap(self, input_text):
