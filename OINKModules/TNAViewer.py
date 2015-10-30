@@ -9,6 +9,7 @@ import pandas as pd
 from PyQt4 import QtGui, QtCore
 import matplotlib
 from matplotlib import pyplot as plt
+import matplotlib.ticker as ticker
 import MOSES
 from ProgressBar import ProgressBar
 from ImageLabel import ImageLabel
@@ -114,6 +115,11 @@ class TNAViewer(QtGui.QWidget):
                         ]
         self.plot_type_combobox.addItems(self.plot_types)
         self.plot_separate_charts_for_each_parameter = QtGui.QCheckBox("Parameter Charts")
+        self.plot_input_data_name_label = QtGui.QLabel("Label for the Base Data:")
+        self.plot_input_data_name_lineedit = QtGui.QLineEdit()
+        self.plot_comparison_data_name_label = QtGui.QLabel("Label for the Base Data:")
+        self.plot_comparison_data_name_lineedit = QtGui.QLineEdit()
+
         self.load_data_button = QtGui.QPushButton("Load Data")
         self.plot_button = QtGui.QPushButton("Plot Charts")
         self.plot_save_button = QtGui.QPushButton("Save Charts")
@@ -135,16 +141,25 @@ class TNAViewer(QtGui.QWidget):
         plot_options_row_1.addWidget(self.plot_type_combobox,0)
         plot_options_row_1.addWidget(self.plot_separate_charts_for_each_parameter,0)
         plot_options_layout.addLayout(plot_options_row_1)
+
+
         plot_options_row_2 = QtGui.QHBoxLayout()
-        plot_options_row_2.addWidget(self.load_data_button,0)
-        plot_options_row_2.addWidget(self.plot_button,0)
-        plot_options_row_2.addWidget(self.plot_save_button,0)
-        plot_options_row_2.addStretch(1)
+        plot_options_row_2.addWidget(self.plot_input_data_name_label,0)
+        plot_options_row_2.addWidget(self.plot_input_data_name_lineedit,1)
+        plot_options_row_2.addWidget(self.plot_comparison_data_name_label,0)
+        plot_options_row_2.addWidget(self.plot_comparison_data_name_lineedit,1)
         plot_options_layout.addLayout(plot_options_row_2)
         plot_options_row_3 = QtGui.QHBoxLayout()
-        plot_options_row_3.addWidget(self.plot_zoom_slider,3)
-        plot_options_row_3.addWidget(self.plot_zoom_label,1)
+        
+        plot_options_row_3.addWidget(self.load_data_button,0)
+        plot_options_row_3.addWidget(self.plot_button,0)
+        plot_options_row_3.addWidget(self.plot_save_button,0)
+        plot_options_row_3.addStretch(1)
         plot_options_layout.addLayout(plot_options_row_3)
+        plot_options_row_4 = QtGui.QHBoxLayout()
+        plot_options_row_4.addWidget(self.plot_zoom_slider,3)
+        plot_options_row_4.addWidget(self.plot_zoom_label,1)
+        plot_options_layout.addLayout(plot_options_row_4)
 
         
         self.plot_options_group.setLayout(plot_options_layout)
@@ -238,14 +253,13 @@ class TNAViewer(QtGui.QWidget):
             
             input_deviant_positions = self.input_data_set[parameter_column_name] != maximum_score
             input_deviation_frequency = self.input_data_set[input_deviant_positions][parameter_column_name].count()
-            input_deviation_frequency_percentage = input_deviation_frequency/self.input_data_set.shape[0]*100
+            input_deviation_frequency_percentage = input_deviation_frequency/self.input_data_set.shape[0]
             if self.comparison_data_set is None:
-                print "Got a none here!"
                 comparison_deviation_frequency_percentage = "-"
             else:
                 comparison_deviant_positions = self.comparison_data_set[parameter_column_name]<maximum_score
                 comparison_deviation_frequency = self.comparison_data_set[comparison_deviant_positions][parameter_column_name].count()
-                comparison_deviation_frequency_percentage = comparison_deviation_frequency/self.comparison_data_set.shape[0]*100
+                comparison_deviation_frequency_percentage = comparison_deviation_frequency/self.comparison_data_set.shape[0]
 
             parameter_data = [parameter, input_deviation_frequency_percentage, comparison_deviation_frequency_percentage]
             counter +=1
@@ -253,9 +267,45 @@ class TNAViewer(QtGui.QWidget):
 
         #self.printMessage(parameter_summary_data)
         summary_data_frame = pd.DataFrame(parameter_summary_data, index=parameter_class_list, columns =["Parameter Description", "Input Deviation Frequency", "Comparison Deviation Frequency"]).sort_values(["Input Deviation Frequency"], ascending=False)
-        self.printMessage(summary_data_frame)
+        #self.printMessage(summary_data_frame)
+        #Clear the canvas
+        fig, ax = plt.subplots()
+
+        x_positions = np.arange(len(summary_data_frame.index))
+        width = 0.35
+
+        base_data_list = [x*100 for x in summary_data_frame["Input Deviation Frequency"]]
+        base_bar_graphs = ax.bar(x_positions, base_data_list, width, color='y')
+        ax.set_xticks(x_positions+width)
+        parameter_names = [self.wordWrap(x) for x in list(summary_data_frame["Parameter Description"])]
+        ax.set_xticklabels(parameter_names, rotation=90)
+        #Set x and y labels.
+        ax.set_xlabel("Quality Parameters")
+        ax.set_ylabel("Deviation Frequency Percentage")
+        
+        user_name = MOSES.getEmpName(self.user_id)
+        time_stamp = datetime.datetime.now()
+
+        ax.set_title("Pareto Chart\n[Generated by OINK for %s at %s]"%(user_name, time_stamp))
+        
+        base_label = str(self.plot_input_data_name_lineedit.text()).strip()
+        reference_label = str(self.plot_comparison_data_name_lineedit.text()).strip()
+
+        if self.comparison_data_set is not None:
+            comparison_data_list = [x*100 for x in summary_data_frame["Comparison Deviation Frequency"]]
+            comparison_bar_graphs = ax.bar(x_positions+width, comparison_data_list, width, color='g')
+            ax.legend((base_bar_graphs[0], comparison_bar_graphs[0]), (base_label, reference_label))
+        
         self.showDataFrames(summary_data_frame)
+        plt.show()
+        
+        
+        
         return pareto_image_object
+
+    def wordWrap(self, input_text):
+        output_text = input_text[:input_text.find(" ")] + "\n" + input_text[input_text.find(" ")+1:]
+        return output_text
 
     def showDataFrames(self, dataframe):
         row_count = dataframe.shape[0]
@@ -276,9 +326,6 @@ class TNAViewer(QtGui.QWidget):
         self.plot_data_table.horizontalHeader().setStretchLastSection(True)
         self.plot_data_table.horizontalHeader().setVisible(True)     
 
-
-
-        
     
     def getMaximumScoreForParameter(self, parameter_name):
         matching_indices = self.audit_parameters_dataframe["Column Descriptions"]==parameter_name

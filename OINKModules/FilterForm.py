@@ -13,6 +13,7 @@ from CategorySelector import CategorySelector
 
 class FilterForm(QtGui.QGroupBox):
     changedStartDate = QtCore.pyqtSignal()
+    changedFilter = QtCore.pyqtSignal()
     def __init__(self, user_id, password, color, category_tree, viewer_level, *args, **kwargs):
         super(FilterForm, self).__init__(*args, **kwargs)
         self.user_id = user_id
