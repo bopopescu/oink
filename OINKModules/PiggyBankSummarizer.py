@@ -104,7 +104,13 @@ class PiggyBankSummarizer(QtGui.QWidget):
         pass
     
     def summarize(self):
-        pass
+        no_of_selected_methods = self.selected_methods_list_widget.count()
+        selected_methods = [str(self.selected_methods_list_widget.item(x).text()) for x in range(no_of_selected_methods)]
+        if len(selected_methods)>0:
+            print "Selected: %s"%selected_methods
+        else:
+            print "Select something, Jack." 
+
 
     def pushFromTo(self, source_list_widget, destination_list_widget):
         #identify the selected attributes
@@ -119,4 +125,3 @@ class PiggyBankSummarizer(QtGui.QWidget):
         #Remove them from the source list
         for selected_item in selected_attribute_items:
             source_list_widget.takeItem(source_list_widget.row(selected_item))
-        self.makeDataFile()

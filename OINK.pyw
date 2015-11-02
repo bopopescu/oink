@@ -14,9 +14,10 @@ from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, p
 from OINKModules import MOSES
 def main():
     try:
-        pass
-        #MOSES.register()
+        MOSES.register()
+        print "Works"
     except:
+        print "Fails"
         pass
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))

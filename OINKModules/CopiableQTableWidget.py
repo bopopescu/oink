@@ -21,3 +21,21 @@ class CopiableQTableWidget(QtGui.QTableWidget):
                             s += "\t"
                     s = s[:-1] + "\n" #eliminate last '\t'
                 self.clip.setText(s)
+                
+    def showDataFrame(self, dataframe):
+        row_count = dataframe.shape[0]
+        column_count = dataframe.shape[1]
+        self.setRowCount(row_count)
+        self.setColumnCount(column_count)
+        for row_index in range(row_count):
+            for col_index in range(column_count):
+                self.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iat[row_index, col_index])))
+        self.setHorizontalHeaderLabels(list(dataframe.columns))
+        #self.setVerticalHeaderLabels(list(dataframe.index))
+        self.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.verticalHeader().setStretchLastSection(False)
+        self.verticalHeader().setVisible(True)
+
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setVisible(True)     

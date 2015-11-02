@@ -287,7 +287,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_reset_stats.clicked.connect(self.summaryFormReset)
         self.reset_button.clicked.connect(self.resetFilters)
 
-    def resetFiltersAndForm(self):
+    def resetFilters(self):
         self.description_types_filter_box.clearSelection()
         self.sources_filter_box.clearSelection()
         self.writers_filter_box.clearSelection()
