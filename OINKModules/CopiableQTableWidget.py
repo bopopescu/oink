@@ -21,6 +21,11 @@ class CopiableQTableWidget(QtGui.QTableWidget):
                             s += "\t"
                     s = s[:-1] + "\n" #eliminate last '\t'
                 self.clip.setText(s)
+            else:
+                super(CopiableQTableWidget, self).keyPressEvent(e)
+        else:
+            super(CopiableQTableWidget, self).keyPressEvent(e)
+            
 
     def showDataFrame(self, dataframe):
         if dataframe is not None:
