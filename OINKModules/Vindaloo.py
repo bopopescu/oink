@@ -57,20 +57,25 @@ class Vindaloo(QtGui.QMainWindow):
         self.swine_button = QtGui.QPushButton("Swine")
         self.swine_button.setToolTip("Click here to get data and images from Flipkart.")
 
-        self.calc_button = ImageButton(os.path.join("Images","calculator.png"),48, 48)
+        self.calc_button = ImageButton(os.path.join("Images","calculator.png"),48, 48, os.path.join("Images","calculator_mouseover.png"))
         self.calc_button.setToolTip("Click to open the Efficiency Calculator")
+        self.calc_button.setFlat(True)
 
-        self.leaves_button = ImageButton(os.path.join("Images","leaves.png"), 48, 48)
+        self.leaves_button = ImageButton(os.path.join("Images","leave.png"), 48, 48, os.path.join("Images","leave_mouseover.png"))
         self.leaves_button.setToolTip("Click to open the leave approval system")
+        self.leaves_button.setFlat(True)
 
-        self.tna_button = ImageButton(os.path.join("Images","tna.png"),48, 48)
+        self.tna_button = ImageButton(os.path.join("Images","tna.png"),48, 48, os.path.join("Images","tna_mouseover.png"))
         self.tna_button.setToolTip("Click to open the training needs analysis tool")
+        self.tna_button.setFlat(True)
 
-        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),48, 48)
+        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),48, 48, os.path.join("Images","relaxation_mouseover.png"))
         self.relaxation_button.setToolTip("Click to open the relaxation approval system")
+        self.relaxation_button.setFlat(True)
 
-        self.escalation_button = ImageButton(os.path.join("Images","alert.png"), 48, 48)
+        self.escalation_button = ImageButton(os.path.join("Images","alert.png"), 48, 48, os.path.join("Images","alert_mouseover.png"))
         self.escalation_button.setToolTip("Click to open the escalation tracker")
+        self.escalation_button.setFlat(True)
 
         buttons_layout = QtGui.QHBoxLayout()
         buttons_layout.addWidget(self.calc_button, 0)

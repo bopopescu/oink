@@ -79,8 +79,9 @@ class PiggyBankSummarizer(QtGui.QWidget):
         self.deselect_method_button.clicked.connect(self.deselect)
 
     def reset(self):
-        pass
-    
+        self.setPiggyBank()
+        self.summary_table.showDataFrame(None)
+            
     def select(self):
         self.pushFromTo(self.available_methods_list_widget, self.selected_methods_list_widget)
     
