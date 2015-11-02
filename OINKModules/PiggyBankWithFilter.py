@@ -13,14 +13,17 @@ from PiggyBankSummarizer import PiggyBankSummarizer
 from CopiableQTableWidget import CopiableQTableWidget
 from DescriptionTypeSelector import DescriptionTypeSelector
 class PiggyBankWithFilter(QtGui.QWidget):
-    def __init__(self, user_id, password):
+    def __init__(self, user_id, password, category_tree=None):
         super(PiggyBankWithFilter, self).__init__()
         self.user_id, self.password = user_id, password
-        self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
+        if category_tree is not None:
+            self.category_tree = category_tree
+        else:
+            self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         self.writers_list = MOSES.getWritersList(self.user_id, self.password)
         self.brands = MOSES.getBrandValues(self.user_id, self.password)
         self.createUI()
-        self.piggy_bank_data = []
+        self.piggybank_data = []
         self.mapEvents()
         self.changePage()
         self.populateBrand()
@@ -189,8 +192,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_widget.setLayout(self.piggybank_summary_layout)
         
         self.piggybank_tabs = QtGui.QTabWidget()
-        self.piggybank_tabs.addTab(self.piggybank_summary_widget,"Audit Planner")
         self.piggybank_tabs.addTab(self.piggybank,"Piggy Bank")
+        self.piggybank_tabs.addTab(self.piggybank_summary_widget,"Audit Planner")
         
         self.reset_button = QtGui.QPushButton("Reset Selected Filters")
         self.reset_button.setToolTip("Click here to reset all chosen filters.")
@@ -208,7 +211,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 font: bold 8pt;
             }
             """
-        self.reset_button.setStyleSheet(reset_style_string)
+        #self.reset_button.setStyleSheet(reset_style_string)
         self.pull_button = QtGui.QPushButton("Pull Data")
         self.pull_button.setToolTip("Click here to extract data from the OINK server for the selected filters.")
         self.pull_button.setMinimumWidth(150)
@@ -225,7 +228,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
             font: bold 12pt;
         }
         """
-        self.pull_button.setStyleSheet(style_string)
+        #self.pull_button.setStyleSheet(style_string)
 
         self.description_types_selector = DescriptionTypeSelector(self.category_tree)
 
@@ -377,6 +380,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         #print "Pulling data!"
         self.pull_button.setEnabled(False)
         self.piggybank_summarizer.setEnabled(False)
+        self.piggybank.showDataFrame(None)
         message = "processing..."
         self.status.setText(message)
         self.alertMessage("Please Wait","Depending on the filters you have chosen, this step could take a second or a minute, though definitely not more than 60s. Please wait, and remember, <i>Roma die uno non aedificata est</i>.")
@@ -392,8 +396,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 message = "No data for selected filters."
                 self.alertMessage("No Data Available","There is no data pertaining to the selected filters. This could have occurred for several reasons:\n1. You may have selected too many filters which have no result, or\n2. You could have selected a date range between which there have been no articles, or, simply\n3. There is no data.")
             else:            
-                self.piggy_bank_data = data
-                self.showDataFrameInTable(data, self.piggybank)
+                self.piggybank_data = data
+                self.piggybank.showDataFrame(self.piggybank_data)
                 #populate the summary next.
                 self.piggybank_summarizer.setEnabled(True)
                 self.piggybank_summarizer.setPiggyBank(data)
@@ -413,7 +417,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         return summarize_parameters
 
     def getBreakUpTableFromPiggyBank(self):
-        data = self.piggy_bank_data
+        data = self.piggybank_data
         summarize_parameters = self.getSummarizeParameters()
         #Build a summary matrix with the different types of the selected summarize parameters.
         matrix = []
@@ -487,7 +491,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 if first_run:
                     qualifier_row["Article Count"] = 0
                     qualifier_row["Word Count"] = 0
-                    for row in self.piggy_bank_data:
+                    for row in self.piggybank_data:
                         row_match = True
                         for key in qualifier_row:
                             if (key not in ["Article Count", "Word Count", "Suggested Audits","Approx. Word Count of Audits"]):
@@ -794,7 +798,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
             
     def getRandomFSNs(self, constraints, quantity):
         valid_rows = []
-        for row in self.piggy_bank_data:
+        for row in self.piggybank_data:
             valid = True
             for key in constraints.keys():
                 if row[key] != constraints[key]:

@@ -25,7 +25,7 @@ from FarmHand import FarmHand
 from PiggyBankWithFilter import PiggyBankWithFilter
 from SwineHerd import SwineHerd
 from ImageButton import ImageButton
-
+from TNAViewer import TNAViewer
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -36,7 +36,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         MOSES.createLoginStamp(self.user_id, self.password)
         self.createUI()
-        self.createEvents()
+        self.mapEvents()
 
     def createUI(self):
         self.main_widget = QtGui.QWidget()
@@ -77,12 +77,17 @@ class Vindaloo(QtGui.QMainWindow):
         self.escalation_button.setToolTip("Click to open the escalation tracker")
         self.escalation_button.setFlat(True)
 
+        self.user_management_button = ImageButton(os.path.join("Images","user.png"), 48, 48, os.path.join("Images","user_mouseover.png"))
+        self.user_management_button.setToolTip("Click to open the user management tool")
+        self.user_management_button.setFlat(True)
+
         buttons_layout = QtGui.QHBoxLayout()
         buttons_layout.addWidget(self.calc_button, 0)
         buttons_layout.addWidget(self.leaves_button, 0)
         buttons_layout.addWidget(self.tna_button, 0)
         buttons_layout.addWidget(self.relaxation_button, 0)
         buttons_layout.addWidget(self.escalation_button, 0)
+        buttons_layout.addWidget(self.user_management_button,0)
 
 
         self.layout = QtGui.QGridLayout()
@@ -124,7 +129,7 @@ class Vindaloo(QtGui.QMainWindow):
         }
         """
         self.setWindowFlags(QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowShadeButtonHint)
-        self.setStyleSheet(style_string)
+        #self.setStyleSheet(style_string)
         self.show()
     
     def center(self):
@@ -134,7 +139,7 @@ class Vindaloo(QtGui.QMainWindow):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
     
-    def createEvents(self):
+    def mapEvents(self):
         """Vindaloo."""
         self.piggy_bank_button.clicked.connect(self.openPiggyBank)
         self.daily_porker_button.clicked.connect(self.openDailyPorker)
@@ -142,9 +147,34 @@ class Vindaloo(QtGui.QMainWindow):
         self.sty_cleaner_button.clicked.connect(self.openStyCleaner)
         self.swine_herd_button.clicked.connect(self.openSwineHerd)
         self.seeker_button.clicked.connect(self.openSeeker)
+        
+        self.tna_button.clicked.connect(self.openTNAViewer)
+        self.calc_button.clicked.connect(self.openCalculator)
+        self.escalation_button.clicked.connect(self.openEscalationTracker)
+        self.relaxation_button.clicked.connect(self.openRelaxationTracker)
+        self.leaves_button.clicked.connect(self.openLeaveManager)
+        self.user_management_button.clicked.connect(self.openUserManagement)
+
+    def openTNAViewer(self):
+        self.tna_viewer = TNAViewer(self.user_id, self.password, self.category_tree)
+
+    def openCalculator(self):
+        self.calc = EfficiencyCalculator(self.user_id, self.password, self.category_tree, datetime.date.today())
+
+    def openEscalationTracker(self):
+        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+
+    def openRelaxationTracker(self):
+        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+    
+    def openLeaveManager(self):
+        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+    
+    def openUserManagement(self):
+        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
 
     def openPiggyBank(self):
-        self.piggy_bank = PiggyBankWithFilter(self.user_id, self.password)
+        self.piggy_bank = PiggyBankWithFilter(self.user_id, self.password, self.category_tree)
         self.piggy_bank.show()
     
     def openDailyPorker(self):
