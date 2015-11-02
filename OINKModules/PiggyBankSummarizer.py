@@ -26,16 +26,18 @@ class PiggyBankSummarizer(QtGui.QWidget):
         self.available_methods_list_widget = QtGui.QListWidget()
         self.selected_methods_list_widget = QtGui.QListWidget()
 
-        self.select_method_button = ImageButton(os.path.join("Images","rightarrow.png"),25,25)
-        self.deselect_method_button = ImageButton(os.path.join("Images","leftarrow.png"),25,25)
+        path_to_images_folder = os.path.join(os.getcwd(),"Images") if "OINKModules" not in os.getcwd() else os.path.join(os.getcwd(),"..","Images")
 
-        self.move_up_button = ImageButton(os.path.join("Images","uparrow.png"),25,25)
-        self.move_down_button = ImageButton(os.path.join("Images","downarrow.png"),25,25)
+        self.select_method_button = ImageButton(os.path.join(path_to_images_folder,"rightarrow.png"),25,25)
+        self.deselect_method_button = ImageButton(os.path.join(path_to_images_folder,"leftarrow.png"),25,25)
 
-        self.summarize_button = ImageButton(os.path.join("Images","checkmark_green.png"),25,25)
+        self.move_up_button = ImageButton(os.path.join(path_to_images_folder,"uparrow.png"),25,25)
+        self.move_down_button = ImageButton(os.path.join(path_to_images_folder,"downarrow.png"),25,25)
+
+        self.summarize_button = ImageButton(os.path.join(path_to_images_folder,"checkmark_green.png"),25,25)
         self.summarize_button.setToolTip("Click to summarize")
 
-        self.reset_button = ImageButton(os.path.join("Images","cross.png"),25,25)
+        self.reset_button = ImageButton(os.path.join(path_to_images_folder,"cross.png"),25,25)
         self.reset_button.setToolTip("Click to reset the summarization options")
         
         self.summary_table = QtGui.QTableWidget(0,0)

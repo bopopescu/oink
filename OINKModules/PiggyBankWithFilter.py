@@ -10,11 +10,11 @@ import MOSES
 from CheckableComboBox import CheckableComboBox
 from CategorySelector import CategorySelector
 from PiggyBankSummarizer import PiggyBankSummarizer
+from CopiableQTableWidget import CopiableQTableWidget
 
 class PiggyBankWithFilter(QtGui.QWidget):
     def __init__(self, user_id, password):
         super(PiggyBankWithFilter, self).__init__()
-        self.clip = QtGui.QApplication.clipboard()
         self.user_id, self.password = user_id, password
         self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         self.writers_list = MOSES.getWritersList(self.user_id, self.password)
@@ -26,32 +26,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.populateBrand()
         self.populateWriters()
 
-    def keyPressEvent(self, e):
-        """Vindaloo: Found this code online. Go through it and try to improve it."""
-        if (e.modifiers() & QtCore.Qt.ControlModifier):
-            if e.key() == QtCore.Qt.Key_C: #copy
-                current_tab = self.piggybank_tabs.currentIndex()
-                if current_tab == 0:
-                    if self.piggybank_summary_tables.currentIndex() == 0:
-                        table_to_copy = self.piggybank_summary
-                    elif self.piggybank_summary_tables.currentIndex() ==1 :
-                        table_to_copy = self.piggybank_summary_editor_summary
-                    else:
-                        table_to_copy = self.piggybank_summary_random_fsns
-                else:
-                    table_to_copy = self.piggybank
-                selected = table_to_copy.selectedRanges()
-                s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
-                s = s + '\n'
-                for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
-                    s += str(r+1) + '\t' 
-                    for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
-                        try:
-                            s += str(table_to_copy.item(r,c).text()) + "\t"
-                        except AttributeError:
-                            s += "\t"
-                    s = s[:-1] + "\n" #eliminate last '\t'
-                self.clip.setText(s)
 
     def createUI(self):
         self.instruction_label = QtGui.QLabel("<b>Select filters from the following:</b>")
@@ -88,7 +62,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summarizer = PiggyBankSummarizer()
         self.piggybank_summarizer.setToolTip("This widget can be used to summarize the piggybank in various ways.")
 
-        self.piggybank = QtGui.QTableWidget(0,0)
+        self.piggybank = CopiableQTableWidget(0,0)
         self.piggybank.setToolTip("This table shows all available data for the selected filters.")
         self.piggybank.setStyleSheet("gridline-color: rgb(0, 0, 0)")
 
@@ -101,14 +75,14 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_refresh_button = QtGui.QPushButton("Refresh Summary Table")
         self.piggybank_summary_refresh_button.setToolTip("Click this button to recalculate the audit plan and break up for the selected parameters.")
         
-        self.piggybank_summary = QtGui.QTableWidget(0,0)
+        self.piggybank_summary = CopiableQTableWidget(0,0)
         self.piggybank_summary.setToolTip("This table displays a break up of all the available data between the selected dates, for the chosen filters,\nbased on the summarization columns you've picked.")
         self.piggybank_summary.setStyleSheet("gridline-color: rgb(0, 0, 0)")
 
-        self.piggybank_summary_random_fsns = QtGui.QTableWidget(0,0)
+        self.piggybank_summary_random_fsns = CopiableQTableWidget(0,0)
         self.piggybank_summary_random_fsns.setToolTip("This table displays a list of random FSNs each editor must audit to satisfy his or her requirements for the selected duration.")
         self.piggybank_summary_random_fsns.setStyleSheet("gridline-color: rgb(0, 0, 0)")
-        self.piggybank_summary_editor_summary = QtGui.QTableWidget(0,0)
+        self.piggybank_summary_editor_summary = CopiableQTableWidget(0,0)
         self.piggybank_summary_editor_summary.setStyleSheet("gridline-color: rgb(0, 0, 0)")
         self.piggybank_summary_audit_percentage_label = QtGui.QLabel("Audit Percentage:")
         self.piggybank_summary_audit_percentage = QtGui.QSpinBox()
