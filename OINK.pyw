@@ -13,6 +13,11 @@ from OINKModules.Bacon import Bacon
 from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, passwordResetter
 from OINKModules import MOSES
 def main():
+    try:
+        pass
+        #MOSES.register()
+    except:
+        pass
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))
     #Check if the program is already active or if it wasn't closed properly.

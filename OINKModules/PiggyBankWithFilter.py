@@ -285,10 +285,17 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_editor_maximum_wc.valueChanged.connect(self.changeMaxWordCount)
         self.piggybank_summary_editor_minimum_wc.valueChanged.connect(self.changeMinWordCount)
         self.piggybank_summary_reset_stats.clicked.connect(self.summaryFormReset)
-        self.reset_button.clicked.connect(self.resetFiltersAndForm)
+        self.reset_button.clicked.connect(self.resetFilters)
 
     def resetFiltersAndForm(self):
-        self.summaryFormReset()
+        self.description_types_filter_box.clearSelection()
+        self.sources_filter_box.clearSelection()
+        self.writers_filter_box.clearSelection()
+        self.category_selector.clearFilters()
+        self.brands_filter_box.clearSelection()
+        self.start_date_edit.setDate(datetime.date.today())
+        self.end_date_edit.setDate(datetime.date.today())
+
 
     def changeUtilization(self):
         current_page = str(self.piggybank_summary_editors_list.currentText())
@@ -323,12 +330,13 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.end_date_edit.setMinimumDate(self.start_date_edit.date())
         self.end_date_edit.setDate(self.start_date_edit.date())
         self.populateWriters()
-        self.resetEditorConstraints()
-        self.changePage()
+        #self.resetEditorConstraints()
+        #self.changePage()
 
     def changeEndDate(self):
-        self.resetEditorConstraints()
-        self.changePage()
+        pass
+        #self.resetEditorConstraints()
+        #self.changePage()
 
     def toggleDates(self,state):
         if state == 0:
@@ -368,29 +376,31 @@ class PiggyBankWithFilter(QtGui.QWidget):
         #print "Pulling data!"
         filters = self.getFilters()
         data = MOSES.getPiggyBankWithFilters(self.user_id, self.password, filters)
-        print data
-        #print len(data)
-        piggy_bank_keys = MOSES.getPiggyBankKeys()
-        self.piggybank.setSortingEnabled(False)
-        self.piggybank.setRowCount(0)
-        self.piggybank.setColumnCount(len(piggy_bank_keys))
-        row_index = 0
-        for row in data:
-            if len(row) > 0:
-                self.piggybank.insertRow(row_index)
-                column_index = 0
-                for key in piggy_bank_keys:
-                    self.piggybank.setItem(row_index, column_index, QtGui.QTableWidgetItem(str(row[key])))
-                    column_index += 1
-                row_index += 1
-        self.piggybank.setHorizontalHeaderLabels(piggy_bank_keys)
-        self.piggybank.setSortingEnabled(True)
-        #populate the summary next.
         self.piggy_bank_data = data
-
+        self.showDataFrameInTable(data, self.piggybank)
+        #populate the summary next.
         self.alertMessage("Completed Pulling PiggyBank","Completed Pulling Piggy Bank between %s and %s."%(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))
-        self.piggybank_summarizer.setPiggyBank(pd.DataFrame.from_records(data))
+        self.piggybank_summarizer.setPiggyBank(data)
         #self.summarize()
+
+    def showDataFrameInTable(self, dataframe, table_object):
+        row_count = dataframe.shape[0]
+        column_count = dataframe.shape[1]
+        table_object.setRowCount(row_count)
+        table_object.setColumnCount(column_count)
+
+        for row_index in range(row_count):
+            for col_index in range(column_count):
+                table_object.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iat[row_index, col_index])))
+        table_object.setHorizontalHeaderLabels(list(dataframe.columns))
+        #table_object.setVerticalHeaderLabels(list(dataframe.index))
+        table_object.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        table_object.verticalHeader().setStretchLastSection(False)
+        table_object.verticalHeader().setVisible(True)
+
+        table_object.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        table_object.horizontalHeader().setStretchLastSection(True)
+        table_object.horizontalHeader().setVisible(True)     
 
     def getSummarizeParameters(self):
         summarize_parameters = self.piggybank_summary_column_chooser.getCheckedItems()

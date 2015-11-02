@@ -86,26 +86,27 @@ class PiggyBankSummarizer(QtGui.QWidget):
     def deselect(self):
         self.pushFromTo(self.selected_methods_list_widget, self.available_methods_list_widget)
 
-    def setPiggyBank(self, piggy_bank):
-        self.piggy_bank = piggy_bank
+    def setPiggyBank(self, piggy_bank=None):
+        if piggy_bank is not None:
+            self.piggy_bank = piggy_bank
         self.available_methods_list_widget.clear()
         self.selected_methods_list_widget.clear()
-        
-        columns = self.piggy_bank.columns
-        self.available_methods_list_widget.addItems(columns)
-        self.available_methods_list_widget.setSortingEnabled(True)
-        self.available_methods_list_widget.sortItems()
+        if type(self.piggy_bank) == pd.DataFrame:
+            columns = self.piggy_bank.columns
+            self.available_methods_list_widget.addItems(columns)
+            #self.available_methods_list_widget.setSortingEnabled(True)
+            #self.available_methods_list_widget.sortItems()
+            self.enableSummarize()
+        else:
+            self.disableSummarize()
 
-
-        self.enableSummarize()
-    
     def enableSummarize(self):
         pass
     
     def summarize(self):
         pass
 
-    def pushFromTo(self,source_list_widget, destination_list_widget):
+    def pushFromTo(self, source_list_widget, destination_list_widget):
         #identify the selected attributes
         selected_attribute_items = source_list_widget.selectedItems()
         #Store them in a list.

