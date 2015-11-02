@@ -2,9 +2,14 @@ from __future__ import division
 import datetime, os, sys
 import math
 import random
+
+import pandas as pd
 from PyQt4 import QtGui, QtCore
+
 import MOSES
 from CheckableComboBox import CheckableComboBox
+from CategorySelector import CategorySelector
+from PiggyBankSummarizer import PiggyBankSummarizer
 
 class PiggyBankWithFilter(QtGui.QWidget):
     def __init__(self, user_id, password):
@@ -20,7 +25,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.changePage()
         self.populateBrand()
         self.populateWriters()
-        self.populateCategoryFilters()
 
     def keyPressEvent(self, e):
         """Vindaloo: Found this code online. Go through it and try to improve it."""
@@ -55,36 +59,18 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.writers_filter_box = CheckableComboBox("Writers")
         self.writers_filter_box.setToolTip("Select the writers whose data you'd like to extract.")
 
-        self.description_types_box = CheckableComboBox("Description Types")
-        self.description_types_box.setToolTip("Select the description types you'd like to extract.")
-
-        self.source_types_box = CheckableComboBox("Source")
-        self.source_types_box.setToolTip("Select the article sources you'd like to extract.")
-
-        self.BUs_filter_box = CheckableComboBox("BUs")
-        self.BUs_filter_box.setToolTip("Select the Business Units you'd like to extract.")
-
-        self.super_categories_filter_box = CheckableComboBox("Super-Categories")
-        self.super_categories_filter_box.setToolTip("Select the Super-Categories you'd like to extract.")
-
-        self.categories_filter_box = CheckableComboBox("Categories")
-        self.categories_filter_box.setToolTip("Select the categories you'd like to extract.")
-
-        self.sub_categories_filter_box = CheckableComboBox("Sub-Categories")
-        self.sub_categories_filter_box.setToolTip("Select the Sub-Categories you'd like to extract.")
-
-        self.verticals_filter_box = CheckableComboBox("Verticals")
-        self.verticals_filter_box.setToolTip("Select the Verticals you'd like to extract.")
+        self.category_selector = CategorySelector(self.category_tree)
 
         self.brands_filter_box = CheckableComboBox("Brands")
         self.brands_filter_box.setToolTip("Select the Brands you'd like to extract.")
 
         self.start_date_edit = QtGui.QDateTimeEdit()
         self.start_date_edit.setToolTip("Select the start date for the data set you'd like to extract.")
-        lwd = MOSES.getLastWorkingDate(self.user_id, self.password, queryUser="All")
         self.start_date_edit.setCalendarPopup(True)
         self.start_date_edit.setDisplayFormat("MMMM dd, yyyy")
         self.start_date_edit.setMinimumDate(QtCore.QDate(2015,1,1))
+        
+        lwd = MOSES.getLastWorkingDate(self.user_id, self.password, queryUser="All")
         self.start_date_edit.setDate(lwd)
 
         self.end_date_edit = QtGui.QDateTimeEdit()
@@ -99,6 +85,9 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.all_time_dates = QtGui.QCheckBox("Pull All Time Data")
         self.all_time_dates.setToolTip("Check this box to pull data for the selected filter from all available data.")
 
+        self.piggybank_summarizer = PiggyBankSummarizer()
+        self.piggybank_summarizer.setToolTip("This widget can be used to summarize the piggybank in various ways.")
+
         self.piggybank = QtGui.QTableWidget(0,0)
         self.piggybank.setToolTip("This table shows all available data for the selected filters.")
         self.piggybank.setStyleSheet("gridline-color: rgb(0, 0, 0)")
@@ -111,9 +100,11 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_column_chooser.addItems(["Writer Name","Source", "Description Type", "BU","Super-Category", "Category", "Sub-Category", "Vertical", "Brand"])
         self.piggybank_summary_refresh_button = QtGui.QPushButton("Refresh Summary Table")
         self.piggybank_summary_refresh_button.setToolTip("Click this button to recalculate the audit plan and break up for the selected parameters.")
+        
         self.piggybank_summary = QtGui.QTableWidget(0,0)
         self.piggybank_summary.setToolTip("This table displays a break up of all the available data between the selected dates, for the chosen filters,\nbased on the summarization columns you've picked.")
         self.piggybank_summary.setStyleSheet("gridline-color: rgb(0, 0, 0)")
+
         self.piggybank_summary_random_fsns = QtGui.QTableWidget(0,0)
         self.piggybank_summary_random_fsns.setToolTip("This table displays a list of random FSNs each editor must audit to satisfy his or her requirements for the selected duration.")
         self.piggybank_summary_random_fsns.setStyleSheet("gridline-color: rgb(0, 0, 0)")
@@ -197,7 +188,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         }
         """
         #self.piggybank_summary_tables.setStyleSheet(tab_style)
-        self.piggybank_summary_tables.addTab(self.piggybank_summary,"Audit Break Up")
+        self.piggybank_summary_tables.addTab(self.piggybank_summary,"Piggy Bank Summary")
         self.piggybank_summary_tables.addTab(self.piggybank_summary_editor_summary, "Editor Summary")
         self.piggybank_summary_tables.addTab(self.piggybank_summary_random_fsns,"Random FSNs")
         
@@ -260,27 +251,27 @@ class PiggyBankWithFilter(QtGui.QWidget):
         }
         """
         self.pull_button.setStyleSheet(style_string)
-        self.layout = QtGui.QVBoxLayout()
-        self.layout.addWidget(self.instruction_label)
+
+        filters_layout = QtGui.QVBoxLayout()
+        filters_layout.addWidget(self.instruction_label)
         filters_sub_layouts = [QtGui.QHBoxLayout() for i in range(4)]
         filters_sub_layouts[0].addWidget(self.all_time_dates,0)
         filters_sub_layouts[0].addWidget(self.start_date_edit,0)
         filters_sub_layouts[0].addWidget(self.end_date_edit,0)
         filters_sub_layouts[0].addWidget(self.writers_filter_box,0)
-        filters_sub_layouts[1].addWidget(self.description_types_box,0)
-        filters_sub_layouts[1].addWidget(self.source_types_box,0)
-        filters_sub_layouts[1].addWidget(self.BUs_filter_box,0)
-        filters_sub_layouts[1].addWidget(self.super_categories_filter_box,0)
-        filters_sub_layouts[2].addWidget(self.categories_filter_box,0)
-        filters_sub_layouts[2].addWidget(self.sub_categories_filter_box,0)
-        filters_sub_layouts[2].addWidget(self.verticals_filter_box,0)
-        filters_sub_layouts[3].addWidget(self.brands_filter_box,0)
-        filters_sub_layouts[3].addWidget(self.reset_button,1)
-        filters_sub_layouts[3].addWidget(self.pull_button,2)
-        for layout in filters_sub_layouts:
-            self.layout.addLayout(layout)
-        self.layout.addWidget(self.piggybank_tabs)
-        self.setLayout(self.layout)
+        filters_sub_layouts[1].addLayout(self.category_selector,1)
+        filters_sub_layouts[2].addWidget(self.brands_filter_box,0)
+        filters_sub_layouts[2].addWidget(self.reset_button,0)
+        filters_sub_layouts[2].addWidget(self.pull_button,2)
+
+        for each_layout in filters_sub_layouts:
+            filters_layout.addLayout(each_layout)
+        filters_layout.addWidget(self.piggybank_summarizer,1)
+        filters_layout.addStretch(3)
+        layout = QtGui.QHBoxLayout()
+        layout.addLayout(filters_layout,0)
+        layout.addWidget(self.piggybank_tabs,2)
+        self.setLayout(layout)
         self.setWindowTitle("Piggy Bank and Audit Planner")
         if "OINKModules" in os.getcwd():
             icon_file_name_path = os.path.join(os.path.join('..',"Images"),'PORK_Icon.png')
@@ -362,24 +353,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
             self.piggybank_summary_editors_list.setEnabled(False)
             self.piggybank_summary_editors_list.setCurrentIndex(self.piggybank_summary_editors_list.findText("All"))
 
-    def populateCategoryFilters(self):
-        """This method:
-        1. First checks the current filters in the following order BU> Super-Category > Category > Sub-Category > Vertical
-        2. If a BU is selected:
-            1. It'll populate the Super-Category with the corresponding value(s).
-        It should go on and do this for all selected parameters."""
-        self.populateBU()
-        self.populateSuperCategory()
-        self.populateCategory()
-        self.populateSubCategory()
-        self.populateVertical()
-
-    def populateBU(self):
-        self.BUs_filter_box.clear()
-        bus = list(set(self.category_tree["BU"]))
-        bus.sort()
-        self.BUs_filter_box.addItems(bus)
-
     def populateWriters(self):
         self.writers_filter_box.clear()
         start_date = self.start_date_edit.date().toPyDate()
@@ -398,30 +371,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
     def populateBrand(self):
         self.brands_filter_box.clear()
         self.brands_filter_box.addItems(self.brands)
-
-    def populateSuperCategory(self):
-        self.super_categories_filter_box.clear()
-        super_categories = list(set(self.category_tree["Super-Category"]))
-        super_categories.sort()
-        self.super_categories_filter_box.addItems(super_categories)
-
-    def populateSubCategory(self):
-        self.sub_categories_filter_box.clear()
-        sub_categories = list(set(self.category_tree["Sub-Category"]))
-        sub_categories.sort()
-        self.sub_categories_filter_box.addItems(sub_categories)
-
-    def populateCategory(self):
-        self.categories_filter_box.clear()
-        categories = list(set(self.category_tree["Category"]))
-        categories.sort()
-        self.categories_filter_box.addItems(categories)
-    
-    def populateVertical(self):
-        self.verticals_filter_box.clear()
-        verticals = list(set(self.category_tree["Vertical"]))
-        verticals.sort()
-        self.verticals_filter_box.addItems(verticals)
 
     def pullData(self):
         #print "Pulling data!"
@@ -447,8 +396,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggy_bank_data = data
 
         self.alertMessage("Completed Pulling PiggyBank","Completed Pulling Piggy Bank between %s and %s."%(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))
-
-        self.summarize()
+        self.piggybank_summarizer.setPiggyBank(pd.DataFrame.from_records(data))
+        #self.summarize()
 
     def getSummarizeParameters(self):
         summarize_parameters = self.piggybank_summary_column_chooser.getCheckedItems()
@@ -549,14 +498,19 @@ class PiggyBankWithFilter(QtGui.QWidget):
                     qualifier_row["Approx. Word Count of Audits"] = int(math.ceil(qualifier_row["Suggested Audits"]*qualifier_row["Word Count"]/qualifier_row["Article Count"]))
                     self.editor_audit_constraints["All"]["Total Word Count"] += qualifier_row["Approx. Word Count of Audits"]
                 else:
-                    editor_name = self.getEditorName(qualifier_row["Writer Name"])
-                    if not self.editor_audit_constraints[editor_name]["Audit Conditions Satisfied"]:
-                        qualifier_row["Editor Name"] = editor_name
-                        audit_percentage = self.editor_audit_constraints[editor_name]["Audit Percentage"]/100
-                        qualifier_row["Suggested Audits"] = int(math.ceil(audit_percentage*qualifier_row["Article Count"]))
-                        self.editor_audit_constraints[editor_name]["Audit Count"] += qualifier_row["Suggested Audits"]
-                        qualifier_row["Approx. Word Count of Audits"] = int(math.ceil(qualifier_row["Suggested Audits"]*qualifier_row["Word Count"]/qualifier_row["Article Count"]))
-                        self.editor_audit_constraints[editor_name]["Total Word Count"] += qualifier_row["Approx. Word Count of Audits"]
+                    try:
+                        editor_name = self.getEditorName(qualifier_row["Writer Name"])
+                        if not self.editor_audit_constraints[editor_name]["Audit Conditions Satisfied"]:
+                            qualifier_row["Editor Name"] = editor_name
+                            audit_percentage = self.editor_audit_constraints[editor_name]["Audit Percentage"]/100
+                            qualifier_row["Suggested Audits"] = int(math.ceil(audit_percentage*qualifier_row["Article Count"]))
+                            self.editor_audit_constraints[editor_name]["Audit Count"] += qualifier_row["Suggested Audits"]
+                            qualifier_row["Approx. Word Count of Audits"] = int(math.ceil(qualifier_row["Suggested Audits"]*qualifier_row["Word Count"]/qualifier_row["Article Count"]))
+                            self.editor_audit_constraints[editor_name]["Total Word Count"] += qualifier_row["Approx. Word Count of Audits"]
+                    except KeyError:
+                        print "PiggyBankWithFilter:Summarize: %s doesn't have a mapped editor."%qualifier_row["Writer Name"]
+                    except Exception, e:
+                        print "PiggyBankWithFilter:Summarize: Encountered error: %s."%repr(e)
 
             #Check if the audit conditions have been satisfied.
             if equalize_editors:
