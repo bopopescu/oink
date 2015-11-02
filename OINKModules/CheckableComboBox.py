@@ -99,9 +99,6 @@ class CheckableComboBox(QtGui.QComboBox):
         self.changedSelection.emit(True)
 
 
-
-
-        
 class Dialog_01(QtGui.QMainWindow):
     def __init__(self):
         super(QtGui.QMainWindow,self).__init__()

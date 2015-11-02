@@ -61,6 +61,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
         self.piggybank_summarizer = PiggyBankSummarizer()
         self.piggybank_summarizer.setToolTip("This widget can be used to summarize the piggybank in various ways.")
+        self.piggybank_summarizer.setEnabled(False)
 
         self.piggybank = CopiableQTableWidget(0,0)
         self.piggybank.setToolTip("This table shows all available data for the selected filters.")
@@ -256,9 +257,13 @@ class PiggyBankWithFilter(QtGui.QWidget):
         for each_layout in filters_sub_layouts:
             filters_layout.addLayout(each_layout)
         filters_layout.addWidget(self.piggybank_summarizer,2)
-        layout = QtGui.QHBoxLayout()
-        layout.addLayout(filters_layout,0)
-        layout.addWidget(self.piggybank_tabs,2)
+        filter_and_piggybank_layout = QtGui.QHBoxLayout()
+        filter_and_piggybank_layout.addLayout(filters_layout,0)
+        filter_and_piggybank_layout.addWidget(self.piggybank_tabs,2)
+        layout = QtGui.QVBoxLayout()
+        layout.addLayout(filter_and_piggybank_layout,3)
+        self.status = QtGui.QLabel("")
+        layout.addWidget(self.status,0)
         self.setLayout(layout)
         self.setWindowTitle("Piggy Bank and Audit Planner")
         if "OINKModules" in os.getcwd():
@@ -370,14 +375,33 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
     def pullData(self):
         #print "Pulling data!"
+        self.pull_button.setEnabled(False)
+        self.piggybank_summarizer.setEnabled(False)
+        message = "processing..."
+        self.status.setText(message)
+        self.alertMessage("Please Wait","Depending on the filters you have chosen, this step could take a second or a minute, though definitely not more than 60s. Please wait, and remember, <i>Roma die uno non aedificata est</i>.")
         filters = self.getFilters()
         data = MOSES.getPiggyBankWithFilters(self.user_id, self.password, filters)
-        self.piggy_bank_data = data
-        self.showDataFrameInTable(data, self.piggybank)
-        #populate the summary next.
-        self.alertMessage("Completed Pulling PiggyBank","Completed Pulling Piggy Bank between %s and %s."%(self.start_date_edit.date().toPyDate(), self.end_date_edit.date().toPyDate()))
-        self.piggybank_summarizer.setPiggyBank(data)
-        #self.summarize()
+        if data is None:
+            message = "No data for selected filters."
+            self.status.setText(message)            
+            self.alertMessage("No Data Available","There is no data pertaining to the selected filters. This could have occurred for several reasons:\n1. You may have selected too many filters which have no result, or\n2. You could have selected a date range between which there have been no articles.")        
+        else:
+            if data.shape[0] <=0:
+                self.status.setText(message)            
+                message = "No data for selected filters."
+                self.alertMessage("No Data Available","There is no data pertaining to the selected filters. This could have occurred for several reasons:\n1. You may have selected too many filters which have no result, or\n2. You could have selected a date range between which there have been no articles, or, simply\n3. There is no data.")
+            else:            
+                self.piggy_bank_data = data
+                self.showDataFrameInTable(data, self.piggybank)
+                #populate the summary next.
+                self.piggybank_summarizer.setEnabled(True)
+                self.piggybank_summarizer.setPiggyBank(data)
+                message = "Retrieved %d rows of data pertaining to your filters."%(data.shape[0])
+                self.alertMessage("Retrieved Data",message)
+                self.status.setText(message)
+                #self.summarize()
+        self.pull_button.setEnabled(True)
 
     def showDataFrameInTable(self, dataframe, table_object):
         table_object.showDataFrame(dataframe)
