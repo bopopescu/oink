@@ -87,7 +87,6 @@ class PiggyBankSummarizer(QtGui.QWidget):
         self.pushFromTo(self.selected_methods_list_widget, self.available_methods_list_widget)
 
     def setPiggyBank(self, piggy_bank):
-        print "Received piggy_bank."
         self.piggy_bank = piggy_bank
         self.available_methods_list_widget.clear()
         self.selected_methods_list_widget.clear()
@@ -95,7 +94,7 @@ class PiggyBankSummarizer(QtGui.QWidget):
         columns = self.piggy_bank.columns
         self.available_methods_list_widget.addItems(columns)
         self.available_methods_list_widget.setSortingEnabled(True)
-        self.available_methods_list_widget.sort()
+        self.available_methods_list_widget.sortItems()
 
 
         self.enableSummarize()

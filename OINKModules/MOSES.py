@@ -1059,18 +1059,107 @@ def convertToMySQLDate(queryDate):
     return dateString[0]
 
 
-def getPiggyBankFiltered(user_id, password, filters):
-    """For use with the new PiggyBankFiltered class."""
+def getPiggyBankWithFilters(user_id, password, data_set_filters):
+    """This function is similar to the getRawDataWithFilters method.
+    It'll take a user_id and password, and return a pandas dataframe
+    containing piggybank data for the received filters."""
+    import pandas as pd
+    def printMessage(msg):
+        allow_print = True
+        if allow_print:
+            print "*"*10
+            print "*"*10
+            print "MOSES.getPiggyBankWithFilters: ",msg
+            print "*"*10
+            print "*"*10
+
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
-    if filters["All Dates"]:
-        sqlcmdstring = """SELECT * FROM `piggybank`;"""
+
+    if data_set_filters["Description Types"] is not None:
+        description_filter = "`Description Type` in (%s)"%", ".join(["'%s'"%x for x in data_set_filters["Description Types"]]) 
     else:
-        sqlcmdstring = """SELECT * FROM `piggybank` WHERE `Article Date` BETWEEN "%s" AND "%s";""" %(filters["Start Date"], filters["End Date"])
+        description_filter = None
+
+    if data_set_filters["Dates"] is not None:
+        date_filter = "`Article Date` BETWEEN '%s' and '%s'"%(data_set_filters["Dates"][0], data_set_filters["Dates"][1])
+    else:
+        date_filter = None
+
+    if data_set_filters["Writers"] is not None:
+        writer_filter = "`Writer Name` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Writers"])
+    else:
+        writer_filter = None
+
+    if data_set_filters["Category Tree"] is not None:
+        category_tree_filter = "`Vertical` in (%s)"%", ".join("'%s'"%x for x in list(data_set_filters["Category Tree"]["Vertical"]))
+    else:
+        category_tree_filter = None
+
+    if data_set_filters["Brands"] is not None:
+        brand_filter = "`Brand` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Brand"])
+    else:
+        brand_filter = None
+
+    if data_set_filters["Sources"] is not None:
+        source_filter = "`Source` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Sources"])
+    else:
+        source_filter = None
+
+
+
+    filter_string = ""
+
+    if (description_filter is not None) or (date_filter is not None) or (writer_filter is not None) or (category_tree_filter is not None):
+        filter_string = " WHERE "
+        if description_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, description_filter)
+        if date_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, date_filter)
+        if writer_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, writer_filter)
+        if category_tree_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, category_tree_filter)
+        if brand_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, brand_filter)
+        if source_filter is not None:
+            if filter_string != " WHERE ":
+                filter_string = "%s AND "%filter_string
+            filter_string = "%s %s"%(filter_string, source_filter)
+
+    sqlcmdstring = """SELECT * from %s%s;"""%("`piggybank`", filter_string)
+    printMessage(sqlcmdstring)
+
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
+    sqlcmdstring = "DESCRIBE piggybank;"
+    piggybank_description = cursor.fetchall()
     conn.close()
-    return data
+    piggybank_columns = [x[0] for x in piggybank_description]
+    print piggybank_columns
+    #Old method
+    #import pandas as pd
+    #conn = getOINKConnector(user_id, password)
+    #cursor = conn.cursor()
+    #if filters["All Dates"]:
+    #    sqlcmdstring = """SELECT * FROM `piggybank`;"""
+    #else:
+    #    sqlcmdstring = """SELECT * FROM `piggybank` WHERE `Article Date` BETWEEN "%s" AND "%s";""" %(filters["Start Date"], filters["End Date"])
+    #cursor.execute(sqlcmdstring)
+    #data = cursor.fetchall()
+    #conn.close()
+    #return data
+    return pd.DataFrame(data, columns=piggybank_columns) if len(data)>0 else None
 
 def getPiggyBankMultiQuery(queryDictList, user_id, password):
     """Method to extract Piggy Bank data from the database corresponding
@@ -1638,7 +1727,7 @@ def getRawDataWithFilters(user_id, password, data_set_filters):
     def printMessage(msg):
         if False:
             print "MOSES.getRawDataWithFilters: ",msg
-    conn = getOINKConnector(user_id, password)
+    conn = getOINKConnector(user_id, password, 1)
     cursor = conn.cursor()
     rawdata_table, cfm_keys, gseo_keys = getRawDataTableAndAuditParameters()
 

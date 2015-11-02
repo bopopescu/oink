@@ -225,6 +225,23 @@ class PiggyBankWithFilter(QtGui.QWidget):
         }
         """
         self.pull_button.setStyleSheet(style_string)
+        
+        self.description_types_label = QtGui.QLabel("Description Type:")
+        self.description_types_filter_box = CheckableComboBox("Description Types")
+        description_types = list(set(self.category_tree["Description Type"]))
+        description_types.sort()
+        self.description_types_filter_box.addItems(description_types)
+
+        self.sources_label = QtGui.QLabel("Source:")
+        self.sources_filter_box = CheckableComboBox("Sources")
+        sources = list(set(self.category_tree["Source"]))
+        self.sources_filter_box.addItems(sources)
+
+        types_and_source_layout = QtGui.QHBoxLayout()
+        types_and_source_layout.addWidget(self.description_types_label,0)
+        types_and_source_layout.addWidget(self.description_types_filter_box,0)
+        types_and_source_layout.addWidget(self.sources_label,0)
+        types_and_source_layout.addWidget(self.sources_filter_box,0)
 
         filters_layout = QtGui.QVBoxLayout()
         filters_layout.addWidget(self.instruction_label)
@@ -233,10 +250,11 @@ class PiggyBankWithFilter(QtGui.QWidget):
         filters_sub_layouts[0].addWidget(self.start_date_edit,0)
         filters_sub_layouts[0].addWidget(self.end_date_edit,0)
         filters_sub_layouts[0].addWidget(self.writers_filter_box,0)
-        filters_sub_layouts[1].addLayout(self.category_selector,1)
-        filters_sub_layouts[2].addWidget(self.brands_filter_box,0)
-        filters_sub_layouts[2].addWidget(self.reset_button,0)
-        filters_sub_layouts[2].addWidget(self.pull_button,2)
+        filters_sub_layouts[1].addLayout(types_and_source_layout,0)
+        filters_sub_layouts[2].addLayout(self.category_selector,1)
+        filters_sub_layouts[3].addWidget(self.brands_filter_box,0)
+        filters_sub_layouts[3].addWidget(self.reset_button,0)
+        filters_sub_layouts[3].addWidget(self.pull_button,2)
 
         for each_layout in filters_sub_layouts:
             filters_layout.addLayout(each_layout)
@@ -349,7 +367,8 @@ class PiggyBankWithFilter(QtGui.QWidget):
     def pullData(self):
         #print "Pulling data!"
         filters = self.getFilters()
-        data = MOSES.getPiggyBankFiltered(self.user_id, self.password, filters)
+        data = MOSES.getPiggyBankWithFilters(self.user_id, self.password, filters)
+        print data
         #print len(data)
         piggy_bank_keys = MOSES.getPiggyBankKeys()
         self.piggybank.setSortingEnabled(False)
@@ -607,10 +626,54 @@ class PiggyBankWithFilter(QtGui.QWidget):
                 return editor
 
     def getFilters(self):
+
+        if self.all_time_dates.isChecked():
+            start_date = datetime.date(2015,1,1)
+            end_date = datetime.date.today()
+        else:
+            start_date = self.start_date_edit.date().toPyDate()
+            end_date = self.end_date_edit.date().toPyDate()
+
+        writers = self.writers_filter_box.getCheckedItems()
+        if len(writers) > 0:
+            writers_filter = writers
+        else:
+            writers_filter = None
+
+        selected_category_tree = self.category_selector.getFilters()
+
+        if selected_category_tree.shape[0]>0:
+            category_tree_filter = selected_category_tree
+        else:
+
+            category_tree_filter = None
+
+        description_types = self.description_types_filter_box.getCheckedItems()
+        if len(description_types) > 0:
+            description_types_filter = description_types
+        else:
+            description_types_filter = None
+
+        brands = self.brands_filter_box.getCheckedItems()
+        if len(brands) > 0:
+            brands_filter = brands
+        else:
+            brands_filter = None
+        
+        sources = self.sources_filter_box.getCheckedItems()
+        if len(sources) > 0:
+            sources_filter = sources
+        else:
+            sources_filter = None
+        
+
         return {
-            "Start Date": self.start_date_edit.date().toPyDate(),
-            "End Date": self.end_date_edit.date().toPyDate(),
-            "All Dates": self.all_time_dates.isChecked()
+            "Dates": [start_date, end_date],
+            "Writers": writers_filter,
+            "Category Tree": category_tree_filter,
+            "Description Types": description_types_filter,
+            "Brands": brands_filter,
+            "Sources": sources_filter
         }
 
     def summaryFormReset(self):
