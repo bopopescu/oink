@@ -258,8 +258,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
         for each_layout in filters_sub_layouts:
             filters_layout.addLayout(each_layout)
-        filters_layout.addWidget(self.piggybank_summarizer,1)
-        filters_layout.addStretch(3)
+        filters_layout.addWidget(self.piggybank_summarizer,2)
         layout = QtGui.QHBoxLayout()
         layout.addLayout(filters_layout,0)
         layout.addWidget(self.piggybank_tabs,2)
@@ -384,23 +383,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         #self.summarize()
 
     def showDataFrameInTable(self, dataframe, table_object):
-        row_count = dataframe.shape[0]
-        column_count = dataframe.shape[1]
-        table_object.setRowCount(row_count)
-        table_object.setColumnCount(column_count)
-
-        for row_index in range(row_count):
-            for col_index in range(column_count):
-                table_object.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iat[row_index, col_index])))
-        table_object.setHorizontalHeaderLabels(list(dataframe.columns))
-        #table_object.setVerticalHeaderLabels(list(dataframe.index))
-        table_object.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table_object.verticalHeader().setStretchLastSection(False)
-        table_object.verticalHeader().setVisible(True)
-
-        table_object.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table_object.horizontalHeader().setStretchLastSection(True)
-        table_object.horizontalHeader().setVisible(True)     
+        table_object.showDataFrame(dataframe)
 
     def getSummarizeParameters(self):
         summarize_parameters = self.piggybank_summary_column_chooser.getCheckedItems()

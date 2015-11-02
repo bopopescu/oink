@@ -1109,7 +1109,7 @@ def getPiggyBankWithFilters(user_id, password, data_set_filters):
         category_tree_filter = None
 
     if data_set_filters["Brands"] is not None:
-        brand_filter = "`Brand` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Brand"])
+        brand_filter = "`Brand` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Brands"])
     else:
         brand_filter = None
 

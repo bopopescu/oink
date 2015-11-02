@@ -33,7 +33,8 @@ def main():
                 "Content Writer": Pork, 
                 "Copy Editor": Vindaloo, 
                 "Team Lead": Vindaloo, 
-                "Big Brother": Vindaloo, 
+                "Big Brother": Vindaloo,
+                "Product Specialist": Vindaloo,
                 "Manager": Vindaloo, 
                 "Assistant Manager": Vindaloo
                 }

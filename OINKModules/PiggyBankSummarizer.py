@@ -8,6 +8,7 @@ import pandas as pd
 from PyQt4 import QtGui, QtCore
 
 from ImageButton import ImageButton
+from CopiableQTableWidget import CopiableQTableWidget
 import MOSES
 
 class PiggyBankSummarizer(QtGui.QWidget):
@@ -40,7 +41,7 @@ class PiggyBankSummarizer(QtGui.QWidget):
         self.reset_button = ImageButton(os.path.join(path_to_images_folder,"cross.png"),25,25)
         self.reset_button.setToolTip("Click to reset the summarization options")
         
-        self.summary_table = QtGui.QTableWidget(0,0)
+        self.summary_table = CopiableQTableWidget(0,0)
 
 
         select_buttons_layout = QtGui.QVBoxLayout()
@@ -107,9 +108,21 @@ class PiggyBankSummarizer(QtGui.QWidget):
         no_of_selected_methods = self.selected_methods_list_widget.count()
         selected_methods = [str(self.selected_methods_list_widget.item(x).text()) for x in range(no_of_selected_methods)]
         if len(selected_methods)>0:
-            print "Selected: %s"%selected_methods
+            #print "Selected: %s"%selected_methods
+            summary_list = []
+            column_names = selected_methods + ["Count"]
+            summary_data = self.piggy_bank[selected_methods]
+            #print summary_data
+            summary_data_as_list = summary_data.values.tolist()
+            #print summary_data_as_list
+            final_summary_data = []
+            for row in summary_data_as_list:
+                final_summary_data.append(row + [summary_data_as_list.count(row)])
+            summary_data_frame  = pd.DataFrame(final_summary_data, columns=column_names).drop_duplicates()
+
+            self.summary_table.showDataFrame(summary_data_frame)
         else:
-            print "Select something, Jack." 
+            print "Select something, Jack."
 
 
     def pushFromTo(self, source_list_widget, destination_list_widget):
@@ -118,10 +131,7 @@ class PiggyBankSummarizer(QtGui.QWidget):
         #Store them in a list.
         selected_attributes = [str(selected_attribute_item.text()) for selected_attribute_item in selected_attribute_items]
         #Send them to the destination list.
-        destination_list_widget.setSortingEnabled(False)
         destination_list_widget.addItems(selected_attributes)
-        destination_list_widget.setSortingEnabled(True)
-        destination_list_widget.sortItems()
         #Remove them from the source list
         for selected_item in selected_attribute_items:
             source_list_widget.takeItem(source_list_widget.row(selected_item))
