@@ -81,6 +81,10 @@ class Vindaloo(QtGui.QMainWindow):
         self.user_management_button.setToolTip("Click to open the user management tool")
         self.user_management_button.setFlat(True)
 
+        self.category_tree_button = ImageButton(os.path.join("Images","category_tree.png"), 48, 48, os.path.join("Images","category_tree_mouseover.png"))
+        self.category_tree_button.setToolTip("Click to open the category tree manager.")
+        self.category_tree_button.setFlat(True)
+
         buttons_layout = QtGui.QHBoxLayout()
         buttons_layout.addWidget(self.calc_button, 0)
         buttons_layout.addWidget(self.leaves_button, 0)
@@ -88,6 +92,7 @@ class Vindaloo(QtGui.QMainWindow):
         buttons_layout.addWidget(self.relaxation_button, 0)
         buttons_layout.addWidget(self.escalation_button, 0)
         buttons_layout.addWidget(self.user_management_button,0)
+        buttons_layout.addWidget(self.category_tree_button,0)
 
 
         self.layout = QtGui.QGridLayout()

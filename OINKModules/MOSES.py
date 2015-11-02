@@ -1385,13 +1385,16 @@ def getBigbrotherCredentials():
 
 def getEmpName(employeeID):
     user_id, password = getBigbrotherCredentials()
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = "SELECT `Name` FROM `employees` WHERE `Employee ID` = '%s'" %employeeID
-    dbcursor.execute(sqlcmdstring)
-    nameTuple = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
+    if employeeID == user_id:
+        return "Big Brother"
+    else:
+        connectdb = getOINKConnector(user_id, password)
+        dbcursor = connectdb.cursor()
+        sqlcmdstring = "SELECT `Name` FROM `employees` WHERE `Employee ID` = '%s'" %employeeID
+        dbcursor.execute(sqlcmdstring)
+        nameTuple = dbcursor.fetchall()
+        connectdb.commit()
+        connectdb.close()
     name = nameTuple[0]["Name"]
     return name
 
@@ -1733,7 +1736,7 @@ def getRawDataWithFilters(user_id, password, data_set_filters):
     def printMessage(msg):
         if False:
             print "MOSES.getRawDataWithFilters: ",msg
-    conn = getOINKConnector(user_id, password, 1)
+    conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
     rawdata_table, cfm_keys, gseo_keys = getRawDataTableAndAuditParameters()
 
