@@ -197,17 +197,17 @@ class FilterForm(QtGui.QGroupBox):
             self.date_field_start.setEnabled(True)
             self.date_field_end.setEnabled(True)
 
+
+
+    def getLabel(self):
+        return str(self.filter_legend.text()).strip()
+
     def toggleAll(self):
         if self.all_button.isChecked():
             self.pd_button.setChecked(True)
             self.rpd_button.setChecked(True)
             self.seo_button.setChecked(True)
             self.all_button.setEnabled(False)
-
-
-    def getLabel(self):
-        return str(self.filter_legend.text()).strip()
-
     def toggleTypes(self):
         if self.pd_button.isChecked() and self.rpd_button.isChecked() and self.seo_button.isChecked():
             self.all_button.setChecked(True)

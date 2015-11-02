@@ -11,7 +11,7 @@ from CheckableComboBox import CheckableComboBox
 from CategorySelector import CategorySelector
 from PiggyBankSummarizer import PiggyBankSummarizer
 from CopiableQTableWidget import CopiableQTableWidget
-
+from DescriptionTypeSelector import DescriptionTypeSelector
 class PiggyBankWithFilter(QtGui.QWidget):
     def __init__(self, user_id, password):
         super(PiggyBankWithFilter, self).__init__()
@@ -225,36 +225,33 @@ class PiggyBankWithFilter(QtGui.QWidget):
         }
         """
         self.pull_button.setStyleSheet(style_string)
-        
-        self.description_types_label = QtGui.QLabel("Description Type:")
-        self.description_types_filter_box = CheckableComboBox("Description Types")
-        description_types = list(set(self.category_tree["Description Type"]))
-        description_types.sort()
-        self.description_types_filter_box.addItems(description_types)
+
+        self.description_types_selector = DescriptionTypeSelector(self.category_tree)
 
         self.sources_label = QtGui.QLabel("Source:")
         self.sources_filter_box = CheckableComboBox("Sources")
         sources = list(set(self.category_tree["Source"]))
         self.sources_filter_box.addItems(sources)
 
-        types_and_source_layout = QtGui.QHBoxLayout()
-        types_and_source_layout.addWidget(self.description_types_label,0)
-        types_and_source_layout.addWidget(self.description_types_filter_box,0)
-        types_and_source_layout.addWidget(self.sources_label,0)
-        types_and_source_layout.addWidget(self.sources_filter_box,0)
+
+        sources_layout = QtGui.QHBoxLayout()
+        sources_layout.addWidget(self.sources_label,0)
+        sources_layout.addWidget(self.sources_filter_box,1)
+        sources_layout.addStretch(2)
 
         filters_layout = QtGui.QVBoxLayout()
         filters_layout.addWidget(self.instruction_label)
-        filters_sub_layouts = [QtGui.QHBoxLayout() for i in range(4)]
+        filters_sub_layouts = [QtGui.QHBoxLayout() for i in range(5)]
         filters_sub_layouts[0].addWidget(self.all_time_dates,0)
         filters_sub_layouts[0].addWidget(self.start_date_edit,0)
         filters_sub_layouts[0].addWidget(self.end_date_edit,0)
         filters_sub_layouts[0].addWidget(self.writers_filter_box,0)
-        filters_sub_layouts[1].addLayout(types_and_source_layout,0)
-        filters_sub_layouts[2].addLayout(self.category_selector,1)
-        filters_sub_layouts[3].addWidget(self.brands_filter_box,0)
-        filters_sub_layouts[3].addWidget(self.reset_button,0)
-        filters_sub_layouts[3].addWidget(self.pull_button,2)
+        filters_sub_layouts[1].addLayout(self.description_types_selector,0)
+        filters_sub_layouts[2].addLayout(sources_layout,0)
+        filters_sub_layouts[3].addLayout(self.category_selector,1)
+        filters_sub_layouts[4].addWidget(self.brands_filter_box,0)
+        filters_sub_layouts[4].addWidget(self.reset_button,0)
+        filters_sub_layouts[4].addWidget(self.pull_button,2)
 
         for each_layout in filters_sub_layouts:
             filters_layout.addLayout(each_layout)
@@ -641,7 +638,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
 
             category_tree_filter = None
 
-        description_types = self.description_types_filter_box.getCheckedItems()
+        description_types = self.description_types_selector.getCheckedItems()
         if len(description_types) > 0:
             description_types_filter = description_types
         else:
