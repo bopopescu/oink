@@ -77,7 +77,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.escalation_button.setToolTip("Click to open the escalation tracker")
         self.escalation_button.setFlat(True)
 
-        self.user_management_button = ImageButton(os.path.join("Images","user.png"), 48, 48, os.path.join("Images","user_mouseover.png"))
+        self.user_management_button = ImageButton(os.path.join("Images","users.png"), 48, 48, os.path.join("Images","users_mouseover.png"))
         self.user_management_button.setToolTip("Click to open the user management tool")
         self.user_management_button.setFlat(True)
 
@@ -164,7 +164,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.tna_viewer = TNAViewer(self.user_id, self.password, self.category_tree)
 
     def openCalculator(self):
-        self.calc = EfficiencyCalculator(self.user_id, self.password, self.category_tree, datetime.date.today())
+        self.calc = EfficiencyCalculator(self.user_id, self.password, self.category_tree)
 
     def openEscalationTracker(self):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")

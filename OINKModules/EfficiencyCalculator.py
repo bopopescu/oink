@@ -234,7 +234,7 @@ class calculatorRow:
 
 class EfficiencyCalculator(QtGui.QDialog):
     """Class definition for the efficiency calculator."""
-    def __init__(self, userID, password, category_tree=None):
+    def __init__(self, userID, password, category_tree=None, *args, **kwargs):
         """Efficiency Calculator Initializer function."""
         super(QtGui.QDialog, self).__init__()
         self.userID = userID
