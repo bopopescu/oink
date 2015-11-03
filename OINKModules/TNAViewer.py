@@ -282,7 +282,11 @@ class TNAViewer(QtGui.QWidget):
             parameter_summary_data.append(parameter_data)
 
         #self.printMessage(parameter_summary_data)
-        summary_data_frame = pd.DataFrame(parameter_summary_data, index=parameter_class_list, columns =["Parameter Description", "Base Deviation Frequency", "Comparison Deviation Frequency","Verdict"]).sort_values(["Base Deviation Frequency"], ascending=False)
+        try:
+            summary_data_frame = pd.DataFrame(parameter_summary_data, index=parameter_class_list, columns =["Parameter Description", "Base Deviation Frequency", "Comparison Deviation Frequency","Verdict"]).sort_values(["Base Deviation Frequency"], ascending=False)
+        except:
+            summary_data_frame = pd.DataFrame(parameter_summary_data, index=parameter_class_list, columns =["Parameter Description", "Base Deviation Frequency", "Comparison Deviation Frequency","Verdict"]).sort(columns=["Base Deviation Frequency"], ascending=False)
+
         #self.printMessage(summary_data_frame)
         #Clear the canvas
         fig, ax = plt.subplots()
