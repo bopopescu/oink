@@ -385,8 +385,6 @@ class TNAViewer(QtGui.QWidget):
         #self.printMessage(column_names)
         return column_names
 
-
-
     def printMessage(self, msg):
         allow_print = True
         if allow_print:
