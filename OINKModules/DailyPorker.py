@@ -13,6 +13,12 @@ import Graphinator
 from ProgressBar import ProgressBar
 from CopiableQTableWidget import CopiableQTableWidget
 
+def getReportTypes():
+    report_types = ["Article Count", "Efficiency","Audit Count", "CFM", "GSEO","Efficiency KRA","CFM KRA","GSEO KRA", "Stack Rank Index"]
+    time_frames = ["Daily","Weekly","Monthly","Half-Yearly"]
+    time_frame_based_report_types = ["%s %s"%(time_frame, report_type) for time_frame in time_frames for report_type in report_types]
+    return ["Report Date", "Writer ID", "Writer Name", "Writer Email ID", "Reporting Manager"] + time_frame_based_report_types
+
 class PorkLane(QtCore.QThread):
     """
     This threaded class emits the daily report data to DailyPorker.
@@ -123,29 +129,8 @@ class PorkLane(QtCore.QThread):
         if retry is not None:
             #put a notification or signal here.
             print "Retrying to fetch the data. (Trial#%d)" %retry
-        
-        keys_list = ["Report Date", "Writer ID", "Writer Name", "Writer Email ID", "Reporting Manager",
-                "Daily Article Count", "Weekly Article Count", "Monthly Article Count", 
-                "Quarterly Article Count", "Half-Yearly Article Count", "Average Article Count", 
-                "Daily Efficiency",
-                "Weekly Efficiency", "Monthly Efficiency", "Quarterly Efficiency", "Half-Yearly Efficiency",
-                "Average Efficiency", 
-                "Daily Audit Count", "Weekly Audit Count","Monthly Audit Count",
-                "Quarterly Audit Count", "Half-Yearly Audit Count", "Average Audit Count",
-                "Daily CFM", "Weekly CFM", "Monthly CFM", "Quarterly CFM", "Half-Yearly CFM",
-                "Average CFM", 
-                "Daily GSEO", "Weekly GSEO", "Monthly GSEO",
-                "Quarterly GSEO", "Half-Yearly GSEO", "Average GSEO", 
-                "Daily Efficiency KRA", "Weekly Efficiency KRA", "Average Efficiency KRA", 
-                "Monthly Efficiency KRA", "Quarterly Efficiency KRA", "Half-Yearly Efficiency KRA",
-                "Daily CFM KRA", "Weekly CFM KRA", "Average CFM KRA", 
-                "Monthly CFM KRA", "Quarterly CFM KRA", "Half-Yearly CFM KRA",
-                "Daily GSEO KRA", "Weekly GSEO KRA", "Average GSEO KRA", 
-                "Monthly GSEO KRA", "Quarterly GSEO KRA", "Half-Yearly GSEO KRA",
-                "Daily Stack Rank Index",
-                "Weekly Stack Rank Index", "Monthly Stack Rank Index",
-                "Quarterly Stack Rank Index", "Half-Yearly Stack Rank Index", "Average Stack Rank Index"
-                ]
+        #print time_frame_based_report_types
+        keys_list = getReportTypes()
         writer_summary = dict((key,"-") for key in keys_list)
         writer_summary["Report Date"] = self.start_date
         writer_summary["Writer ID"] = self.writer_id
@@ -581,12 +566,12 @@ class DailyPorker(QtGui.QWidget):
 
     def getRequiredReportTypes(self):
         self.report_selection_dict = {
-                    "Daily": self.daily_check_box.checkState() == QtCore.Qt.Checked,
-                    "Weekly": self.weekly_check_box.checkState() == QtCore.Qt.Checked,
-                    "Monthly": self.monthly_check_box.checkState() == QtCore.Qt.Checked,
-                    "Quarterly": self.quarterly_check_box.checkState() == QtCore.Qt.Checked,
-                    "Half-Yearly": self.half_yearly_check_box.checkState() == QtCore.Qt.Checked,
-                    "Average": self.end_date_check_box.checkState() == QtCore.Qt.Checked
+                    "Daily": self.daily_check_box.isChecked(),
+                    "Weekly": self.weekly_check_box.isChecked(),
+                    "Monthly": self.monthly_check_box.isChecked(),
+                    "Quarterly": self.quarterly_check_box.isChecked(),
+                    "Half-Yearly": self.half_yearly_check_box.isChecked(),
+                    "Average": self.end_date_check_box.isChecked()
         }
         time_frame_list = [key for key in self.report_selection_dict.keys() if self.report_selection_dict[key]]
         report_type_list = [item.text() for item in self.reports_list.selectedItems()]

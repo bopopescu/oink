@@ -12,12 +12,11 @@ from OINKModules.Vindaloo import Vindaloo
 from OINKModules.Bacon import Bacon
 from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, passwordResetter
 from OINKModules import MOSES
+
 def main():
     try:
         registron = MOSES.Registron()
-        #MOSES.register()
     except Exception, e:
-        print "Failed,", repr(e)
         pass
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))
