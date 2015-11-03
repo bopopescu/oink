@@ -11,6 +11,7 @@ import MOSES
 from DailyGraphView import DailyGraphView
 import Graphinator
 from ProgressBar import ProgressBar
+from CopiableQTableWidget import CopiableQTableWidget
 
 class PorkLane(QtCore.QThread):
     """

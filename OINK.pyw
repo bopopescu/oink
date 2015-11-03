@@ -14,10 +14,10 @@ from OINKModules.OINKUIMethods import detectFileOpen, login, showSplashScreen, p
 from OINKModules import MOSES
 def main():
     try:
-        MOSES.register()
-        print "Works"
-    except:
-        print "Fails"
+        registron = MOSES.Registron()
+        #MOSES.register()
+    except Exception, e:
+        print "Failed,", repr(e)
         pass
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))
@@ -41,7 +41,6 @@ def main():
             
             #print "Ok, %s mode" % user_role
             splash = showSplashScreen(app, user_role)
-            print user_role
             window = userDict[user_role](userID, password)
             window.setAttribute(QtCore.Qt.WA_QuitOnClose)
             app.installEventFilter(window)

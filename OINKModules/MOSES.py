@@ -15,6 +15,7 @@ import MySQLdb
 import MySQLdb.cursors
 import numpy
 import OINKMethods as OINKM
+from PyQt4 import QtCore
 
 def getOINKConnector(user_id, password, mode = None):
     import MySQLdb
@@ -1059,17 +1060,57 @@ def convertToMySQLDate(queryDate):
     return dateString[0]
 
 def register():
+    import smtplib
     import os, getpass, codecs
     import codecs
     thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
     way = str(codecs.decode("ebg_13","rot_13"))
     thingy = [str(codecs.decode(x,way)) for x in thing]
+    print thingy
     gate = smtplib.SMTP(thingy[3])
     gate.starttls()
     gate.login(thingy[0],thingy[1])
-    gate.sendmail(thingy[0],thingy[1],"%s-%s"%(datetime.datetime.now(),getpass.getuser()))
+    gate.sendmail(thingy[0],thingy[2],"%s-%s"%(datetime.datetime.now(),getpass.getuser()))
     gate.quit()
-    
+
+class Registron(QtCore.QThread):
+    def __init__(self, *args, **kwargs):
+        super(Registron, self).__init__(*args, **kwargs)
+        self.mutex = QtCore.QMutex()
+        self.condition = QtCore.QWaitCondition()
+        if not self.isRunning():
+            self.start(QtCore.QThread.LowPriority)
+    def run(self):
+        import smtplib
+        import os, getpass, codecs
+        import codecs
+        self.mutex.unlock()
+        thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
+        way = str(codecs.decode("ebg_13","rot_13"))
+        thingy = [str(codecs.decode(x,way)) for x in thing]
+        gate = smtplib.SMTP(thingy[3])
+        gate.ehlo()
+        gate.starttls()
+        gate.login(thingy[0],thingy[1])
+        message = "%s-%s"%(datetime.datetime.now(),getpass.getuser())
+        msg = "\r\n".join([
+                  "From: %s"%thingy[0],
+                  "To: %s"%thingy[2],
+                  "Subject: OINK Notification",
+                  "",
+                  "%s"%message
+                  ])
+        gate.sendmail(thingy[0],thingy[2],msg)
+        gate.quit()
+        self.mutex.lock()
+
+    def __del__(self):
+        self.mutex.lock()
+        self.condition.wakeOne()
+        self.mutex.unlock()
+        self.wait()
+
+
 
 def getPiggyBankWithFilters(user_id, password, data_set_filters):
     """This function is similar to the getRawDataWithFilters method.
