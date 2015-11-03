@@ -19,7 +19,7 @@ import MOSES
 def showSplashScreen(app, user_role, prank = False):
         # Create and display the splash screen
         
-        userDict = {"Content Writer": 'Images\PORK.png', "Copy Editor": 'Images\Vindaloo.png', "Team Lead": 'Images\Vindaloo.png', "Manager":'Images\Vindaloo.png', "Assistant Manager": 'Images\Vindaloo.png',  "Big Brother": "Images\VINDALOO.png"}
+        userDict = {"Content Writer": 'Images\PORK.png', "Copy Editor": 'Images\Vindaloo.png', "Team Lead": 'Images\Vindaloo.png', "Product Specialist": 'Images\Vindaloo.png', "Manager":'Images\Vindaloo.png', "Assistant Manager": 'Images\Vindaloo.png',  "Big Brother": "Images\VINDALOO.png"}
         image = userDict[user_role]
         
         #image = "Images\OINK.png"

@@ -41,6 +41,7 @@ def main():
             
             #print "Ok, %s mode" % user_role
             splash = showSplashScreen(app, user_role)
+            print user_role
             window = userDict[user_role](userID, password)
             window.setAttribute(QtCore.Qt.WA_QuitOnClose)
             app.installEventFilter(window)
