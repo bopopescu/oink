@@ -474,33 +474,33 @@ class Pork(QtGui.QMainWindow):
         self.resetPassword_action = QtGui.QAction("Reset password", self)
         self.resetPassword_action.triggered.connect(self.reset_password)
         self.applyLeave = QtGui.QAction(QtGui.QIcon('Images\AskForLeave.png'),\
-            "Apply For Leaves or Relaxation in Targets",self)
+            "Apply For Leaves or Relaxation in Targets", self)
 
         self.applyLeave.setToolTip("Click to apply for a leave or for a relaxation of your targets.")
         self.applyLeave.triggered.connect(self.applyForLeave)
         self.openEffCalc = QtGui.QAction(QtGui.QIcon('Images\Efficiency_Icon.png'),\
-            "Efficiency Calculator",self)
+            "Efficiency Calculator", self)
         self.openEffCalc.setToolTip(\
             "Click to open the efficiency calculator.")
         self.openEffCalc.triggered.connect(self.showEfficiencyCalc)
         self.callAskAnEditor = QtGui.QAction(QtGui.QIcon("Images\AskAnEditor_Icon.png"),\
-            "Ask An Editor",self)
+            "Ask An Editor", self)
         self.callAskAnEditor.setToolTip(\
             "Post a question to the editors.")
         self.callAskAnEditor.triggered.connect(self.AskAnEditor)
         self.callAskYourTL = QtGui.QAction(QtGui.QIcon("Images\AskYourTL_Icon.png"),\
-                    "Ask Your TL",self)
+                    "Ask Your TL", self)
         self.callAskYourTL.setToolTip(\
             "Post a question for your TL.")
         self.callAskYourTL.triggered.connect(self.askTL)
 
         self.callStyleSheet = QtGui.QAction(QtGui.QIcon("Images\StyleSheet_Icon.png"),\
-            "View Style Sheet",self)
+            "View Style Sheet", self)
         self.callStyleSheet.triggered.connect(self.openStyleSheet)
         self.callStyleSheet.setToolTip(\
             "View the Content Team Style Sheet")
         self.callOpenChat = QtGui.QAction(QtGui.QIcon("Images\Chat_Icon.png"),\
-                        "Open Messenger",self)
+                        "Open Messenger", self)
         self.callOpenChat.triggered.connect(self.openChat)
 
     def setVisuals(self):
