@@ -328,10 +328,13 @@ class DailyPorker(QtGui.QWidget):
         self.setStyleSheet(style_string)
         self.clip = QtGui.QApplication.clipboard()
         self.createUI()
-        self.populateWritersComboBox()
-        self.center()
-        self.setAutoFillBackground(True)
         self.mapEvents()
+        self.initiate()
+
+    def initiate(self):
+        self.center()
+        self.populateWritersComboBox()
+        self.writers_combobox.selectAll()
         self.refreshSortFilter()
 
     def center(self):

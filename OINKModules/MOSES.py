@@ -1617,7 +1617,7 @@ def buildWritersDataFile():
         counter += 1
         if isWorkingDay(u, p, each_date):
             print "Beginning processing for %s.\n%d dates processed. %d remaining.\nETA: %s" % (each_date, counter, (total-counter),getETA(start_time, counter, total))
-            writers_list = getWritersList(u, p, each_date)
+            writers_list = list(set(getWritersList(u, p, each_date)["Name"]))
             for writer in writers_list:
                 writer_id = writer["Employee ID"]
                 writer_name = writer["Name"]
@@ -3416,12 +3416,12 @@ def showWriterAuditPercentages():
     start_date = datetime.date(2015,5,1)
     end_date = datetime.date.today()
     user_id, password = getbbc()
-    writer_data_list = getWritersList(user_id, password, start_date)
+    writer_data_list = list(set(getWritersList(user_id, password, start_date)["Name"]))
     for writer in writer_data_list:
         writer_id = writer["Employee ID"]
         writer_name = writer["Name"]
         audit_percentage = getAuditPercentageBetween(writer_id, start_date, end_date)
-        #print writer_name, audit_percentage*100
+        print writer_name, audit_percentage*100
     print "Done."
 
 def getColumnAverages(data_list):
