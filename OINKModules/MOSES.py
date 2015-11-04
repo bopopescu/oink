@@ -1360,6 +1360,7 @@ def getEmployeeIDsList(user_id,password):
 
 def getEmployeesList(user_id, password, query_date=None):
     """Returns a list of dictionaries containing employee details."""
+    import pandas as pd
     connectdb = getOINKConnector(user_id, password)
     dbcursor=connectdb.cursor()
     if query_date is None:
@@ -1372,11 +1373,44 @@ def getEmployeesList(user_id, password, query_date=None):
     #print employeesData
     connectdb.commit()
     connectdb.close()
-    return employeesData
+    return pd.DataFrame.from_records(employeesData)
 
-def getWritersList(user_id, password, queryDate = None):
+def getWritersList(user_id, password, query_date=None):
     """Returns a list of dictionaries that pertain to writer information."""
-    employees_data_list = getEmployeesList(user_id, password)
+    import pandas as pd
+    #Get the data for all employees who have worked in this team.
+    employees_data_frame = getEmployeesList(user_id, password)
+    #Filter out all those whose current role is that of a writer. This includes ex-employees, and not promoted employees.
+    writers_dataframe = employees_data_frame[employees_data_frame["Role"]=="Content Writer"]
+    #Now, look at writers who were promoted.
+    promoted_writers = employees_data_frame[employees_data_frame["Former Role"]=="Content Writer"]
+    #If a date if supplied for query:
+    if query_date is not None:
+        #Get a filtered dataframe for all writers who are still in the team. The DOL column should be null.        
+        active_writers = writers_dataframe[writers_dataframe["DOL"].isnull()]
+        #If the query date occurs before the current date then go and look at ex-employees whose last role was that of a writer and whose DOL was after the query date. Remember, the last working date of a writer is usually one without any activity, so don't consider that.
+        if query_date<datetime.date.today():
+            ex_writers = writers_dataframe[[not(match) for match in writers_dataframe["DOL"].isnull()]]
+            valid_ex_writers = ex_writers[ex_writers["DOL"]>query_date]
+            #The date of promotion should be after the query date.
+            valid_promoted_writers = promoted_writers[promoted_writers["Date of Promotion"]>query_date]\
+            #merge the required writers dataframes
+            final_writers_data_frame = pd.concat([active_writers, valid_ex_writers, valid_promoted_writers])
+        else:
+            final_writers_data_frame = active_writers
+
+    else:
+        final_writers_data_frame = pd.concat([writers_dataframe, promoted_writers])
+
+
+    final_data_frame = final_writers_data_frame.drop_duplicates(["Employee ID"])
+    try:
+        sorted_data_frame = final_data_frame.sort_values(["Name"])
+    except:
+        sorted_data_frame = final_data_frame.sort(columns=["Name"])
+    return sorted_data_frame
+
+def oldWritersList(user_id, password, query_date=None):
     writers_data_list = []
     for employee in employees_data_list:
         if employee["Role"] == "Content Writer":

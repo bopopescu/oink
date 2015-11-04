@@ -35,7 +35,8 @@ def main():
                 "Big Brother": Vindaloo,
                 "Product Specialist": Vindaloo,
                 "Manager": Vindaloo, 
-                "Assistant Manager": Vindaloo
+                "Assistant Manager": Vindaloo,
+                "Programmer": Pork
                 }
             
             #print "Ok, %s mode" % user_role
