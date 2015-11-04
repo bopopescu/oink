@@ -3331,7 +3331,7 @@ def getReportingManager(user_id, password,  query_date=None, query_user=None):
     cursor.execute(sqlcmdstring)
     manager_data = cursor.fetchall()
     conn.close()
-    return manager_data[0]
+    return manager_data[0]["Reporting Manager Name"] if len(manager_data)>0 else "No Reporting Manager"
 
 def getRawDataParameterPercentagesBetween(user_id, password, start_date, end_date, query_user=None):
     import numpy

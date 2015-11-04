@@ -41,55 +41,56 @@ class Vindaloo(QtGui.QMainWindow):
     def createUI(self):
         self.main_widget = QtGui.QWidget()
         self.setCentralWidget(self.main_widget)
-        
-        self.daily_porker_button = ImageButton(os.path.join("Images","newspaper.png"),48,48,os.path.join("Images","newspaper_mouseover.png"))
+        width, height = 64, 64
+        self.daily_porker_button = ImageButton(os.path.join("Images","newspaper.png"),width, height,os.path.join("Images","newspaper_mouseover.png"))
         self.daily_porker_button.setToolTip("Click here to pull the report.")
         self.daily_porker_button.setFlat(True)
         
-        self.seeker_button = ImageButton(os.path.join("Images","seeker.png"),48,48,os.path.join("Images","seeker_mouseover.png"))
+        self.seeker_button = ImageButton(os.path.join("Images","seeker.png"),width, height,os.path.join("Images","seeker_mouseover.png"))
         self.seeker_button.setToolTip("Click here to search for an FSN or ItemID in the PiggyBank and FSN Dump.")
-        
-        self.sty_cleaner_button = ImageButton(os.path.join("Images","stycleaner.png"),48,48,os.path.join("Images","stycleaner_mouseover.png"))
+        self.seeker_button.setFlat(True)
+
+        self.sty_cleaner_button = ImageButton(os.path.join("Images","stycleaner.png"),width, height,os.path.join("Images","stycleaner_mouseover.png"))
         self.sty_cleaner_button.setToolTip("Click here to summarize the clarifications sheet.")
         self.sty_cleaner_button.setFlat(True)
 
-        self.farmhand_button = ImageButton(os.path.join("Images","farmhand.png"),48,48,os.path.join("Images","farmhand_mouseover.png"))
+        self.farmhand_button = ImageButton(os.path.join("Images","farmhand.png"),width, height,os.path.join("Images","farmhand_mouseover.png"))
         self.farmhand_button.setToolTip("Click here to view feedback report(s).")
         self.farmhand_button.setFlat(True)
 
-        self.piggy_bank_button = ImageButton(os.path.join("Images","piggybank.png"),48,48,os.path.join("Images","piggybank_mouseover.png"))
+        self.piggy_bank_button = ImageButton(os.path.join("Images","piggybank.png"),width, height,os.path.join("Images","piggybank_mouseover.png"))
         self.piggy_bank_button.setToolTip("Click here to pull Piggy Bank data.")
         self.piggy_bank_button.setFlat(True)
 
-        self.swine_herd_button = ImageButton(os.path.join("Images","swineherd.png"),48,48,os.path.join("Images","swineherd_mouseover.png"))
+        self.swine_herd_button = ImageButton(os.path.join("Images","swineherd.png"),width, height,os.path.join("Images","swineherd_mouseover.png"))
         self.swine_herd_button.setToolTip("Click here to view the Head Count Report")
         self.swine_herd_button.setFlat(True)
 
-        self.calc_button = ImageButton(os.path.join("Images","calculator.png"),48, 48, os.path.join("Images","calculator_mouseover.png"))
+        self.calc_button = ImageButton(os.path.join("Images","calculator.png"),width, height, os.path.join("Images","calculator_mouseover.png"))
         self.calc_button.setToolTip("Click to open the Efficiency Calculator")
         self.calc_button.setFlat(True)
 
-        self.leaves_button = ImageButton(os.path.join("Images","leave.png"), 48, 48, os.path.join("Images","leave_mouseover.png"))
+        self.leaves_button = ImageButton(os.path.join("Images","leave.png"), width, height, os.path.join("Images","leave_mouseover.png"))
         self.leaves_button.setToolTip("Click to open the leave approval system")
         self.leaves_button.setFlat(True)
 
-        self.tna_button = ImageButton(os.path.join("Images","tna.png"),48, 48, os.path.join("Images","tna_mouseover.png"))
+        self.tna_button = ImageButton(os.path.join("Images","tna.png"),width, height, os.path.join("Images","tna_mouseover.png"))
         self.tna_button.setToolTip("Click to open the training needs analysis tool")
         self.tna_button.setFlat(True)
 
-        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),48, 48, os.path.join("Images","relaxation_mouseover.png"))
+        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),width, height, os.path.join("Images","relaxation_mouseover.png"))
         self.relaxation_button.setToolTip("Click to open the relaxation approval system")
         self.relaxation_button.setFlat(True)
 
-        self.escalation_button = ImageButton(os.path.join("Images","alert.png"), 48, 48, os.path.join("Images","alert_mouseover.png"))
+        self.escalation_button = ImageButton(os.path.join("Images","alert.png"), width, height, os.path.join("Images","alert_mouseover.png"))
         self.escalation_button.setToolTip("Click to open the escalation tracker")
         self.escalation_button.setFlat(True)
 
-        self.user_management_button = ImageButton(os.path.join("Images","users.png"), 48, 48, os.path.join("Images","users_mouseover.png"))
+        self.user_management_button = ImageButton(os.path.join("Images","users.png"), width, height, os.path.join("Images","users_mouseover.png"))
         self.user_management_button.setToolTip("Click to open the user management tool")
         self.user_management_button.setFlat(True)
 
-        self.category_tree_button = ImageButton(os.path.join("Images","category_tree.png"), 48, 48, os.path.join("Images","category_tree_mouseover.png"))
+        self.category_tree_button = ImageButton(os.path.join("Images","category_tree.png"), width, height, os.path.join("Images","category_tree_mouseover.png"))
         self.category_tree_button.setToolTip("Click to open the category tree manager.")
         self.category_tree_button.setFlat(True)
 
