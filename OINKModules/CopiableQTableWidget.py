@@ -3,8 +3,8 @@ from PyQt4 import QtCore, QtGui
 class CopiableQTableWidget(QtGui.QTableWidget):
     def __init__(self, *args, **kwargs):
         super(CopiableQTableWidget, self).__init__(*args, **kwargs)
+        self.setStyleSheet("gridline-color: rgb(0, 0, 0)")
         self.clip = QtGui.QApplication.clipboard()
-        pass
 
     def keyPressEvent(self, e):
         if (e.modifiers() & QtCore.Qt.ControlModifier):

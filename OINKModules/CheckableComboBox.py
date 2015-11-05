@@ -12,9 +12,9 @@ class CheckableComboBox(QtGui.QComboBox):
         self.installEventFilter(self)
         self.currentIndexChanged.connect(self.reset)
 
-    def eventFilter(self,target,event):
+    def eventFilter(self, target, event):
         if(event.type()== QtCore.QEvent.Wheel):
-                #wheel event is blocked here
+            #wheel event is blocked here
             return True
         return False
 

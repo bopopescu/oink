@@ -20,7 +20,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
             self.category_tree = category_tree
         else:
             self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
-        self.writers_list = MOSES.getWritersList(self.user_id, self.password)
         self.brands = MOSES.getBrandValues(self.user_id, self.password)
         self.createUI()
         self.piggybank_data = []
@@ -361,14 +360,9 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.writers_filter_box.clear()
         start_date = self.start_date_edit.date().toPyDate()
         end_date = self.end_date_edit.date().toPyDate()
-        writers = []
-        for writer in self.writers_list:
-            if writer["DOJ"] <= end_date:
-                if writer["DOL"] is not None:
-                    if writer["DOL"] >= start_date:
-                        writers.append(writer["Name"])
-                else:
-                    writers.append(writer["Name"])
+        self.writers_list = MOSES.getWritersList(self.user_id, self.password, start_date)
+
+        writers = list(set(self.writers_list["Name"]))
         writers.sort()
         self.writers_filter_box.addItems(writers)
 
