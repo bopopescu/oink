@@ -776,7 +776,7 @@ def getFatalParams():
         "Mismatch in Specs"
     ]
 
-def check_if_ISBN(querystring):
+def checkIfISBN(querystring):
     """Checks if the FSN is an ISBN."""
     isISBN = False
     if check_if_FSN(querystring):
@@ -787,7 +787,7 @@ def check_if_ISBN(querystring):
         isISBN = isISBNLength and (isAllNumber or hasXAtEnd) and hasNoSpaces
     return isISBN
 
-def check_if_FSN(querystring):
+def checkIfFSN(querystring):
     """Checks if an input is an FSN or not."""
     isFSN = False
     isFSNLength = (len(querystring) == 16)

@@ -895,7 +895,7 @@ class Pork(QtGui.QMainWindow):
         fsnString = str(self.lineEditFSN.text()).strip()
         fsn_type = str(self.comboBoxType.currentText()).replace(",",";").strip()
         #print fsnString, fsn_type
-        if OINKM.check_if_FSN(fsnString):
+        if OINKM.checkIfFSN(fsnString):
             #print "I got an FSN. I'm going to check!"
             isDuplicate = MOSES.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
             override_status, override_count = MOSES.checkForOverride(fsnString, self.getActiveDate(), self.userID, self.password)
@@ -912,10 +912,10 @@ class Pork(QtGui.QMainWindow):
                 #reset background to white.
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: yellow;}")
                 self.generateUploadLink(fsnString)
-                
             elif not isDuplicate:
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: white;}")
                 self.generateUploadLink(fsnString)
+    
                 
 
     def generateUploadLink(self, fsnString):
@@ -938,8 +938,6 @@ class Pork(QtGui.QMainWindow):
             return False
 
     def validateAndSendToPiggy(self):
-        """PORK Window."""
-        #FIX
         """This method checks if the given data is complete, and then if the data is for today, 
         it allows addition or modification."""
         completion = False
@@ -948,35 +946,35 @@ class Pork(QtGui.QMainWindow):
         selected_date = self.getActiveDate()
         last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
         #print "Trying to validateAndSendToPiggy. The last working date is :", last_working_date
+
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), last_working_date]
-        #TEMPORARILY DISABLED.
         if selected_date not in dates_user_is_allowed_to_manipulate:
             allowAction = False
             self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
         else:
             allowAction = True
         if allowAction:
-            if mode == "Addition": #CHANGE TO ELIF LATER
+            if mode == "Addition":
                 fsnData = self.getFSNDataDict()
                 fsn = fsnData["FSN"]
                 fsntype = fsnData["Description Type"]
-                isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
-                override_status, override_count = MOSES.checkForOverride(fsn, selected_date, self.userID, self.password)
-                if isDuplicate == "Local":
-                    self.alertMessage("Repeated FSN","You just reported that FSN today!")
-                elif (isDuplicate == "Global") and not override_status:
-                    self.alertMessage("Repeated FSN","That FSN was already reported before by a writer. If your TL has instructed you to overwrite the contents, please request an overide request.")
-                elif (isDuplicate == "Global") and override_count:
-                    fsnData["Rewrite Ticket"] = override_count
-                    MOSES.addToPiggyBank(fsnData, self.userID, self.password)
-                    self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
-                    self.populateTable()
-                    completion = True
-                else:
-                    MOSES.addToPiggyBank(fsnData, self.userID, self.password)
-                    self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
-
-                    completion = True
+                if self.isValidType(fsn, fsntype):
+                    isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
+                    override_status, override_count = MOSES.checkForOverride(fsn, selected_date, self.userID, self.password)
+                    if isDuplicate == "Local":
+                        self.alertMessage("Repeated FSN","You just reported that FSN today!")
+                    elif (isDuplicate == "Global") and not override_status:
+                        self.alertMessage("Repeated FSN","That FSN was already reported before by a writer. If your TL has instructed you to overwrite the contents, please request an overide request.")
+                    elif (isDuplicate == "Global") and override_count:
+                        fsnData["Rewrite Ticket"] = override_count
+                        MOSES.addToPiggyBank(fsnData, self.userID, self.password)
+                        self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
+                        self.populateTable()
+                        completion = True
+                    else:
+                        MOSES.addToPiggyBank(fsnData, self.userID, self.password)
+                        self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
+                        completion = True                            
             elif mode == "Modification":
                 fsnData = self.getFSNDataDict()
                 #print "Trying to modify an entry."
@@ -992,6 +990,35 @@ class Pork(QtGui.QMainWindow):
     def alertMessage(self, title, message):
         """PORK Window."""
         QtGui.QMessageBox.about(self, title, message)
+
+    def isValidType(self, fsn, fsn_type):
+        """This method checks if the writer has used a valid description type in the dialog."""
+        if ((OINKM.checkIfFSN(fsn)) and ("SEO" in fsn_type)) or (not(OINKM.checkIfFSN(fsn)) and ("SEO" not in fsn_type)):
+            #If the value in the fsn field is an FSN and the description type is an SEO type, then it could be invalid.
+            #If the value in the fsn field is not an FSN and the description type is not an SEO type, then it could be invalid.
+            if "SEO" in fsn_type:
+                question = "You seem to be writing an FSN article but the description type appears to be an SEO. Are you sure you want to submit that?"
+            else:
+                question = "You seem to be writing about something that's not an FSN. Are you sure you want to submit that?"
+            change_type = QtGui.QMessageBox.question(
+                                self,
+                                "Possible Description Type Mismatch",
+                                question,
+                                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
+                                QtGui.QMessageBox.No
+                            )
+            if change_type is not None:
+                if change_type == QtGui.QMessageBox.Yes:
+                    is_valid = True
+                else:
+                    is_valid = False
+            else:
+                is_valid = False
+        else:
+            #If the value in the FSN field is an FSN and the type is not an SEO type.
+            #if the value is not an FSN and the type is one of the SEO types.
+            is_valid = True
+        return is_valid
 
     def getMode(self):
         """PORK Window."""
