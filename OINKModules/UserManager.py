@@ -116,6 +116,8 @@ class UserManager(QtGui.QMainWindow):
         self.init_work_calendar_button = QtGui.QPushButton("Initialize Calendar")
         self.save_button = QtGui.QPushButton("Save")
         self.reset_button = QtGui.QPushButton("Revert")
+
+
         form_buttons_layout = QtGui.QHBoxLayout()
         form_buttons_layout.addStretch(2)
         form_buttons_layout.addWidget(self.reset_password_button,0)
@@ -127,6 +129,19 @@ class UserManager(QtGui.QMainWindow):
         self.progress_bar = ProgressBar()
         self.status_label = QtGui.QLabel()
 
+        self.manager_mapping = CopiableQTableWidget(0,0)
+
+        self.add_new_manager_mapping_row = QtGui.QPushButton("Add New Mapping")
+        self.remove_manager_mapping_row = QtGui.QPushButton("Remove Mapping")
+        self.save_manager_mapping_table = QtGui.QPushButton("Save Mapping Changes")
+
+        manager_mapping_buttons = QtGui.QHBoxLayout()
+        manager_mapping_buttons.addStretch(1)
+        manager_mapping_buttons.addWidget(self.add_new_manager_mapping_row,0)
+        manager_mapping_buttons.addWidget(self.remove_manager_mapping_row,0)
+        manager_mapping_buttons.addWidget(self.save_manager_mapping_table,0)
+        manager_mapping_buttons.addStretch(1)
+
         user_data_form_layout = QtGui.QVBoxLayout()
         user_data_form_layout.addLayout(name_id_row,0)
         user_data_form_layout.addLayout(email_row,0)
@@ -135,6 +150,8 @@ class UserManager(QtGui.QMainWindow):
         user_data_form_layout.addLayout(promotion_row,0)
         user_data_form_layout.addLayout(access_row,0)
         user_data_form_layout.addLayout(form_buttons_layout,0)
+        user_data_form_layout.addWidget(self.manager_mapping,1)
+        user_data_form_layout.addWidget(manager_mapping_buttons,1)
         user_data_form_layout.addWidget(self.progress_bar,0)
         user_data_form_layout.addWidget(self.status_label,0)
 
@@ -213,7 +230,8 @@ class UserManager(QtGui.QMainWindow):
 
         self.toggleDOP()
         self.toggleDOL()
-
+        self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password, employee_data["Employee ID"])
+        self.manager_mapping.showDataFrame(self.manager_mapping_data)
 
     def getEmployeeData(self, employee_name):
         location_match = self.employees_data["Name"] == employee_name

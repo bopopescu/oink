@@ -3230,6 +3230,20 @@ def populateStatsInWorkCalendar():
     print "Time taken: %s" %(datetime.datetime.now()-start_time)
     conn.close()
 
+def getManagerMappingTable(user_id, password, query_user=None):
+    import pandas as pd
+    if query_user is None:
+        query_user = user_id
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * from managermapping WHERE 
+        `Employee ID`="%s";""" %(query_user)
+    cursor.execute(sqlcmdstring)
+    manager_data = cursor.fetchall()
+    conn.close()
+    return pd.DataFrame.from_records(manager_data).drop_duplicates()
+
+
 def getReportingManager(user_id, password,  query_date=None, query_user=None):
     if query_user is None:
         query_user = user_id
