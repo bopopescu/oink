@@ -160,7 +160,7 @@ class UserManager(QtGui.QMainWindow):
 
     def resetPassword(self):
         current_employee_name = str(self.users_list_view.currentItem().text())
-        employee_data = self.getEmployeeData(employee_name)
+        employee_data = self.getEmployeeData(current_employee_name)
         employee_id = employee_data["Employee ID"]
         MOSES.resetPassword(self.user_id, self.password, employee_id)
         self.alertMessage("Reset Password","Successfully reset %s's password to 'password'!"%(current_employee_name))

@@ -37,11 +37,10 @@ class Peeves(QtCore.QThread):
         self.mutex.unlock()
         self.wait()
 
-    def fetchData(self, search_strings, mode, search_type):
+    def fetchData(self, search_strings, search_type):
         """"""
         self.stop_sending = True
         self.search_strings = search_strings
-        self.mode = mode
         self.search_type = search_type
         self.sent = False
 

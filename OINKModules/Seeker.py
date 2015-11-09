@@ -1,8 +1,10 @@
 import sys
+import os
 import datetime
 from PyQt4 import QtGui, QtCore
 from Peeves import Peeves
-
+from ProgressBar import ProgressBar
+from CopiableQTableWidget import CopiableQTableWidget
 
 class Seeker(QtGui.QWidget):
     """Seeker class to find FSNs or Item_IDs 
@@ -18,24 +20,6 @@ class Seeker(QtGui.QWidget):
         self.createUI()
         self.createEvents()
 
-    def keyPressEvent(self, e):
-        if (e.modifiers() & QtCore.Qt.ControlModifier):
-            if e.key() == QtCore.Qt.Key_C: #copy
-                table_to_copy = self.output_table
-                selected = table_to_copy.selectedRanges()
-                s = '\t'+"\t".join([str(table_to_copy.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
-                s = s + '\n'
-
-                for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
-                    s += str(r+1) + '\t' 
-                    for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
-                        try:
-                            s += str(table_to_copy.item(r,c).text()) + "\t"
-                        except AttributeError:
-                            s += "\t"
-                    s = s[:-1] + "\n" #eliminate last '\t'
-                self.clip.setText(s)
-
     def createUI(self):
         self.fsns_label = QtGui.QLabel("FSNs\Item IDs:")
         self.fsns_text_edit = QtGui.QTextEdit()
@@ -44,36 +28,35 @@ class Seeker(QtGui.QWidget):
         self.type_selector.addItems(["FSN(s)", "Item ID(s)"])
         self.type_selector.setToolTip("Select the list type. Are you searching by FSNs or Item IDs?")
         self.type_selector.setCurrentIndex(0)
-        self.mode_label = QtGui.QLabel("Mode")
-        self.mode_combo_box = QtGui.QComboBox()
-        self.mode_combo_box.addItems(["Show all data", 
-                            "Show results which have articles","Show results without articles"])
-        self.output_table = QtGui.QTableWidget(0,0)
-        self.progress_bar = QtGui.QProgressBar()
-        progress_bar_style = """
-            .QProgressBar {
-                 text-align: center;
-             }"""
-        self.progress_bar.setStyleSheet(progress_bar_style)
-        #self.processing_information = QtGui.QLabel("")
+        self.output_table = CopiableQTableWidget(0, 0)
+        self.progress_bar = ProgressBar()
         self.fetch_data_button = QtGui.QPushButton("Fetch Data")
-        self.layout = QtGui.QGridLayout()
-        self.layout.addWidget(self.fsns_label, 0, 0, 1, 1)
-        self.layout.addWidget(self.fsns_text_edit, 0, 1, 2, 2)
-        self.layout.addWidget(self.type_selector, 1, 0, 1, 1)
-        self.layout.addWidget(self.mode_label, 2, 0)
-        self.layout.addWidget(self.mode_combo_box, 2, 1)
-        self.layout.addWidget(self.fetch_data_button, 2, 2)
-        self.layout.addWidget(self.output_table, 3, 0, 3, 3)
-        self.layout.addWidget(self.progress_bar, 6, 0, 1, 3)
-        #self.layout.addWidget(self.processing_information, 7, 0, 3, 1)
-        self.setLayout(self.layout)
-        self.setWindowTitle("Seeker: Lardo Suilla Pervia Faciunt.")
+
+        form_searcher_layout = QtGui.QVBoxLayout()
+        form_searcher_layout.addWidget(self.fsns_label, 0)
+        form_searcher_layout.addWidget(self.fsns_text_edit, 2)
+
+        form_options_layout = QtGui.QVBoxLayout()
+        form_options_layout.addStretch(3)
+        form_options_layout.addWidget(self.type_selector, 0)
+        form_options_layout.addWidget(self.fetch_data_button, 1)
+
+        form_layout = QtGui.QHBoxLayout()
+        form_layout.addLayout(form_searcher_layout, 3)
+        form_layout.addLayout(form_options_layout, 1)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addLayout(form_layout, 0)
+        layout.addWidget(self.output_table, 3)
+        layout.addWidget(self.progress_bar, 0)
+
+        self.setLayout(layout)
+        self.setWindowTitle("Seeker: The FSN Finding Tool")
+        self.setWindowIcon(QtGui.QIcon(os.path.join('Images','PORK_Icon.png')))
         self.show()
 
     def createEvents(self):
         """"""
-        self.mode_combo_box.currentIndexChanged.connect(self.changeMode)
         self.fetch_data_button.clicked.connect(self.fetchData)
         self.peeves.sendProgress.connect(self.displayProgress)
         #self.peeves.sendRow.connect(self.displayFSNs)
@@ -81,22 +64,13 @@ class Seeker(QtGui.QWidget):
     
     def fetchData(self):
         text_edit_contents = str(self.fsns_text_edit.toPlainText()).strip()
-        #print "Got text!"
         if '"' in text_edit_contents:
             text_edit_contents.replace('"',"")
-            #print "Removing quotes"
         if " " in text_edit_contents:
             text_edit_contents.replace(' ', "")
-            #print "Removing spaces"
         search_items = list(set(text_edit_contents.split("\n")))
-        #search_items = ",".join(search_items)
-        #self.fsns_text_edit.setText(search_items)
-        #search_items = str(self.fsns_text_edit.toPlainText()).strip().split(",")
-        self.mode = self.mode_combo_box.currentIndex()
         self.search_type = self.type_selector.currentIndex()
-        #print 'Delegating!'
-        self.peeves.fetchData(search_items, self.mode, self.search_type)
-        #print len(fsns)
+        self.peeves.fetchData(search_items, self.search_type)
 
     def populateTable(self, fsn_data):
         #print "Populating the table!"
@@ -124,7 +98,6 @@ class Seeker(QtGui.QWidget):
         self.output_table.setRowCount(rows)
         self.output_table.setColumnCount(columns)
         row_counter = 0
-
         for each_fsn in fsn_data:
             column_counter = 0
 #            self.output_table.addRow(row_counter)
@@ -149,10 +122,6 @@ class Seeker(QtGui.QWidget):
             self.progress_bar.setFormat("Completed fetching FSN Data")
         self.progress_bar.setValue(int(progress*100))
     
-    def changeMode(self):
-        self.mode = self.mode_combo_box.currentIndex() + 1
-        #print self.mode
-
 if __name__ == "__main__":
     import MOSES
     class SoleSeeker(Seeker):
