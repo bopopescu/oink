@@ -2,6 +2,7 @@ from __future__ import division
 import path
 import os
 import math
+import datetime
 
 import numpy as pd
 import pandas as pd
@@ -20,7 +21,7 @@ class UserManager(QtGui.QMainWindow):
         self.user_id, self.password = user_id, password
         #get the list of users from MOSES.
         self.employees_data = MOSES.getEmployeesList(self.user_id, self.password)
-
+        self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password)
         self.createUI()
         self.mapEvents()
         self.initialize()
@@ -29,9 +30,8 @@ class UserManager(QtGui.QMainWindow):
     def createUI(self):
         self.users_list_label = QtGui.QLabel("Users: ")
         self.users_list_view = QtGui.QListWidget()
-        employees_list = list(set(self.employees_data["Name"]))
-        employees_list.sort()
-        self.users_list_view.addItems(employees_list)
+
+
         
         self.add_employee_button = ImageButton(os.path.join("Images","add.png"),48,48,os.path.join("Images","add_mouseover.png"))
         self.remove_employee_button = ImageButton(os.path.join("Images","remove.png"),48,48,os.path.join("Images","remove_mouseover.png"))
@@ -131,6 +131,18 @@ class UserManager(QtGui.QMainWindow):
 
         self.manager_mapping = CopiableQTableWidget(0,0)
 
+        self.manager_name_label = QtGui.QLabel("Reporting Manager:")
+        self.manager_name_combobox = QtGui.QComboBox()
+        self.manager_effective_date_label = QtGui.QLabel("Revision Date:")
+        self.manager_effective_dateedit = QtGui.QDateEdit()
+        self.manager_effective_dateedit.setDate(datetime.date.today())
+
+        manager_mapping_form = QtGui.QHBoxLayout()
+        manager_mapping_form.addWidget(self.manager_name_label,0)
+        manager_mapping_form.addWidget(self.manager_name_combobox,1)
+        manager_mapping_form.addWidget(self.manager_effective_date_label,0)
+        manager_mapping_form.addWidget(self.manager_effective_dateedit,1)
+
         self.add_new_manager_mapping_row = QtGui.QPushButton("Add New Mapping")
         self.remove_manager_mapping_row = QtGui.QPushButton("Remove Mapping")
         self.save_manager_mapping_table = QtGui.QPushButton("Save Mapping Changes")
@@ -142,6 +154,8 @@ class UserManager(QtGui.QMainWindow):
         manager_mapping_buttons.addWidget(self.save_manager_mapping_table,0)
         manager_mapping_buttons.addStretch(1)
 
+
+
         user_data_form_layout = QtGui.QVBoxLayout()
         user_data_form_layout.addLayout(name_id_row,0)
         user_data_form_layout.addLayout(email_row,0)
@@ -151,7 +165,8 @@ class UserManager(QtGui.QMainWindow):
         user_data_form_layout.addLayout(access_row,0)
         user_data_form_layout.addLayout(form_buttons_layout,0)
         user_data_form_layout.addWidget(self.manager_mapping,1)
-        user_data_form_layout.addLayout(manager_mapping_buttons,1)
+        user_data_form_layout.addLayout(manager_mapping_buttons,0)
+        user_data_form_layout.addLayout(manager_mapping_form,0)
         user_data_form_layout.addWidget(self.progress_bar,0)
         user_data_form_layout.addWidget(self.status_label,0)
 
@@ -174,6 +189,11 @@ class UserManager(QtGui.QMainWindow):
         self.dop_checkbox.toggled.connect(self.toggleDOP)
         self.dol_checkbox.toggled.connect(self.toggleDOL)
         self.reset_password_button.clicked.connect(self.resetPassword)
+        self.manager_mapping.currentCellChanged.connect(self.populateManagerMappingForm)
+
+    def populateManagerMappingForm(self):
+        rows = sorted(set(index.row() for index in self.manager_mapping.selectedIndexes()))
+        print "Row ", rows, " is selected."
 
     def resetPassword(self):
         current_employee_name = str(self.users_list_view.currentItem().text())
@@ -233,6 +253,8 @@ class UserManager(QtGui.QMainWindow):
 
         self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password, employee_data["Employee ID"])
         self.manager_mapping.showDataFrame(self.manager_mapping_data)
+        self.manager_name_combobox.setCurrentIndex(-1)
+
 
 
     def getEmployeeData(self, employee_name):
@@ -262,12 +284,17 @@ class UserManager(QtGui.QMainWindow):
 
 
     def initialize(self):
+        employees_list = list(set(self.employees_data["Name"]))
+        employees_list.sort()
+        self.users_list_view.addItems(employees_list)
+        self.manager_name_combobox.addItems(employees_list)
         roles = list(set(self.employees_data["Role"]))
         roles.sort()
         self.current_role_combobox.addItems(roles)
         self.former_role_combobox.addItems(roles)
         self.toggleDOL()
         self.toggleDOP()
+
 
 
     def populateEmployeesList(self):

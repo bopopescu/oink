@@ -3108,12 +3108,13 @@ def populateStatsInWorkCalendar():
 
 def getManagerMappingTable(user_id, password, query_user=None):
     import pandas as pd
-    if query_user is None:
-        query_user = user_id
     conn = getOINKConnector(user_id, password, 1)
     cursor = conn.cursor()
-    sqlcmdstring = """SELECT * from managermapping WHERE 
-        `Employee ID`="%s";""" %(query_user)
+    if query_user is None:
+        sqlcmdstring = """SELECT * from managermapping;"""
+    else:
+        sqlcmdstring = """SELECT * from managermapping WHERE 
+            `Employee ID`="%s";""" %(query_user)
     cursor.execute(sqlcmdstring)
     manager_data = cursor.fetchall()
     manager_description = cursor.description
