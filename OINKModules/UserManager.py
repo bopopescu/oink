@@ -192,8 +192,15 @@ class UserManager(QtGui.QMainWindow):
         manager = self.manager_mapping_data.loc[row]
         name = manager["Reporting Manager Name"]
         date_ = manager["Revision Date"]
-        self.manager_name_combobox.setCurrentIndex(self.manager_name_combobox.findText(name))
-        self.manager_effective_dateedit.setDate(date_)
+        if name is not None:
+            self.manager_name_combobox.setCurrentIndex(self.manager_name_combobox.findText(name))
+        else:
+            self.manager_name_combobox.setCurrentIndex(-1)
+
+        if date_ is not None:
+            self.manager_effective_dateedit.setDate(date_)
+        else:
+            self.manager_effective_dateedit.setDate(datetime.date.today())
 
 
     def resetPassword(self):
