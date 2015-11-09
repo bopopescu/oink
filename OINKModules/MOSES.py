@@ -3131,6 +3131,44 @@ def getManagerMappingTable(user_id, password, query_user=None):
     return return_this
 
 
+def addUpdateManagerMapping(user_id, password, employee_id, reporting_manager_id, revision_date):
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """INSERT INTO managermapping (`Employee ID`, `Reporting Manager ID`, `Revision Date`) VALUES ("%s","%s","%s");""" %(employee_id, reporting_manager_id, revision_date)
+    try:
+        cursor.execute(sqlcmdstring)
+        conn.commit()
+    except MySQLdb.IntegrityError:
+        sqlcmdstring = """UPDATE `managermapping` set `Reporting Manager ID` = "%s" WHERE `Employee ID`="%s" AND `Revision Date`="%s";""" %(reporting_manager_id, employee_id, revision_date)
+        cursor.execute(sqlcmdstring)
+        conn.commit()
+        
+    sqlcmdstring = """UPDATE managermapping SET `Employee Name` = (
+                    SELECT `Name` from employees WHERE employees.`Employee ID`=managermapping.`Employee ID`);"""
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    sqlcmdstring = """UPDATE managermapping SET `Employee Email ID` = (
+                    SELECT `Email ID` from employees WHERE employees.`Employee ID`=managermapping.`Employee ID`);"""
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    sqlcmdstring = """UPDATE managermapping SET `Reporting Manager Name` = (
+                    SELECT `Name` from employees WHERE employees.`Employee ID`=managermapping.`Reporting Manager ID`);"""
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    sqlcmdstring = """UPDATE managermapping SET `Reporting Manager Email ID` = (
+                    SELECT `Email ID` from employees WHERE employees.`Employee ID`=managermapping.`Reporting Manager ID`);"""
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    conn.close()
+
+def removeFromManagerMapping(user_id, password, employee_id, reporting_manager_id, revision_date):
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """DELETE FROM managermapping WHERE `Employee ID`="%s" AND `Reporting Manager ID`="%s" AND `Revision Date`="%s";""" %(employee_id, reporting_manager_id, revision_date)
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    conn.close()
+
 def getReportingManager(user_id, password,  query_date=None, query_user=None):
     if query_user is None:
         query_user = user_id

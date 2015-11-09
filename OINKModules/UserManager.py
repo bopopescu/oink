@@ -13,6 +13,7 @@ from CopiableQTableWidget import CopiableQTableWidget
 from ImageLabel import ImageLabel
 from ImageButton import ImageButton
 from ProgressBar import ProgressBar
+from FormattedDateEdit import FormattedDateEdit
 import MOSES
 
 class UserManager(QtGui.QMainWindow):
@@ -76,10 +77,10 @@ class UserManager(QtGui.QMainWindow):
         current_role_row.addWidget(self.current_role_combobox,1)
 
         self.doj_label = QtGui.QLabel("Date of Joining:")
-        self.doj_dateedit = QtGui.QDateEdit()
+        self.doj_dateedit = FormattedDateEdit()
         self.dol_checkbox = QtGui.QCheckBox("Last Working Date:")
         self.dol_checkbox.setToolTip("Check to mark the LWD of this employee.\nLeave unchecked if the employee is still in the team.")
-        self.dol_dateedit = QtGui.QDateEdit()
+        self.dol_dateedit = FormattedDateEdit()
         self.doj_dateedit.setCalendarPopup(True)
         self.dol_dateedit.setCalendarPopup(True)
 
@@ -94,7 +95,7 @@ class UserManager(QtGui.QMainWindow):
         self.dop_checkbox = QtGui.QCheckBox("Promoted")
         self.dop_checkbox.setToolTip("Check this to record a promotion and keep details of the former role.")
         self.dop_label = QtGui.QLabel("Date of Promotion:")
-        self.dop_dateedit = QtGui.QDateEdit()
+        self.dop_dateedit = FormattedDateEdit()
         self.dop_dateedit.setCalendarPopup(True)
 
         promotion_row = QtGui.QHBoxLayout()
@@ -134,23 +135,19 @@ class UserManager(QtGui.QMainWindow):
         self.manager_name_label = QtGui.QLabel("Reporting Manager:")
         self.manager_name_combobox = QtGui.QComboBox()
         self.manager_effective_date_label = QtGui.QLabel("Revision Date:")
-        self.manager_effective_dateedit = QtGui.QDateEdit()
+        self.manager_effective_dateedit = FormattedDateEdit()
         self.manager_effective_dateedit.setDate(datetime.date.today())
-        self.add_new_manager_mapping_row = QtGui.QPushButton("Add New Mapping")
-        self.remove_manager_mapping_row = QtGui.QPushButton("Remove Mapping")
-        self.save_manager_mapping_table = QtGui.QPushButton("Save Mapping Changes")
+        self.manager_effective_dateedit.setCalendarPopup(True)
+        self.add_new_manager_mapping_row = QtGui.QPushButton("Add or Update")
+        self.remove_manager_mapping_row = QtGui.QPushButton("Remove")
 
         manager_mapping_form = QtGui.QHBoxLayout()
         manager_mapping_form.addWidget(self.manager_name_label,0)
-        manager_mapping_form.addWidget(self.manager_name_combobox,1)
+        manager_mapping_form.addWidget(self.manager_name_combobox,2)
         manager_mapping_form.addWidget(self.manager_effective_date_label,0)
         manager_mapping_form.addWidget(self.manager_effective_dateedit,1)
-        manager_mapping_form.addWidget(self.add_new_manager_mapping_row,1)
-        manager_mapping_form.addWidget(self.remove_manager_mapping_row,1)
-        manager_mapping_form.addWidget(self.save_manager_mapping_table,1)
-        
-
-
+        manager_mapping_form.addWidget(self.add_new_manager_mapping_row,0)
+        manager_mapping_form.addWidget(self.remove_manager_mapping_row,0)
 
         user_data_form_layout = QtGui.QVBoxLayout()
         user_data_form_layout.addLayout(name_id_row,0)
@@ -186,6 +183,41 @@ class UserManager(QtGui.QMainWindow):
         self.dol_checkbox.toggled.connect(self.toggleDOL)
         self.reset_password_button.clicked.connect(self.resetPassword)
         self.manager_mapping.currentCellChanged.connect(self.populateManagerMappingForm)
+        self.add_new_manager_mapping_row.clicked.connect(self.addUpdateManagerMapping)
+        self.remove_manager_mapping_row.clicked.connect(self.removeManagerMapping)
+
+    def removeManagerMapping(self):
+        failure = True
+        employee_data = self.getEmployeeData(self.getSelectedEmployee())
+        if employee_data is not None:
+            employee_id = employee_data["Employee ID"]
+            reporting_manager_name = str(self.manager_name_combobox.currentText())
+            reporting_manager_data = self.getEmployeeData(reporting_manager_name)
+            if reporting_manager_data is not None:
+                reporting_manager_id = reporting_manager_data["Employee ID"]
+                revision_date = self.manager_effective_dateedit.date().toPyDate()
+                MOSES.removeFromManagerMapping(self.user_id, self.password, employee_id, reporting_manager_id, revision_date)
+                self.changedCurrentEmployee()
+                failure = False
+            else:
+                failure = True
+        else:
+            failure = True
+
+        if failure:
+            self.alertMessage("Failure","Please select a row that you'd like to delete. If you're having problems, select a cell in another row, then select a cell in the row you'd like to delete.")
+        else:
+            self.alertMessage("Success","Successfully removed a row from the Manager Mapping Table with the selected parameters.")
+
+    def addUpdateManagerMapping(self):
+        employee_id = self.getEmployeeData(self.getSelectedEmployee())["Employee ID"]
+        reporting_manager_name = str(self.manager_name_combobox.currentText())
+        reporting_manager_id = self.getEmployeeData(reporting_manager_name)["Employee ID"]
+        revision_date = self.manager_effective_dateedit.date().toPyDate()
+        MOSES.addUpdateManagerMapping(self.user_id, self.password, employee_id, reporting_manager_id, revision_date)
+        self.changedCurrentEmployee()
+        self.alertMessage("Success","Successfully added a row into the Manager Mapping Table with the selected parameters.")
+
 
     def populateManagerMappingForm(self, row=None, column=None):
         rows = sorted(set(index.row() for index in self.manager_mapping.selectedIndexes()))
@@ -201,7 +233,6 @@ class UserManager(QtGui.QMainWindow):
             self.manager_effective_dateedit.setDate(date_)
         else:
             self.manager_effective_dateedit.setDate(datetime.date.today())
-
 
     def resetPassword(self):
         current_employee_name = str(self.users_list_view.currentItem().text())
@@ -228,10 +259,8 @@ class UserManager(QtGui.QMainWindow):
         else:
             self.dol_dateedit.setEnabled(False)
 
-
     def changedCurrentEmployee(self):
-        current_employee_name = str(self.users_list_view.currentItem().text())
-        self.showPage(current_employee_name)
+        self.showPage(self.getSelectedEmployee())
 
     def showPage(self, employee_name):
         employee_data = self.getEmployeeData(employee_name)
@@ -254,40 +283,55 @@ class UserManager(QtGui.QMainWindow):
             self.dop_checkbox.setChecked(True)
             self.dop_dateedit.setDate(employee_data["Date of Promotion"])
             self.former_role_combobox.setCurrentIndex(self.former_role_combobox.findText(employee_data["Former Role"]))
-        self.access_combobox.select(employee_data["Access Level"])
+        self.access_combobox.clearSelection()
+        access_level = employee_data["Access Level"] if "," not in employee_data["Access Level"] else employee_data["Access Level"].split(",")
+        self.access_combobox.select(access_level)
 
         self.toggleDOP()
         self.toggleDOL()
 
         self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password, employee_data["Employee ID"])
         self.manager_mapping.showDataFrame(self.manager_mapping_data)
+        self.manager_mapping.verticalHeader().setStretchLastSection(False)
+        self.manager_mapping.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.manager_mapping.verticalHeader().setVisible(True)
+
+        self.manager_mapping.horizontalHeader().setStretchLastSection(True)
+        self.manager_mapping.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.manager_mapping.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+        self.manager_mapping.horizontalHeader().setVisible(True)
+        self.manager_mapping.horizontalHeader().setStretchLastSection(False)
         self.manager_name_combobox.setCurrentIndex(-1)
 
-
+    def getSelectedEmployee(self):
+        return str(self.users_list_view.currentItem().text())
 
     def getEmployeeData(self, employee_name):
         location_match = self.employees_data["Name"] == employee_name
-        employee_id = list(self.employees_data[location_match]["Employee ID"])[0]
-        employee_name = list(self.employees_data[location_match]["Name"])[0]
-        employee_email_id = list(self.employees_data[location_match]["Email ID"])[0]
-        employee_doj = list(self.employees_data[location_match]["DOJ"])[0]
-        employee_dol = list(self.employees_data[location_match]["DOL"])[0]
-        employee_role = list(self.employees_data[location_match]["Role"])[0]
-        employee_dop = list(self.employees_data[location_match]["Date of Promotion"])[0]
-        employee_former_role = list(self.employees_data[location_match]["Former Role"])[0]
-        employee_oink_access = list(self.employees_data[location_match]["OINK Access Level"])[0]
+        if True in set(location_match):
+            employee_id = list(self.employees_data[location_match]["Employee ID"])[0]
+            employee_name = list(self.employees_data[location_match]["Name"])[0]
+            employee_email_id = list(self.employees_data[location_match]["Email ID"])[0]
+            employee_doj = list(self.employees_data[location_match]["DOJ"])[0]
+            employee_dol = list(self.employees_data[location_match]["DOL"])[0]
+            employee_role = list(self.employees_data[location_match]["Role"])[0]
+            employee_dop = list(self.employees_data[location_match]["Date of Promotion"])[0]
+            employee_former_role = list(self.employees_data[location_match]["Former Role"])[0]
+            employee_oink_access = list(self.employees_data[location_match]["OINK Access Level"])[0]
 
-        data = {
-                "Employee ID": employee_id,
-                "Name": employee_name,
-                "Email ID": employee_email_id,
-                "DOJ": employee_doj,
-                "DOL": employee_dol,
-                "Role": employee_role,
-                "Date of Promotion": employee_dop,
-                "Former Role": employee_former_role,
-                "Access Level": employee_oink_access
-        }
+            data = {
+                    "Employee ID": employee_id,
+                    "Name": employee_name,
+                    "Email ID": employee_email_id,
+                    "DOJ": employee_doj,
+                    "DOL": employee_dol,
+                    "Role": employee_role,
+                    "Date of Promotion": employee_dop,
+                    "Former Role": employee_former_role,
+                    "Access Level": employee_oink_access
+                }
+        else:
+            data = None
         return data
 
 
@@ -302,7 +346,8 @@ class UserManager(QtGui.QMainWindow):
         self.former_role_combobox.addItems(roles)
         self.toggleDOL()
         self.toggleDOP()
-
+        self.manager_name_combobox.setCurrentIndex(-1)
+        self.manager_effective_dateedit.setDate(datetime.date.today())
 
 
     def populateEmployeesList(self):
