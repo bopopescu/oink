@@ -945,7 +945,6 @@ class Pork(QtGui.QMainWindow):
         mode = self.getMode()
         selected_date = self.getActiveDate()
         last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
-        #print "Trying to validateAndSendToPiggy. The last working date is :", last_working_date
 
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), last_working_date]
         if selected_date not in dates_user_is_allowed_to_manipulate:
@@ -974,7 +973,7 @@ class Pork(QtGui.QMainWindow):
                     else:
                         MOSES.addToPiggyBank(fsnData, self.userID, self.password)
                         self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
-                        completion = True                            
+                        completion = True
             elif mode == "Modification":
                 fsnData = self.getFSNDataDict()
                 #print "Trying to modify an entry."

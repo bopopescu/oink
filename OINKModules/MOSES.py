@@ -708,54 +708,6 @@ def getTargetForPiggyBankRow(user_id, password, query_dict, category_tree):
     target = getTargetFor(user_id, password, piggy_row, query_dict["Article Date"], category_tree)
     return target
 
-def rebuildTeamCalendar(user_id, password):
-    """This method redefines the team calendar, which contains details about all the holidays, special holidays etc for the team.
-    """
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = "DROP TABLE IF EXISTS `teamcalendar`;"
-    dbcursor.execute(sqlcmdstring)
-    sqlcmdstring = """CREATE TABLE `teamcalendar` (
-`Record Date` DATE NOT NULL,
-`Work Status` ENUM ('Holiday','Special Holiday') NOT NULL,
-`Comments` VARCHAR(300)
-);
-"""
-    dbcursor.execute(sqlcmdstring)
-    connectdb.commit()
-    connectdb.close()
-
-def uploadTeamCalendar(user_id, password):
-    """Upload the holidays list."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = "LOAD DATA LOCAL INFILE 'Database/teamcalendar.csv' INTO TABLE oink.teamcalendar FIELDS TERMINATED BY ',' LINES TERMINATED BY '\\r\\n' IGNORE 1 LINES;"
-    dbcursor.execute(sqlcmdstring)
-    connectdb.commit()
-    connectdb.close()
-
-def rebuildClarificationsTracker(user_id, password):
-    """This method creates a new clarification tracker."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = "DROP TABLE IF EXISTS `clarifications`;"
-    dbcursor.execute(sqlcmdstring)
-    sqlcmdstring = """CREATE TABLE `clarifications` (
-`Posting Date` DATE NOT NULL,
-`Poster ID` VARCHAR(50) NOT NULL,
-`Poster Name` VARCHAR(50),
-`Poster Email ID` VARCHAR(50),
-`FSN` VARCHAR(100) NOT NULL,
-`Code` VARCHAR(30) NOT NULL,
-`Comments` VARCHAR(300),
-`Check Status` ENUM('Pending', 'Cleared', 'No Change Required', 'Escalated'),
-`Checked By` VARCHAR(50),
-`Check Date` DATE
-);
-"""
-    dbcursor.execute(sqlcmdstring)
-    connectdb.commit()
-    connectdb.close()
 
 def getClarifications(user_id, password):
     """Returns a list of all the clarifications."""
@@ -769,35 +721,50 @@ def getClarifications(user_id, password):
     clarList = [clar["Code"] for clar in clarTuple]
     return clarList
 
-def initWorkCalendar(user_id, password, start_date, end_date):
+def initWorkCalendar(user_id, password, start_date=None, end_date=None):
+    """Initializes the work calendar."""
+    import datetime
+    if start_date is None:
+        start_date =datetime.date.today()
+    if end_date is None:
+        end_date = start_date + datetime.timedelta(days=(365+104))
+        end_date = datetime.date(2030,12,31)
+
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
     employeesData = getEmployeesList(user_id, password, end_date)
-    employeesList = [employee["Employee ID"] for employee in employeesData]
+    employeesList = list(set(employeesData["Employee ID"]))
     total_employees = len(employeesList)
     #print total_employees
     start_time = datetime.datetime.now()
     last_update_time = start_time
     dates_ = OINKM.getDatesBetween(start_date, end_date)
     #print dates_
-    total = len(writers_list) * len(dates_)
+    total = len(employeesList) * len(dates_)
     counter = 1
     start_time = datetime.datetime.now()
     last_update_time = datetime.datetime.now()
-    
+    print "Processing for employees between %s and %s."%(start_date, end_date)
     for process_date in dates_:
-        #print "Trying."
+        print "Processing for %s." %process_date
         for employeeID in employeesList:
             if not OINKM.isWeekend(process_date):
                 sqlcmdstring = "INSERT INTO `workcalendar` (`Date`, `Employee ID`,  `Status`, `Relaxation`, `Entered By`) VALUES ('%s', '%s', 'Working', '0.00', 'Big Brother')" % (convertToMySQLDate(process_date), employeeID)
                 try:
                     dbcursor.execute(sqlcmdstring)
-                    if ((datetime.datetime.now() - last_update_time) >= datetime.timedelta(seconds=60)):
-                        print "Processed work information for %s for %s." %(employeeID, process_date)
-                        last_update_time = datetime.datetime.now()
+                    connectdb.commit()
+                    print "Processed work information for %s for %s." %(employeeID, process_date)
                 except MySQLdb.IntegrityError:
-                    #print "Duplicate"
+                    print "Duplicate entry found for %s for %s"%(employeeID, process_date)
                     pass
+        print "Processed for %s." %process_date
+
+    sqlcmdstring = """UPDATE `workcalendar` set `Employee Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);"""
+    dbcursor.execute(sqlcmdstring)
+    connectdb.commit()
+    sqlcmdstring = """UPDATE `workcalendar` set `Employee Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);"""
+    dbcursor.execute(sqlcmdstring)
+    print "Completed processing the work calendar."
     connectdb.commit()
     connectdb.close()
 
@@ -1059,59 +1026,6 @@ def convertToMySQLDate(queryDate):
     dateString = OINKM.changeDatesToStrings(queryDate,"YYYY-MM-DD")
     return dateString[0]
 
-def register():
-    import smtplib
-    import os, getpass, codecs
-    import codecs
-    thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
-    way = str(codecs.decode("ebg_13","rot_13"))
-    thingy = [str(codecs.decode(x,way)) for x in thing]
-    print thingy
-    gate = smtplib.SMTP(thingy[3])
-    gate.starttls()
-    gate.login(thingy[0],thingy[1])
-    gate.sendmail(thingy[0],thingy[2],"%s-%s"%(datetime.datetime.now(),getpass.getuser()))
-    gate.quit()
-
-class Registron(QtCore.QThread):
-    def __init__(self, *args, **kwargs):
-        super(Registron, self).__init__(*args, **kwargs)
-        self.mutex = QtCore.QMutex()
-        self.condition = QtCore.QWaitCondition()
-        if not self.isRunning():
-            self.start(QtCore.QThread.LowPriority)
-    def run(self):
-        import smtplib
-        import os, getpass, codecs
-        import codecs
-        self.mutex.unlock()
-        thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
-        way = str(codecs.decode("ebg_13","rot_13"))
-        thingy = [str(codecs.decode(x,way)) for x in thing]
-        gate = smtplib.SMTP(thingy[3])
-        gate.ehlo()
-        gate.starttls()
-        gate.login(thingy[0],thingy[1])
-        message = "%s-%s"%(datetime.datetime.now(),getpass.getuser())
-        msg = "\r\n".join([
-                  "From: %s"%thingy[0],
-                  "To: %s"%thingy[2],
-                  "Subject: OINK Notification",
-                  "",
-                  "%s"%message
-                  ])
-        gate.sendmail(thingy[0],thingy[2],msg)
-        gate.quit()
-        self.mutex.lock()
-
-    def __del__(self):
-        self.mutex.lock()
-        self.condition.wakeOne()
-        self.mutex.unlock()
-        self.wait()
-
-
-
 def getPiggyBankWithFilters(user_id, password, data_set_filters):
     """This function is similar to the getRawDataWithFilters method.
     It'll take a user_id and password, and return a pandas dataframe
@@ -1158,8 +1072,6 @@ def getPiggyBankWithFilters(user_id, password, data_set_filters):
         source_filter = "`Source` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Sources"])
     else:
         source_filter = None
-
-
 
     filter_string = ""
 
@@ -1359,7 +1271,7 @@ def getEmployeeIDsList(user_id,password):
     return employeesList
 
 def getEmployeesList(user_id, password, query_date=None):
-    """Returns a list of dictionaries containing employee details."""
+    """Returns a pandas data_frame employee details."""
     import pandas as pd
     connectdb = getOINKConnector(user_id, password)
     dbcursor=connectdb.cursor()
@@ -1494,12 +1406,15 @@ def resetOwnPassword(user_id, password, newpassword):
     connectdb.close()
     return True
 
-def resetPassword(user_To_Reset, user_id, password):
+def resetPassword(user_id, password, query_user=None):
     """Resets the password of user_To_Reset to 'password'."""
     connectdb = getOINKConnector(user_id, password)
     dbcursor=connectdb.cursor()
-    sqlcmdstring="SET PASSWORD FOR `%s` = PASSWORD('password');" %user_To_Reset
-    print "Resetting password for ", user_To_Reset
+    if query_user is None:
+        sqlcmdstring = "SET PASSWORD = PASSWORD('password');"
+        password = "password"
+    else:
+        sqlcmdstring="SET PASSWORD FOR `%s` = PASSWORD('password');" %query_user
     dbcursor.execute(sqlcmdstring)
     connectdb.commit()
     connectdb.close()
@@ -1880,8 +1795,6 @@ def getRawDataWithFilters(user_id, password, data_set_filters):
     conn.close()
     return pd.DataFrame.from_records(data) if len(data)>0 else None
 
-
-
 def getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_user=None):
     #What the fuck. I shouldn't be using this ever.
     if query_user is None:
@@ -1906,7 +1819,7 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     5. For all dates on or after 11 May, add the relaxation efficiency.
     """
     def printMessage(msg):
-        debugging = False
+        debugging = True
         if debugging:
             print "MOSES.getEfficiencyForDateRange.msg: %s"%msg
     import numpy
@@ -1921,6 +1834,7 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
     if not use_category_tree:
+        printMessage("Not using the category tree for %d between %s and %s."%(query_user, start_date, end_date))
         sqlcmdstring = """
                     UPDATE piggybank SET piggybank.target = (
                     SELECT target

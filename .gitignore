@@ -11,6 +11,7 @@ thumbs.db
 *.so
 build/
 dist/
+balsamiq/
 
 # Distribution / packaging
 .Python
@@ -73,3 +74,4 @@ OINKModules/Archive/
 *.xlsx
 *.csv
 *.html
+*.spec

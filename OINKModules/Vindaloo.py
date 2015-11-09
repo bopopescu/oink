@@ -20,12 +20,13 @@ from DailyPorker import DailyPorker
 from OINKMethods import version
 from Seeker import Seeker
 from Graphite import Graphite
-from StyCleaner import StyCleaner
+#from StyCleaner import StyCleaner
 from FarmHand import FarmHand
 from PiggyBankWithFilter import PiggyBankWithFilter
 from SwineHerd import SwineHerd
 from ImageButton import ImageButton
 from TNAViewer import TNAViewer
+from UserManager import UserManager
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -46,7 +47,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.daily_porker_button.setToolTip("Click here to pull the report.")
         self.daily_porker_button.setFlat(True)
         
-        self.seeker_button = ImageButton(os.path.join("Images","seeker.png"),width, height,os.path.join("Images","seeker_mouseover.png"))
+        self.seeker_button = ImageButton(os.path.join("Images","find.png"),width, height,os.path.join("Images","find_mouseover.png"))
         self.seeker_button.setToolTip("Click here to search for an FSN or ItemID in the PiggyBank and FSN Dump.")
         self.seeker_button.setFlat(True)
 
@@ -184,6 +185,8 @@ class Vindaloo(QtGui.QMainWindow):
     
     def openUserManagement(self):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+        self.user_manager = UserManager(self.user_id, self.password)
+        self.user_manager.show()
 
     def openPiggyBank(self):
         self.piggy_bank = PiggyBankWithFilter(self.user_id, self.password, self.category_tree)
@@ -198,9 +201,9 @@ class Vindaloo(QtGui.QMainWindow):
         self.farm_hand.show()
     
     def openStyCleaner(self):
-        #self.alertMessage("StyCleaner", "We clean the shiz.")
-        self.sty_cleaner = StyCleaner()
-        self.sty_cleaner.show()
+        self.alertMessage("StyCleaner", "Sty Cleaner has been disabled. Contact admin, or use the Source")
+        #self.sty_cleaner = ()
+        #self.sty_cleaner.show()
     
     def openSwineHerd(self):
         self.swine = SwineHerd()

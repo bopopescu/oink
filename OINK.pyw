@@ -15,12 +15,14 @@ from OINKModules import MOSES
 
 def main():
     try:
-        registron = MOSES.Registron()
+        pass
+        #registron = MOSES.Registron()
     except Exception, e:
         pass
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))
     #Check if the program is already active or if it wasn't closed properly.
+    
     try:
         login_details = login()
         if login_details is not None:
