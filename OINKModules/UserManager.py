@@ -136,23 +136,19 @@ class UserManager(QtGui.QMainWindow):
         self.manager_effective_date_label = QtGui.QLabel("Revision Date:")
         self.manager_effective_dateedit = QtGui.QDateEdit()
         self.manager_effective_dateedit.setDate(datetime.date.today())
+        self.add_new_manager_mapping_row = QtGui.QPushButton("Add New Mapping")
+        self.remove_manager_mapping_row = QtGui.QPushButton("Remove Mapping")
+        self.save_manager_mapping_table = QtGui.QPushButton("Save Mapping Changes")
 
         manager_mapping_form = QtGui.QHBoxLayout()
         manager_mapping_form.addWidget(self.manager_name_label,0)
         manager_mapping_form.addWidget(self.manager_name_combobox,1)
         manager_mapping_form.addWidget(self.manager_effective_date_label,0)
         manager_mapping_form.addWidget(self.manager_effective_dateedit,1)
-
-        self.add_new_manager_mapping_row = QtGui.QPushButton("Add New Mapping")
-        self.remove_manager_mapping_row = QtGui.QPushButton("Remove Mapping")
-        self.save_manager_mapping_table = QtGui.QPushButton("Save Mapping Changes")
-
-        manager_mapping_buttons = QtGui.QHBoxLayout()
-        manager_mapping_buttons.addStretch(1)
-        manager_mapping_buttons.addWidget(self.add_new_manager_mapping_row,0)
-        manager_mapping_buttons.addWidget(self.remove_manager_mapping_row,0)
-        manager_mapping_buttons.addWidget(self.save_manager_mapping_table,0)
-        manager_mapping_buttons.addStretch(1)
+        manager_mapping_form.addWidget(self.add_new_manager_mapping_row,1)
+        manager_mapping_form.addWidget(self.remove_manager_mapping_row,1)
+        manager_mapping_form.addWidget(self.save_manager_mapping_table,1)
+        
 
 
 
@@ -165,8 +161,8 @@ class UserManager(QtGui.QMainWindow):
         user_data_form_layout.addLayout(access_row,0)
         user_data_form_layout.addLayout(form_buttons_layout,0)
         user_data_form_layout.addWidget(self.manager_mapping,1)
-        user_data_form_layout.addLayout(manager_mapping_buttons,0)
         user_data_form_layout.addLayout(manager_mapping_form,0)
+        user_data_form_layout.addStretch(1)
         user_data_form_layout.addWidget(self.progress_bar,0)
         user_data_form_layout.addWidget(self.status_label,0)
 
@@ -182,7 +178,7 @@ class UserManager(QtGui.QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.setWindowTitle("OINK User Manager")
         self.setWindowIcon(QtGui.QIcon(os.path.join('Images','PORK_Icon.png')))
-        self.show()        
+        self.show()
 
     def mapEvents(self):
         self.users_list_view.itemSelectionChanged.connect(self.changedCurrentEmployee)
@@ -191,9 +187,14 @@ class UserManager(QtGui.QMainWindow):
         self.reset_password_button.clicked.connect(self.resetPassword)
         self.manager_mapping.currentCellChanged.connect(self.populateManagerMappingForm)
 
-    def populateManagerMappingForm(self):
+    def populateManagerMappingForm(self, row=None, column=None):
         rows = sorted(set(index.row() for index in self.manager_mapping.selectedIndexes()))
-        print "Row ", rows, " is selected."
+        manager = self.manager_mapping_data.loc[row]
+        name = manager["Reporting Manager Name"]
+        date_ = manager["Revision Date"]
+        self.manager_name_combobox.setCurrentIndex(self.manager_name_combobox.findText(name))
+        self.manager_effective_dateedit.setDate(date_)
+
 
     def resetPassword(self):
         current_employee_name = str(self.users_list_view.currentItem().text())
