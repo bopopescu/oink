@@ -151,7 +151,7 @@ class UserManager(QtGui.QMainWindow):
         user_data_form_layout.addLayout(access_row,0)
         user_data_form_layout.addLayout(form_buttons_layout,0)
         user_data_form_layout.addWidget(self.manager_mapping,1)
-        user_data_form_layout.addWidget(manager_mapping_buttons,1)
+        user_data_form_layout.addLayout(manager_mapping_buttons,1)
         user_data_form_layout.addWidget(self.progress_bar,0)
         user_data_form_layout.addWidget(self.status_label,0)
 
@@ -230,8 +230,10 @@ class UserManager(QtGui.QMainWindow):
 
         self.toggleDOP()
         self.toggleDOL()
+
         self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password, employee_data["Employee ID"])
         self.manager_mapping.showDataFrame(self.manager_mapping_data)
+
 
     def getEmployeeData(self, employee_name):
         location_match = self.employees_data["Name"] == employee_name

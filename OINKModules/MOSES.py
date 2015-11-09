@@ -2305,112 +2305,6 @@ def getCFMGSEOForHalfYear(user_id, password, query_date, query_user=None):
     half_year_start_date = getHalfYearStartDate(query_date)
     return getCFMGSEOBetweenDates(user_id, password, half_year_start_date, query_date, query_user)
 
-
-def getDescriptionTypes(user_id, password):
-    """Returns a list containing the entire list of values for Description Type."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    sqlcmdstring = "SELECT `Description Type` FROM `categorytree`;"""
-    dbcursor.execute(sqlcmdstring)
-    DTypeTuple = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
-    #print len(BUTuple)
-    #print BUList #Debug
-    DTypeList=[DType["Description Type"] for DType in DTypeTuple]
-#   BUList = [BU for BU in BUTuple]
-    DTypeList= list(set(DTypeList))
-    DTypeList.sort()
-    return DTypeList
-
-def getSources(user_id, password):
-    """Returns a list containing the entire list of values for BU."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    sqlcmdstring = "SELECT `Source` FROM `categorytree`;"""
-    dbcursor.execute(sqlcmdstring)
-    SourceTuple = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
-    #print len(BUTuple)
-    #print BUList #Debug
-    SourceList = [Source["Source"] for Source in SourceTuple]
-#   BUList = [BU for BU in BUTuple]
-    SourceList= list(set(SourceList))
-    SourceList.sort()
-    return SourceList
-
-def getBUValues(user_id, password):
-    """Returns a list containing the entire list of values for BU."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    sqlcmdstring = "SELECT `BU` FROM `categorytree`;"""
-    dbcursor.execute(sqlcmdstring)
-    BUTuple = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
-    #print len(BUTuple)
-    #print BUList #Debug
-    BUList=[BU["BU"] for BU in BUTuple]
-#   BUList = [BU for BU in BUTuple]
-    BUList= list(set(BUList))
-    BUList.sort()
-    return BUList
-
-def getSuperCategoryValues(user_id,password,BU=None):
-    """Returns a list containing the appropriate list of values for Super-Category."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    if BU != None:
-        sqlcmdstring = "SELECT `Super-Category` FROM `categorytree` WHERE `BU`= '%s';""" % BU
-    else:
-        sqlcmdstring = "SELECT `Super-Category` FROM `categorytree`;"""
-    dbcursor.execute(sqlcmdstring)
-    SupCTuple = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
-    #print SupCTuple #Debug
-    SupCList = [SC["Super-Category"] for SC in SupCTuple]
-    SupCList = list(set(SupCList))
-    SupCList.sort()
-    return SupCList
-
-def getCategoryValues(user_id, password, SupC=None):
-    """Returns a list containing the appropriate list of values for Category."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    if SupC != None:
-        sqlcmdstring = "SELECT `Category` FROM `categorytree` WHERE `Super-Category`= '%s';""" % SupC
-    else:
-        sqlcmdstring = "SELECT `Category` FROM `categorytree`;"""
-    dbcursor.execute(sqlcmdstring)
-    CTuple = dbcursor.fetchall()
-    #print CTuple #debug
-    connectdb.commit()
-    connectdb.close()
-    CList = [Cat["Category"] for Cat in CTuple]
-    CList = list(set(CList))
-    CList.sort()
-    return CList
-
-def getSubCategoryValues(user_id, password, Cat=None):
-    """Returns a list containing the appropriate list of values for Sub-Category."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    if Cat != None:
-        sqlcmdstring = "SELECT `Sub-Category` FROM `categorytree` WHERE `Category`= '%s';""" % Cat
-    else:
-        sqlcmdstring = "SELECT `Sub-Category` FROM `categorytree`;"""
-    dbcursor.execute(sqlcmdstring)
-    SubCTuple = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
-    #print SubCTuple #debug
-    SubCList = [SC["Sub-Category"] for SC in SubCTuple]
-    SubCList = list(set(SubCList))
-    SubCList.sort()
-    return SubCList
-
 def getBrandValues(user_id, password):
     """Returns a list containing the appropriate list of values for Sub-Category."""
     connectdb = getOINKConnector(user_id, password)
@@ -2502,24 +2396,6 @@ def checkDuplicacy(FSN, articleType, articleDate):
     connectdb.commit()
     connectdb.close()   
     return wasWrittenBefore
-
-def getVerticalValues(user_id, password, SubC=None):
-    """Returns a list containing the appropriate list of values for Verticals."""
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor=connectdb.cursor()
-    if SubC != None:
-        sqlcmdstring = "SELECT `Vertical` FROM `categorytree` WHERE `Sub-Category`= '%s';""" % SubC
-    else:
-        sqlcmdstring = "SELECT `Vertical` FROM `categorytree`;"""
-    dbcursor.execute(sqlcmdstring)
-    VertTuple = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
-    #print VertTuple #debug
-    VertList=[Vert["Vertical"] for Vert in VertTuple]
-    VertList=list(set(VertList))
-    VertList.sort()
-    return VertList
 
 def modWorkingStatus(user_id, password, querydate, status, relaxation, comment, approval = "\\N",rejectionComment = "\\N", targetuser = None):
     """Method to modify the working status/relaxation of an employee.
@@ -3234,14 +3110,24 @@ def getManagerMappingTable(user_id, password, query_user=None):
     import pandas as pd
     if query_user is None:
         query_user = user_id
-    conn = getOINKConnector(user_id, password)
+    conn = getOINKConnector(user_id, password, 1)
     cursor = conn.cursor()
     sqlcmdstring = """SELECT * from managermapping WHERE 
         `Employee ID`="%s";""" %(query_user)
     cursor.execute(sqlcmdstring)
     manager_data = cursor.fetchall()
+    manager_description = cursor.description
+    manager_columns = [x[0] for x in manager_description]
     conn.close()
-    return pd.DataFrame.from_records(manager_data).drop_duplicates()
+    if len(manager_data)>0:
+        ordered_data = []
+        ordered_data.append
+        data_as_list = [list(row) for row in manager_data]
+        ordered_data.extend(data_as_list)
+        return_this = pd.DataFrame(ordered_data, columns=manager_columns)
+    else:
+        return_this = None
+    return return_this
 
 
 def getReportingManager(user_id, password,  query_date=None, query_user=None):
