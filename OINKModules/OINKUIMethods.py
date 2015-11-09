@@ -10,7 +10,6 @@ from datetime import datetime
 
 from PyQt4 import QtCore, QtGui, Qt
 from PassResetDialog import PassResetDialog
-from LogInDialog import LogInDialog
 from FilterBox import FilterBox
 
 import OINKMethods as OINKM
@@ -21,7 +20,6 @@ def showSplashScreen(app, user_role, prank = False):
         
         userDict = {"Content Writer": 'Images\PORK.png', "Copy Editor": 'Images\Vindaloo.png', "Team Lead": 'Images\Vindaloo.png', "Product Specialist": 'Images\Vindaloo.png', "Manager":'Images\Vindaloo.png', "Assistant Manager": 'Images\Vindaloo.png',  "Big Brother": "Images\VINDALOO.png"}
         image = userDict[user_role]
-        
         #image = "Images\OINK.png"
         splash_pix = QtGui.QPixmap(image)
         splash = QtGui.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
@@ -72,14 +70,13 @@ def detectFileOpen():
 
 def login():
     """Opens a login dialog and returns the username and password."""
+    from LogInDialog import LogInDialog
     userID = 0
     password = 0
     success = False
     loginPrompt = LogInDialog()
     if loginPrompt.exec_():
-        #print "woot!"
         userID, password2 = loginPrompt.getUserDetails()
-        #print "%s, %s" %(userID,password2)
         return userID, password2
     else:
         return None

@@ -22,12 +22,15 @@ def main():
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))
     #Check if the program is already active or if it wasn't closed properly.
-    
+
     try:
         login_details = login()
         if login_details is not None:
             userID, password = login_details[0], login_details[1] 
             if password == "password":
+                tempWidget = QtGui.QWidget()
+                tempWidget.setAttribute(QtCore.Qt.WA_QuitOnClose)
+                QtGui.QMessageBox.about(tempWidget,"Please Change Your Password","Your TL appears to have reset your password. Please change it.")
                 password = passwordResetter(userID, password)
             user_role = MOSES.getUserRole(userID, password)
             userDict = {

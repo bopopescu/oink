@@ -5,7 +5,7 @@ from PyQt4 import QtGui, QtCore
 from Peeves import Peeves
 from ProgressBar import ProgressBar
 from CopiableQTableWidget import CopiableQTableWidget
-
+from ImageButton import ImageButton
 class Seeker(QtGui.QWidget):
     """Seeker class to find FSNs or Item_IDs 
     and filter out those which have not been written before.
@@ -30,8 +30,8 @@ class Seeker(QtGui.QWidget):
         self.type_selector.setCurrentIndex(0)
         self.output_table = CopiableQTableWidget(0, 0)
         self.progress_bar = ProgressBar()
-        self.fetch_data_button = QtGui.QPushButton("Fetch Data")
-
+        self.fetch_data_button = ImageButton(os.path.join("Images","find.png"),64,64,os.path.join("Images","find_mouseover.png"))
+        self.fetch_data_button.setFlat(True)
         form_searcher_layout = QtGui.QVBoxLayout()
         form_searcher_layout.addWidget(self.fsns_label, 0)
         form_searcher_layout.addWidget(self.fsns_text_edit, 2)
@@ -39,11 +39,11 @@ class Seeker(QtGui.QWidget):
         form_options_layout = QtGui.QVBoxLayout()
         form_options_layout.addStretch(3)
         form_options_layout.addWidget(self.type_selector, 0)
-        form_options_layout.addWidget(self.fetch_data_button, 1)
+        form_options_layout.addWidget(self.fetch_data_button, 0, QtCore.Qt.AlignHCenter | QtCore.Qt.AlignBottom)
 
         form_layout = QtGui.QHBoxLayout()
         form_layout.addLayout(form_searcher_layout, 3)
-        form_layout.addLayout(form_options_layout, 1)
+        form_layout.addLayout(form_options_layout, 0)
 
         layout = QtGui.QVBoxLayout()
         layout.addLayout(form_layout, 0)

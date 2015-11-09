@@ -154,10 +154,15 @@ class LogInDialog(QtGui.QDialog):
             if self.validateUserID():
                 super(LogInDialog,self).accept()
             else:
-                self.warningMessage = QtGui.QWidget()
-                self.warningMessage.say = QtGui.QMessageBox.question(\
-                    self.warningMessage,"Login failure",\
-                    "The password and user ID do not match: thou shall not pass!",QtGui.QMessageBox.Ok,QtGui.QMessageBox.Ok)
+                userID, password = self.getUserDetails()
+                if password != "password":
+                    self.passwordLineEdit.setText("password")
+                    self.submit()
+                else:
+                    self.warningMessage = QtGui.QWidget()
+                    self.warningMessage.say = QtGui.QMessageBox.question(\
+                        self.warningMessage,"Login failure",\
+                        "The password and user ID do not match: thou shall not pass!",QtGui.QMessageBox.Ok,QtGui.QMessageBox.Ok)
         else:
             self.warningmessage = QtGui.QWidget()
-            self.warningmessage.say = QtGui.QMessageBox.question(self.warningmessage, "Error with host ID!", "The host seems to be unreachable. Please contact Admin.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+            self.warningmessage.say = QtGui.QMessageBox.question(self.warningmessage, "Error with host ID!", "The host seems to be unreachable. This could happen for one of several reasons:\n\t1. Your computer may be having some network issues. If you're using a Laptop, check if you're connected to fknet on the same network as the server.\n\t2.If you're using a desktop, please check your LAN cable.\n\t3. The server might be off. Ask your TL or Manager to boot it up.\n\t4. The IP Address of the server might have changed. This is possible from time to time. Ask your TL or Manager to give you the latest IP.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
