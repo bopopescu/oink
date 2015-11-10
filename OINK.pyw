@@ -24,7 +24,8 @@ from OINKModules import MOSES
 
 def main():
     try:
-        registron = MOSES.Registron()
+        from OINKModules import Registron
+        registron = Registron()
         pass
     except Exception, e:
         pass
