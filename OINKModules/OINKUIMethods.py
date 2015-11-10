@@ -18,9 +18,19 @@ import MOSES
 def showSplashScreen(app, user_role, prank = False):
         # Create and display the splash screen
         
-        userDict = {"Content Writer": 'Images\PORK.png', "Copy Editor": 'Images\Vindaloo.png', "Team Lead": 'Images\Vindaloo.png', "Product Specialist": 'Images\Vindaloo.png', "Manager":'Images\Vindaloo.png', "Assistant Manager": 'Images\Vindaloo.png',  "Big Brother": "Images\VINDALOO.png"}
-        image = userDict[user_role]
-        #image = "Images\OINK.png"
+        image_dict = {
+                        "Content Writer": 'PORK.png', 
+                        "Copy Editor": 'Vindaloo.png', 
+                        "Team Lead": 'Vindaloo.png', 
+                        "Product Specialist": 'Vindaloo.png', 
+                        "Manager":'Vindaloo.png', 
+                        "Assistant Manager": 'Vindaloo.png'
+                    }
+                    
+        if user_role in image_dict.keys():
+            image = os.path.join("Images",image_dict[user_role])
+        else:
+            image = os.path.join("Images","OINK.png")
         splash_pix = QtGui.QPixmap(image)
         splash = QtGui.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
         #splash.showMessage("OINK: In Pigs We Trust")
