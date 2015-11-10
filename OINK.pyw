@@ -6,7 +6,16 @@ import time
 import ctypes
 
 from PyQt4 import QtGui, QtCore
-
+#Pyinstaller troubleshooting imports.
+import pandas
+import matplotlib
+import PIL
+import pygame
+import os
+import six
+import Tkinter
+import FixTk
+#essentials.
 from OINKModules.Pork import Pork
 from OINKModules.Vindaloo import Vindaloo
 from OINKModules.Bacon import Bacon
@@ -15,8 +24,8 @@ from OINKModules import MOSES
 
 def main():
     try:
+        registron = MOSES.Registron()
         pass
-        #registron = MOSES.Registron()
     except Exception, e:
         pass
     app = QtGui.QApplication(sys.argv)
