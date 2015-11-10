@@ -58,9 +58,11 @@ class CheckableComboBox(QtGui.QComboBox):
     def addItems(self,items_list):
         base_index = self.__len__()
         for item_index in range(len(items_list)):
-            self.addItem(items_list[item_index])
-            item = self.model().item(item_index+base_index, 0)
-            item.setCheckState(QtCore.Qt.Unchecked)
+            item_object = items_list[item_index]
+            if item_object is not None:
+                self.addItem(items_list[item_index])
+                item = self.model().item(item_index+base_index, 0)
+                item.setCheckState(QtCore.Qt.Unchecked)
         self.reset()
 
     def select(self, query):

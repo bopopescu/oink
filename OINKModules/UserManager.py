@@ -32,11 +32,24 @@ class UserManager(QtGui.QMainWindow):
         self.users_list_label = QtGui.QLabel("Users: ")
         self.users_list_view = QtGui.QListWidget()
 
-
-        
-        self.add_employee_button = ImageButton(os.path.join("Images","add.png"),48,48,os.path.join("Images","add_mouseover.png"))
-        self.remove_employee_button = ImageButton(os.path.join("Images","remove.png"),48,48,os.path.join("Images","remove_mouseover.png"))
-        self.edit_employee_button = ImageButton(os.path.join("Images","modify.png"),48,48,os.path.join("Images","modify_mouseover.png"))
+        self.add_employee_button = ImageButton(
+                                        os.path.join("Images","add.png"),
+                                            48,
+                                            48,
+                                            os.path.join("Images","add_mouseover.png")
+                                        )
+        self.remove_employee_button = ImageButton(
+                                            os.path.join("Images","remove.png"),
+                                            48,
+                                            48,
+                                            os.path.join("Images","remove_mouseover.png")
+                                        )
+        self.edit_employee_button = ImageButton(
+                                            os.path.join("Images","modify.png"),
+                                            48,
+                                            48,
+                                            os.path.join("Images","modify_mouseover.png")
+                                        )
         
         self.add_employee_button.setFlat(True)
         self.remove_employee_button.setFlat(True)
@@ -117,7 +130,6 @@ class UserManager(QtGui.QMainWindow):
         self.init_work_calendar_button = QtGui.QPushButton("Initialize Calendar")
         self.save_button = QtGui.QPushButton("Save")
         self.reset_button = QtGui.QPushButton("Revert")
-
 
         form_buttons_layout = QtGui.QHBoxLayout()
         form_buttons_layout.addStretch(2)
