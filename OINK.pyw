@@ -34,23 +34,28 @@ def main():
                 password = passwordResetter(userID, password)
             user_role = MOSES.getUserRole(userID, password)
             userDict = {
-                "Content Writer": Pork, 
                 "Copy Editor": Vindaloo, 
-                "Team Lead": Vindaloo, 
+                "Team Lead": Vindaloo,
                 "Big Brother": Vindaloo,
                 "Product Specialist": Vindaloo,
                 "Manager": Vindaloo, 
                 "Assistant Manager": Vindaloo,
-                "Programmer": Pork
+                "Admin": Pork,
+                "Content Writer": Pork
                 }
             
             #print "Ok, %s mode" % user_role
-            splash = showSplashScreen(app, user_role)
-            window = userDict[user_role](userID, password)
-            window.setAttribute(QtCore.Qt.WA_QuitOnClose)
-            app.installEventFilter(window)
-            QtGui.QApplication.processEvents()
-            splash.finish(window)
+            if user_role not in userDict.keys():
+                tempWidget = QtGui.QWidget()
+                tempWidget.setAttribute(QtCore.Qt.WA_QuitOnClose)
+                QtGui.QMessageBox.about(tempWidget,"Unauthorized User","This version of OINK is not coded for use by a %s. If you encounter this message, you're probably trying to use the compiled version of OINK that doesn't need Python. That version was developed for use by writers because it's easier to set up. If you'd like to use the source version instead, follow the initial setup chapter in the documentation."%user_role)
+            else:
+                splash = showSplashScreen(app, user_role)
+                window = userDict[user_role](userID, password)
+                window.setAttribute(QtCore.Qt.WA_QuitOnClose)
+                app.installEventFilter(window)
+                QtGui.QApplication.processEvents()
+                splash.finish(window)
         else:
             tempWidget = QtGui.QWidget()
             tempWidget.setAttribute(QtCore.Qt.WA_QuitOnClose)
