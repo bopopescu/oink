@@ -1,0 +1,1 @@
+pyinstaller --noconsole --icon="Images\PORK_Icon.ico" --hidden-import="FixTk" .\OINK.pyw
