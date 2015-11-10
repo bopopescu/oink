@@ -866,23 +866,41 @@ def updatePiggyBankEntry(entry_dict, user_id, password):
     """Method to update the values in an entry in the piggybank. This cross-checks the FSN with the date. 
     possible bugs: 1. It will not allow updation of date, writerID or FSN.
     """
+    def getSQLCmdString(query_dict):
+        return """UPDATE `piggybank` SET `Source` = '%(Source)s', 
+            `Description Type` = '%(Description Type)s', `BU` = '%(BU)s', `Super-Category` = '%(Super-Category)s', 
+            `Category` = '%(Category)s', `Sub-Category` = '%(Sub-Category)s', `Vertical` = '%(Vertical)s', 
+            `Brand` = '%(Brand)s', `Word Count` = '%(Word Count)s', `Upload Link` = '%(Upload Link)s', 
+            `Reference Link` = '%(Reference Link)s', `Rewrite Ticket` = '%(Rewrite Ticket)s'
+            WHERE `FSN` = '%(FSN)s' AND `Article Date` = '%(Article Date)s' 
+            AND `WriterID` = '%(WriterID)s';""" % query_dict
+
+    success = False
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
-    sqlcmdstring = """UPDATE `piggybank` SET `Source` = '%(Source)s', 
-`Description Type` = '%(Description Type)s', `BU` = '%(BU)s', `Super-Category` = '%(Super-Category)s', 
-`Category` = '%(Category)s', `Sub-Category` = '%(Sub-Category)s', `Vertical` = '%(Vertical)s', 
-`Brand` = '%(Brand)s', `Word Count` = '%(Word Count)s', `Upload Link` = '%(Upload Link)s', 
-`Reference Link` = '%(Reference Link)s', `Rewrite Ticket` = '%(Rewrite Ticket)s'
-WHERE `FSN` = '%(FSN)s' AND `Article Date` = '%(Article Date)s' 
-AND `WriterID` = '%(WriterID)s';""" % entry_dict
+    sqlcmdstring = getSQLCmdString(entry_dict)
     try:
         dbcursor.execute(sqlcmdstring)
+        connectdb.commit()
+        connectdb.close()
+        success = True
+    except MySQLdb.IntegrityError:
+        connectdb.close()
+        if "SEO" in entry_dict["Description Type"]:
+            #print "Recursively calling updatePiggyBankEntry..."
+            #print "Rewrite Ticket was: %d"%entry_dict["Rewrite Ticket"]
+            entry_dict["Rewrite Ticket"] += 1
+            #print "Rewrite Ticket changed to: %d"%entry_dict["Rewrite Ticket"]
+            success = updatePiggyBankEntry(entry_dict, user_id, password)
+        else:
+            success = False
     except Exception, e:
-        print "Unknown error while trying to upload piggybank."
-        print "The command string is:\n%s" % sqlcmdstring
-        print "The error is: ", repr(e)
-    connectdb.commit()
-    connectdb.close()
+        connectdb.close()
+        print "MOSES.updatePiggyBankEntry failed."
+        print repr(e)
+        print sqlcmdstring
+        pass
+    return success
 
 def addToPiggyBank(piggyBankDict, user_id, password):
     """Method to send a single entry to Piggy Bank from a

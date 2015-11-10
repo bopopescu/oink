@@ -973,10 +973,14 @@ class Pork(QtGui.QMainWindow):
             elif mode == "Modification":
                 fsnData = self.getFSNDataDict()
                 #print "Trying to modify an entry."
-                MOSES.updatePiggyBankEntry(fsnData, self.userID, self.password, )
-                self.alertMessage("Success", "Successfully modified an entry in the Piggy Bank.")
+                success = MOSES.updatePiggyBankEntry(fsnData, self.userID, self.password)
+                if success:
+                    self.alertMessage("Success", "Successfully modified an entry in the Piggy Bank.")
+                    completion = True
+                else:
+                    self.alertMessage("Failure", "Sorry, that entry cannot be modified. That could be because if you make that change, this entry will conflict with another in the piggybank. Ask your TL to make the change herself.")
+                    completion = False
                 #print "Modified!"
-                completion = True
             if completion:
                 self.resetForm()
                 self.piggybanker_thread.getPiggyBank()
