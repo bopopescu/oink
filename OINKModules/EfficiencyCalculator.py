@@ -153,8 +153,8 @@ class calculatorRow:
    
     def populateTypeSource(self):
         """Calculator Row"""
-        self.types = MOSES.getDescriptionTypes(self.userID,self.password)
-        self.sources = MOSES.getSources(self.userID,self.password)
+        self.types = sorted(set(self.category_tree["Description Type"]))
+        self.sources = sorted(set(self.category_tree["Source"]))
         self.calcWidgets["Description Type"].clear()
         self.calcWidgets["Description Type"].addItems(self.types)
         self.calcWidgets["Source"].clear()
