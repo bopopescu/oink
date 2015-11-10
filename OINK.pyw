@@ -24,10 +24,11 @@ from OINKModules import MOSES
 
 def main():
     try:
-        from OINKModules import Registron
+        from OINKModules.Registron import Registron
         registron = Registron()
         pass
     except Exception, e:
+        print repr(e)
         pass
     app = QtGui.QApplication(sys.argv)
     QtGui.qApp.setStyle(QtCore.QString(u'Plastique'))
