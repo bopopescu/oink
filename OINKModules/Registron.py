@@ -70,12 +70,13 @@ def sendFile(to_address, title, message, file_path):
     gate.starttls()
     gate.login(essential_data[0],essential_data[1])
 
-    msg = MIMEMultipart()
+    msg = MIMEMultipart('mixed')
     msg["From"] = essential_data[0]
     msg["To"] = to_address
     msg["Subject"] = title
     msg.preamble = message
-
+    msg.epilogue = message
+    msg.attach(MIMEText(message,"html"))
     ctype, encoding = mimetypes.guess_type(file_path)
     if ctype is None or encoding is not None:
         ctype = "application/octet-stream"
@@ -100,7 +101,11 @@ def sendFile(to_address, title, message, file_path):
         attachment.set_payload(fp.read())
         fp.close()
         encoders.encode_base64(attachment)
-    attachment.add_header("Content-Disposition", "attachment", filename=file_path)
+
+    attachment.add_header("Content-Disposition", "attachment", filename=os.path.basename(file_path))
+    
     msg.attach(attachment)
+
     gate.sendmail(essential_data[0], to_address, msg.as_string())
+
     gate.quit()

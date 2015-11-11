@@ -3647,6 +3647,7 @@ def takeOINKBackup():
     import glob
     import zipfile
     import shutil
+    import smtplib
 
     import xlsxwriter
     import pandas as pd
@@ -3685,50 +3686,50 @@ def takeOINKBackup():
         os.makedirs(folder_path)
     else:
         print "Found a subfolder. Proceeding to use %s."%folder_path
-    
     print "Starting backup."
-    
-    for table_name in table_list:
-        print "Retrieving all rows in the %s table."%table_name
-        sqlcmdstring = "SELECT * from %s;"%(table_name)
-        cursor.execute(sqlcmdstring)
-        connectdb.commit()
-        data = cursor.fetchall()
-        table_description = cursor.description
-        table_columns = [x[0] for x in table_description]
-        ordered_data = [list(row) for row in data]
-        if ordered_data == []:
-            ordered_data = [["" for x in range(len(table_columns))]]
-        try:
-            table_data_frame = pd.DataFrame(ordered_data, columns=table_columns)
-        except:
-            print table_name
-            print ordered_data
-            connectdb.close()
-            raise
-        file_name = "%s.xlsx"%(table_name)
-        file_path = os.path.join(folder_path, file_name)
-        csv_file_name = "%s.csv"%(table_name)
-        csv_file_path = os.path.join(folder_path, csv_file_name)
-        if os.path.exists(csv_file_path):
-            print "Found a previous version of %s. Proceeding to delete."%(csv_file_name)
-            os.remove(csv_file_path)
-        if os.path.exists(file_path):
-            print "Found a previous version of %s. Proceeding to delete."%(file_name)
-            os.remove(file_path)
-        try:
-            print "Writing to file %s"%(file_name)
-            table_data_frame.to_excel(file_path, engine="xlsxwriter")
-            print "Successfully dumped %s."%table_name
-        except Exception, e:
-            print "Failed in backing up %s. Trying to dump to a csv instead."%table_name
+    ply_forward = True
+    if ply_forward:
+        for table_name in table_list:
+            print "Retrieving all rows in the %s table."%table_name
+            sqlcmdstring = "SELECT * from %s;"%(table_name)
+            cursor.execute(sqlcmdstring)
+            connectdb.commit()
+            data = cursor.fetchall()
+            table_description = cursor.description
+            table_columns = [x[0] for x in table_description]
+            ordered_data = [list(row) for row in data]
+            if ordered_data == []:
+                ordered_data = [["" for x in range(len(table_columns))]]
+            try:
+                table_data_frame = pd.DataFrame(ordered_data, columns=table_columns)
+            except:
+                print table_name
+                print ordered_data
+                connectdb.close()
+                raise
+            file_name = "%s.xlsx"%(table_name)
+            file_path = os.path.join(folder_path, file_name)
+            csv_file_name = "%s.csv"%(table_name)
+            csv_file_path = os.path.join(folder_path, csv_file_name)
+            if os.path.exists(csv_file_path):
+                print "Found a previous version of %s. Proceeding to delete."%(csv_file_name)
+                os.remove(csv_file_path)
             if os.path.exists(file_path):
+                print "Found a previous version of %s. Proceeding to delete."%(file_name)
                 os.remove(file_path)
             try:
-                print "Writing to file %s"%(csv_file_name)
-                table_data_frame.to_csv(csv_file_path)
-            except Exception, err:
-                print "Failed in a CSV or an Excel file for %s.nThis could have happened for many reasons, try using HeidiSQL to save the data instead."%table_name
+                print "Writing to file %s"%(file_name)
+                table_data_frame.to_excel(file_path, engine="xlsxwriter")
+                print "Successfully dumped %s."%table_name
+            except Exception, e:
+                print "Failed in backing up %s. Trying to dump to a csv instead."%table_name
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                try:
+                    print "Writing to file %s"%(csv_file_name)
+                    table_data_frame.to_csv(csv_file_path)
+                except Exception, err:
+                    print "Failed in a CSV or an Excel file for %s.nThis could have happened for many reasons, try using HeidiSQL to save the data instead."%table_name
     print "Closing connection."
     connectdb.close()
     zip_file_path = os.path.join(folder_path, folder_name+"_OINK_Backup.zip")
@@ -3740,15 +3741,18 @@ def takeOINKBackup():
     zipf = zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED)
     for root, dirs, files in os.walk(folder_path):
         for file_name in files:
-            if "zip" not in str(file_name):
+            if "zip" not in str(file_name) and "oink" not in str(file_name):
                 zipf.write(os.path.join(root, file_name))
     zipf.close()
     print "Finished archiving..."
+
     print "Opening output location."
-    subprocess.call('explorer /select,"%s"'%file_path, shell=True)
+    subprocess.call('explorer /select,"%s"'%zip_file_path, shell=True)
+
     print "Sending mail."
     #"content-leads@flipkart.com"
-    email_ids_list = ["vinay.kt@flipkart.com"]
+    email_ids_list = ["manjeet.s@flipkart.com","amrita.ghosh@flipkart.com","namrathac@flipkart.com","sherinb@flipkart.com","vinay.kt@flipkart.com","content-leads@flipkart.com"]
+
     print "Renaming file for Google's sake."
     oink_zip_file_path = zip_file_path[:zip_file_path.find(".zip")]+".oink"
     if os.path.exists(oink_zip_file_path):
@@ -3757,8 +3761,24 @@ def takeOINKBackup():
     shutil.copy(zip_file_path, oink_zip_file_path)
     for email_id in email_ids_list:
         print "Sending file to %s."%email_id
-        Registron.sendFile(email_id, "OINK Backup %s"%folder_name, "Hi Team,\nPFA a zip file containing the backup of all the tables in the OINK Table as of <b>%s</b>. The file is a zip file, just change the extension from .oink to .zip to use it with any standard compression software.<br>Thank You for Using the <b><i>OINK Report Management System.</b></i><br><br><b>OINK</b><br><br><br><i>This is an autogenerated mail and you will receive no response even if you reply.</i>"%datetime.datetime.now(), oink_zip_file_path)
-        print "Finished sending file to %s."%email_id
+        try:
+            message = """<p>Hi Team,</p>
+            <p>PFA a zip file containing the backup of all the tables in the OINK Table as of <b>%s</b>. 
+            The file is a zip file, just change the extension from .oink to .zip to use 
+            it with any standard compression software.</p>
+            <p>Thank You for Using the <b><i>OINK Report Management System.</b></i></p>
+            <p><b>Big Brother</b></p>
+            <p><font size=1><i>This is an autogenerated mail. 
+            Do not attempt to reply.</i></font><p>"""%datetime.datetime.now()
+            Registron.sendFile(
+                            email_id, 
+                            "OINK Backup %s"%folder_name, 
+                            message, 
+                            oink_zip_file_path
+                        )
+            print "Finished sending file to %s."%email_id
+        except smtplib.SMTPSenderRefused:
+            print "Zip file size exceeds Google's file limit of 25 MB. Please use Google Drive to share the file, or use a pendrive."
     if os.path.exists(oink_zip_file_path):
         os.remove(oink_zip_file_path)
     if os.path.exists(zip_file_path):

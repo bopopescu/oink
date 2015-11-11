@@ -8,7 +8,8 @@ class AnimalFarm(QtCore.QThread):
         super(AnimalFarm, self).__init__(parent)
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
-        self.quotes = random.shuffle(open(os.path.join("Data","Quotes.txt","r")).read().split("\n"))
+        self.quotes = open(os.path.join("Data","Quotes.txt"),"r").read().split("\n")
+        random.shuffle(self.quotes)
        # print "Starting Animal Farm thread."
         self.quotes_size = len(self.quotes)
         if width is None:
