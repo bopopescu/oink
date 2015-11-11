@@ -6,4 +6,5 @@ if __name__ == "__main__":
 	except Exception, e:
 		print "Backup failed."
 		print repr(e)
+		raise
 	raw_input("Press Enter to exit.")

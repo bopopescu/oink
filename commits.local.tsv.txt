@@ -1,0 +1,213 @@
+f1d9413	Vinay Keerthi	Wed Nov 11 12:23:13 2015	Improved backups so they create a zipfile too.
+f64d302	Vinay Keerthi	Wed Nov 11 11:53:49 2015	Added backup method
+02c77c4	Vinay Keerthi	Tue Nov 10 15:57:28 2015	Added some error prevention in CheckableComboBox when the object is None.
+2d63c2e	Vinay Keerthi	Tue Nov 10 15:18:04 2015	Finally improved the bug with UpdatePiggyBank. Writers can easily change SEO description types now. The Rewrite ticket is automatically changed. Writers also get meaningful replies to the updation action.
+7216540	Vinay Keerthi	Tue Nov 10 13:10:48 2015	Fixed Registron
+87adbac	Vinay Keerthi	Tue Nov 10 12:52:40 2015	Renabled Registron.
+d54c28a	Vinay Keerthi	Tue Nov 10 12:46:04 2015	Fixed another one of those getDescriptionTypes problems.
+ff96c44	Vinay Keerthi	Tue Nov 10 12:27:27 2015	wrote the pyinstall script file as well, for later use.
+6a8ab14	Vinay Keerthi	Tue Nov 10 12:20:22 2015	Still working on PyInstaller.
+2ed1e6e	Vinay Keerthi	Tue Nov 10 11:49:51 2015	Working on improving the imports so PyInstaller works. There seem to be a lot of import related errors, especially with Pandas and matplotlib.
+cd41c4c	Vinay Keerthi	Tue Nov 10 09:43:45 2015	Fixed missing key bugs in the SplashScreen method as well.
+850599e	Vinay Keerthi	Tue Nov 10 09:40:23 2015	Finally figured out how to write the closing loop properly.
+b18fcfa	Vinay Keerthi	Tue Nov 10 09:31:28 2015	Fixed an issue with the older getDescriptionTypes and getSources methods that I removed yesterday so that I can use the category tree instead.
+c9b0217	Vinay Keerthi	Mon Nov 9 17:55:47 2015	Working on UserManager.
+d199cce	Vinay Keerthi	Mon Nov 9 16:48:32 2015	Got the kinks in the managermapping portion fixed. Now I need to focus on the actual employees form. I need to map changes, removal and addition. I also need to map the workcalendar initializer to a thread, though I've done this for all current employees already till 2030.
+c94a8ab	Vinay Keerthi	Mon Nov 9 15:08:36 2015	Working on the managermapping bit.
+7ccb63f	Vinay Keerthi	Mon Nov 9 15:04:58 2015	Working on the managermapping bit.
+2d172c0	Vinay Keerthi	Mon Nov 9 14:36:24 2015	Working on the managermapping portion of the user manager.
+15e55ed	Vinay Keerthi	Mon Nov 9 14:17:14 2015	Adding manager mapping editing to the UserManager.
+5fa8e59	Vinay Keerthi	Mon Nov 9 14:09:11 2015	Removed unnecessary files.
+cb0a920	Vinay Keerthi	Mon Nov 9 14:01:47 2015	Removed unnecessary files.
+66f3507	Vinay Keerthi	Mon Nov 9 14:01:15 2015	Added a better way of resetting passwords. If a user's password has been reset, they can use any password to login.
+ceefdb8	Vinay Keerthi	Mon Nov 9 13:20:48 2015	Improved Seeker UI, removed some unnecessary stuff.
+eb07e00	Vinay Keerthi	Mon Nov 9 12:48:19 2015	Working on UserManager, removed unnecessary modules that I don't have time to perfect now. Disabled StyCleaner.
+e05c12a	Vinay Keerthi	Thu Nov 5 15:34:23 2015	Added a poke-yoke to prevent type mismatch.
+c99bfd6	Vinay Keerthi	Thu Nov 5 13:18:34 2015	Working on the UserManager class definition.
+709a10f	Vinay Keerthi	Wed Nov 4 16:55:17 2015	DailyPorker works fine now, but graphs are disabled for now. I'll focus on the DBR and WBR next.
+9e1b107	Vinay Keerthi	Wed Nov 4 12:23:14 2015	Added new icons for Vindaloo, and mapped them to the code, replacing QPushButtons with ImageButtons.
+4edc9c2	Vinay Keerthi	Wed Nov 4 10:42:19 2015	Changed the getWritersList and getEmployeesList methods in Moses to use Pandas now. getWritersList takes Promotions into accounts quite well now.
+e558a49	Vinay Keerthi	Tue Nov 3 15:22:33 2015	Cleaning up DailyPorker.
+de3d930	Vinay Keerthi	Tue Nov 3 14:43:27 2015	Got registron to work well.
+1f2032c	Vinay Keerthi	Tue Nov 3 14:15:16 2015	Added a few new quotes.
+fa27a86	Vinay Keerthi	Tue Nov 3 13:26:33 2015	Added a slight improvement to how TNAViewer deals with backwards compatibility.
+29e5d72	Vinay Keerthi	Tue Nov 3 10:18:25 2015	Fixing some backwards compatibility issue with sorting in Pandas.
+41ad7bf	Vinay Keerthi	Tue Nov 3 09:23:14 2015	Fixed a bug w.r.t SMEs in OINKUIMethods.
+ee6b906	Vinay Keerthi	Tue Nov 3 08:46:48 2015	Working on BACON UI.
+933b7c6	Vinay Keerthi	Mon Nov 2 17:38:49 2015	Added category tree icons, and mapped buttons to open the category tree viewer in Vindaloo.
+64565ed	Vinay Keerthi	Mon Nov 2 16:39:49 2015	Changing Vindaloo UI. Removed the horrendous colors, using a sleeker UI now. Mapped TNA and Calculator to the tool, and reduced time in opening PiggyBankWithFilter by adding the categorytree to the list of startup arguments.
+2bfe70b	Vinay Keerthi	Mon Nov 2 16:08:49 2015	Added a mouseover for the alert button, and cleaned up the calculator icons. Also added mouseover icons for the buttons in Vindaloo, and fixed the error with the leaves button.
+97af348	Vinay Keerthi	Mon Nov 2 16:00:18 2015	Added a status line to PiggyBankWithFilter and improved messages and pokeyoke for buttons.
+6cc1a97	Vinay Keerthi	Mon Nov 2 13:32:46 2015	I'd forgotten to call the super keypressevent in CopiableQTableWidget, so I've mapped it now. That fixes the keypress issue.
+3233190	Vinay Keerthi	Mon Nov 2 13:26:43 2015	Created a DescriptionTypesFilter class. I can reuse this to select types easily.
+e61ba59	Vinay Keerthi	Mon Nov 2 12:49:34 2015	Completed the final touches on the PiggyBankWithFilter class. I need to separate the audit planner from it, so that it doesn't come in the way.
+784a3f8	Vinay Keerthi	Mon Nov 2 10:59:52 2015	Improved the CopiableQTableWidget class so that it has an inbuilt dataframe support. Also working on getting the summarizer to work.
+0c330e7	Vinay Keerthi	Mon Nov 2 10:44:55 2015	Trying to add the eye.
+57672cd	Vinay Keerthi	Mon Nov 2 10:03:56 2015	Working on getPiggyBankWithFilters method. Trying to build a dataframe in an order this time.
+f0934a3	Vinay Keerthi	Mon Nov 2 09:07:21 2015	Created the CopiableQTableWidget class that lets me create tables that I can easily copy from without worrying about tab management.
+2c47d4d	Vinay Keerthi	Mon Nov 2 08:56:00 2015	Improving the PiggyBankWithFilters class for easier data extraction and summarization.
+abd89ad	Vinay Keerthi	Fri Oct 30 18:00:03 2015	Added three icons, to paint on the TNAViewer canvas so that the verdict is clearer. That way, a writer will also be able to make sense of the data. Also, added a way to use minimum acceptable values or the maximum score for parameters from the scoring table. So that way, the true deviation can be comprehended easily.
+b2c938c	Vinay Keerthi	Fri Oct 30 16:48:15 2015	Made some minor adjustments to the UI of filterform, shifted the label QLineEdit there so it's easier. Also added more informative aboutMessages so that users understand why the data doesn't load when it doesn't.
+e66303f	Vinay Keerthi	Fri Oct 30 14:33:44 2015	Trying formatting the graphs, and linking the process to save and post to the ImageLabel.
+452e3b0	Vinay Keerthi	Fri Oct 30 14:30:03 2015	Trying formatting the graphs, and linking the process to save and post to the ImageLabel.
+9ae6daa	Vinay Keerthi	Fri Oct 30 14:22:04 2015	Trying formatting the graphs, and linking the process to save and post to the ImageLabel.
+2338b42	Vinay Keerthi	Fri Oct 30 14:20:29 2015	Trying formatting the graphs, and linking the process to save and post to the ImageLabel.
+a5d1ef8	Vinay Keerthi	Fri Oct 30 14:02:34 2015	got graphs to work. Need to format them.
+8a5b82b	Vinay Keerthi	Thu Oct 29 14:49:02 2015	Created a data table. Also fixed a bug with how deviations are calculated. The plotting is pending.
+38b997d	Vinay Keerthi	Thu Oct 29 13:06:05 2015	Mapped all the filters to the TNA. Working on graphs now. Pareto first.
+0b3dfda	Vinay Keerthi	Wed Oct 28 17:47:35 2015	Added controls for enabling and disabling the TNAViewer plotting button.
+7ce9c35	Vinay Keerthi	Wed Oct 28 17:29:15 2015	Got the category filters to pass to the Moses method as well. I get the appropriate audit count as well now. All that's pending is the actual plotting and summarizing.
+62cb574	Vinay Keerthi	Wed Oct 28 16:00:38 2015	Made major UI improvements to the TNA Viewer. QGridLayout doesn't help much whenever I use it. I should stop using it.
+d31eee8	Vinay Keerthi	Wed Oct 28 10:23:57 2015	Added mouseovericon support to ImageButton, and created Mouseover icons for all the buttons in PORK.
+75f959e	Vinay Keerthi	Tue Oct 27 13:24:48 2015	Got the filter buttons to work, mapped them to each other. Now I'm working on the parameter filters. Next, I'll write methods to pull gseo and cfm only for selected filters.
+33c0899	Vinay Keerthi	Tue Oct 27 11:32:48 2015	Fixed year typo.
+3a70591	Vinay Keerthi	Fri Oct 23 22:46:43 2015	Added mousemove events and mapped the Eye to the movements. Works quite well. I can add other eyes later. I haven't added the blinking yet.
+8c7fc93	Vinay Keerthi	Fri Oct 23 21:47:06 2015	Added new Icons, picked by Varun. Also added Fatal notification in the calendar.
+c419f28	Vinay Keerthi	Fri Oct 23 15:30:02 2015	Adding icons to WeekCalendar. I can draw pixmaps on any date now. Works like a charm.
+01bd3fc	Vinay Keerthi	Fri Oct 23 13:02:32 2015	Calibrated the progressbar for statstable calculation.
+d07fcef	Vinay Keerthi	Fri Oct 23 12:27:20 2015	Made some more changes, mostly bug fixes in the previous commit. Speed seems greatly improved.
+386d3a8	Vinay Keerthi	Fri Oct 23 11:23:01 2015	Merged the getCFM and getGSEO methods into getCFMGSEO. Makes more sense since anyone pulls both up together. Plus, it saves a lot of overhead.
+09a934a	Vinay Keerthi	Fri Oct 23 11:02:26 2015	Integrated the new getTargetFor method into the getEfficiencyFor methods across Moses, and integrated the category tree into the Porker thread. I need to merge the CFM and GSEO methods now to save time.
+80e255e	Vinay Keerthi	Fri Oct 23 10:26:04 2015	Rewrote the getTargetFor function. Since PORK already loads the category tree, it only makes sense to use that dataframe to extract targets. This function works quite well, and the speed is far better. I should replace the old method in Porker to use this.
+5cbd83e	Vinay Keerthi	Wed Oct 21 13:46:47 2015	Meddling with FilterForm layout.
+7125310	Vinay Keerthi	Wed Oct 21 12:36:41 2015	Shifted modules to separate files: CategorySelector and FilterForm.
+e2be091	Vinay Keerthi	Wed Oct 21 10:51:53 2015	Added a method to the CategoryFilter class to get the selected verticals, based on what has been selected. I need to code an interlock between the filter boxes so that if, say, a BU is unchecked, its dependent supercategories and so on are unchecked as well.
+b0f0fa6	Vinay Keerthi	Wed Oct 21 09:52:14 2015	Improved responsiveness of the category filter.
+375fd3d	Vinay Keerthi	Wed Oct 21 09:27:58 2015	Got the CategoryFilter class to work. It seems a little sluggish, but that'll suffice for now.
+bd3adef	Vinay Keerthi	Tue Oct 20 16:38:34 2015	Improved the CheckableComboBox to emit a signal when the selection is changed.
+ba42f9b	Vinay Keerthi	Tue Oct 20 16:14:53 2015	Added GSEO and CFM markers on the calendar.
+d6515df	Vinay Keerthi	Mon Oct 19 17:37:36 2015	Working on the TNAViewer.
+73b6305	Vinay Keerthi	Mon Oct 19 09:44:51 2015	Wrote the TNAViewer class. Created placeholders for all UI functions. I need to plan out the way this is going to work next.
+94eeb24	Vinay Keerthi	Fri Oct 16 13:19:15 2015	Changed the Big Brother icon to a button. Clicking it plays the 8bit TMNT song.
+c1e5fad	Vinay Keerthi	Fri Oct 16 13:18:23 2015	Changed the Big Brother icon to a button. Clicking it plays the 8bit TMNT song.
+4a261a0	Vinay Keerthi	Fri Oct 16 11:44:52 2015	Added some logos, and an about button. Cleaned up major parts of the UI, and it seems pretty neat right now. I'll start work on the TNA module next.
+37bf7b9	Vinay Keerthi	Fri Oct 16 09:24:54 2015	Reduced the size of the CategoryFinder widget by making the result table popup instead. Much cleaner this way, plus saves space.
+15c8476	Vinay Keerthi	Thu Oct 15 17:02:53 2015	Making UI improvements, plus added category finder event mapping.
+a51f275	Vinay Keerthi	Thu Oct 15 11:02:29 2015	Changed the efficiency widget in each calculatorRow to a DoubleSpinBox, so if writers want to plan their efficiency without knowing how many they need to write to make a certain efficiency, this will tell them that. The event is mapped to the editFinished event of the doublespinbox.
+c168b1a	Vinay Keerthi	Thu Oct 15 09:15:31 2015	Fixed a bug with the new addCalc functionality so it adds a new row to the top of the table.
+cebb876	Vinay Keerthi	Wed Oct 14 17:52:18 2015	Got a use button to work, also figured out how to pass arguments to a connector in pyqt using functools.partial. That's a nifty module.
+0760e56	Vinay Keerthi	Wed Oct 14 17:36:41 2015	Pushed the finder to a new class, CategoryFinder.
+3b094d9	Vinay Keerthi	Wed Oct 14 17:27:34 2015	Shifted the Any option in the finder combobox so that it's the default option.
+b02d7cf	Vinay Keerthi	Wed Oct 14 17:26:49 2015	Users can find a vertical in the efficiency calculator now. I need to modify this so that the finder widget is an external class, so I can incorporate this into different areas of OINK. Also, I need to provide a 'use' button in each row of the search results, which emits a dictionary with that combination when used.
+9390a81	Vinay Keerthi	Wed Oct 14 14:20:59 2015	Improved the UI and behaviour of the Efficiency Calculator, and I've added icons to OINK and Vindaloo. Vindaloo's icons aren't mapped to anything yet, but the efficiency calculator is smoother now. I'm going to add a way to find a vertical as well.
+ce668ae	Vinay Keerthi	Tue Oct 13 16:11:21 2015	Working on an improved efficiency calculator.
+e61a9ce	Vinay Keerthi	Mon Oct 12 13:00:04 2015	Regular commit for data.
+711ee48	Vinay Keerthi	Wed Oct 7 10:01:03 2015	Reimplemented the modification\addition pokeyoke in Pork. This version won't compile in Pyinstaller because there's a problem with oauth2 and oauth2client (for Sty Cleaner to work), the module I need to get Vindaloo to work. To do so, one needs to temporarily disable Vindaloo in OINK.
+e5a2877	Vinay Keerthi	Wed Oct 7 09:24:57 2015	There's some strange bug with the efficiency formula. It's also counting dates on which the team is on leave. FK holidays, basically.
+b6871d2	Vinay Keerthi	Sun Sep 27 15:48:19 2015	Working on slight improvements to some long pending bugs.
+c3be0ee	Vinay Keerthi	Fri Sep 25 19:56:16 2015	Making minor improvements to LogInDialog.
+e993596	Vinay Keerthi	Thu Sep 24 16:54:38 2015	Fixed the host id editing problem (finally).
+695d9dd	Vinay Keerthi	Fri Sep 11 12:51:21 2015	Added new raw data file.
+011cf70	Vinay Keerthi	Tue Sep 1 10:15:40 2015	Changed an instance of QProgressBar to use my own ProgressBar class. Also tweaked the DailyGraphView UI to improve alignment, and drew borders around the images. In addition, I've also set the default date for DailyPorker and PiggyBankWithFilter to the last working date, as it makes more sense that one would want to derive that report on a given date rather than today's.
+b95e9d7	Vinay Keerthi	Mon Aug 31 11:12:01 2015	There's a bug in the way PiggyBankWithFilter gets the audit plan. It should compare the last few wordcounts, and figure out if it's stuck in an infinite loop. Right now, I've maxed out the loop at 1000x. Beyond it, it'll just assume audit conditions are satisfied and we can break out.
+12e4834	Vinay Keerthi	Mon Aug 31 09:33:01 2015	Removed some print statements related to the calendar.
+a65fd33	Vinay Keerthi	Tue Aug 25 18:47:48 2015	Test commit. Something's wrong with the work network and github isn't reachable via push or pull.
+e1d874e	Vinay Keerthi	Fri Aug 21 17:47:54 2015	Added new targets. Need to improve how efficiency is calculated.
+448abaf	Vinay Keerthi	Mon Aug 17 13:51:41 2015	Regular commit.
+789c1d0	Vinay Keerthi	Wed Aug 12 14:00:52 2015	Regular commit.
+82d0edb	Vinay Keerthi	Tue Aug 4 12:26:17 2015	Improved MOSES.getLastWorkingDate. It can now accept an All value for the queryUser variable, which makes it return the last working date for the entire team instead. I've also fixed a minor problem with the queryDate type. If a datetime.datetime is passed, the code strips it to a datetime.date value. Also working on the Bacon backend, which is how I noticed this fix.
+007cb11	Vinay Keerthi	Mon Jul 27 08:42:21 2015	Finished work on SwineHerd. Cleaned some code up, and deleted the old Swine module. I've also removed the imports to Swine from PORK. Plus, I've managed to fix the leave planner issue, it was an issue with case sensitivity at the accept() stage during the form submission. Anyway, that's been fixed now. I need to distribute this to the writers.
+081e6e9	Vinay Keerthi	Fri Jul 24 12:47:51 2015	Finished working on Swine, it now extracts images and information from the FK site.
+8214a73	Vinay Keerthi	Sat Jul 18 11:58:42 2015	Added a link to the github.io page in readme.
+303b4ab	Vinay Keerthi	Sat Jul 18 11:58:05 2015	Added a link to the github.io page in readme.
+dedd5f8	Vinay Keerthi	Sat Jul 18 11:56:18 2015	Improved the audit planning module in PiggyBankWithFilter. Fixed some bugs with the equal-targets-for-editors mode, and also wrote code to pull random fsns as required by the audit plan. Made some minor UI improvements, added tool tips and checked the code with the actual data. There's some minor issue, but it's related to the process, not the code at hand. I need to cross check with Manjeet.
+f34d9eb	Vinay Keerthi	Fri Jul 17 22:52:43 2015	Improved the renameHost.py module. It needs psutil now, and it can start\stop my local MySQL server now depending on requirement.
+38f5025	Vinay Keerthi	Thu Jul 16 14:24:39 2015	Fixed bug with PiggyBankWithFilter where the app doesn't work when opened without the console.
+565ab7b	Vinay Keerthi	Thu Jul 16 09:16:46 2015	Improved PiggyBankWithFilter's resetEditorConstraints method. Now, it can even plan work load for over any period of time. However, it still doesn't take editors' personal leaves into account. Will do so later. Also, I've put alert messages after each step and set the difference between min and max word count spinboxes to 1000.
+8d42a60	Vinay Keerthi	Wed Jul 15 14:21:32 2015	Working on PiggyBankWithFilter. Waiting for approval from Manjeet on the code.
+059e91f	Vinay Keerthi	Wed Jul 15 12:56:25 2015	PiggyBankWithFilter is going to serve as the platform for Bacon now. Working on the audit planner, pulling numbers based on preset constraints. It's almost done, there are some problems with how it balances the work and audit percentages. I think it'll get fixed if I clean up the code a little. I might have to scrap the summarize() method and rewrite it. That can easily fix it.
+3560fe2	Vinay Keerthi	Mon Jul 13 14:26:20 2015	Fixed a bug with Seeker, infinite loop even after fetching all data. Also working on PiggyBankWithFilter, got the writers' names to dynamically filter. Just need to build the report string now.
+70b0346	Vinay Keerthi	Mon Jul 13 14:20:51 2015	Fixed a bug with Seeker, infinite loop even after fetching all data. Also working on PiggyBankWithFilter, got the writers' names to dynamically filter. Just need to build the report string now.
+6a91821	Vinay Keerthi	Fri Jul 10 13:07:01 2015	Working on the PiggyBankWithFilters class. Still have to connect the filter boxes to each other. I've also fixed some bugs with the CheckableComboBox class definition, but there's a bigger bug which triggers when the first item, the title item, is clicked. I need to fix that. I've also improved some UI bits of Vindaloo as well as changed the window theme mode to plastique.
+1622103	Vinay Keerthi	Tue Jul 7 16:46:27 2015	Finished FarmHand, the feedback collation tool and implemented it in Vindaloo.
+08f1496	Vinay Keerthi	Fri Jul 3 13:20:09 2015	Daily commit.
+52019b2	Vinay Keerthi	Wed Jul 1 10:59:20 2015	Fixed error with the previous KRA fix. Checks that an efficiency value is not a string, since CFM and GSEO were numpy.float64 values instead of python floats.
+b694a7b	Vinay Keerthi	Wed Jul 1 08:55:32 2015	Little clean up.
+0f58952	Vinay Keerthi	Wed Jul 1 08:53:44 2015	Little clean up.
+f39d841	vinay87	Wed Jul 1 08:52:12 2015	Merge pull request #7 from smchaha/patch-1
+45db784	Vinay Keerthi	Wed Jul 1 08:45:50 2015	Added auto sort to DailyPorker. Improved the string formatting to show leading zeroes so that the PyQt QTablewidget's sort works. It's strange, I need to find some better way to do it. Perhaps subclass QTableWidget? Later. Also disabled some widgets to prevent confusion at user end in dailyPorker. There were also some bugs related to KRA calculations. I've fixed that too now. It's related to how it tries to calculate KRA for a '-' value. Adding these to Github's issue repo.
+ce91712	smchaha	Wed Jul 1 01:56:55 2015	Correcting README.md
+037957a	Vinay Keerthi	Tue Jun 30 21:29:20 2015	Fixed error in DailyPorker code. Shows '-' for leaves now.
+eb1e5fe	Vinay Keerthi	Tue Jun 30 21:28:40 2015	Fixed error in DailyPorker code. Shows '-' for leaves now.
+ed04dc9	Vinay Keerthi	Tue Jun 30 21:12:52 2015	Working on a PiggyBank viewer with several filter options. Created a CheckableComboBoxClass that solves my checkboxlist problems.
+7ee85b2	Vinay Keerthi	Tue Jun 30 16:30:25 2015	Finished the Daily Porker Tool. Add more features later.
+9ff1def	Vinay Keerthi	Tue Jun 30 16:03:33 2015	DailyPorker is almost ready. I've hidden the audit percentage option for now. Possible bugs with Daily KRA when the efficiency or quality is NaN or '-'. I'll fix it later.
+215e41b	Vinay Keerthi	Tue Jun 30 14:49:03 2015	DailyPorker is almost ready. Finished integrating the graphs, but the graphinator function needs to be  incorporated in a thread. Weirdly, PyQt says that the graphing function needs to be in the foreground thread, not in a backend thread. Next, I need to enable the filesavedialogs for the report and for the graphs. Also, I need to write functions to get KRA for given date range.
+afffd53	Vinay Keerthi	Mon Jun 29 22:54:12 2015	Working on additional features for the DailyPorker VINDALOO tool. UI facets are almost done. The back end needs to be coded now. That includes new MOSES methods for calculating KRAs and team statistics.
+776058a	Vinay Keerthi	Mon Jun 29 17:58:39 2015	Working on the new UI for DailyPorker.
+f08afc9	Vinay Keerthi	Mon Jun 29 17:10:39 2015	Fixed the closed within tat formula in sty cleaner.
+d7c2488	Vinay Keerthi	Mon Jun 29 17:07:12 2015	Fixed a bug with StyCleaner TAT calculation. Formula is changed to closed_within_tat by closed unless closed is 0. If closed is 0, then the TAT met is 0.0%
+70f4ce9	Vinay Keerthi	Mon Jun 29 17:03:27 2015	Fixed a bug with StyCleaner TAT calculation. Formula is changed to closed_within_tat by closed unless closed is 0. If closed is 0, then the TAT met is 0.0%
+8c1f113	Vinay Keerthi	Mon Jun 29 12:59:53 2015	Fixed bug in StyCleaner.
+5a26295	Vinay Keerthi	Fri Jun 26 14:19:36 2015	Finished the backend for SWINE.
+f45d96c	Vinay Keerthi	Tue Jun 23 09:21:43 2015	Working on the Daily Porker class. Got data flow to work. I just need to tweak the responsiveness and application behaviour.
+abf7fc1	Vinay Keerthi	Fri Jun 19 13:05:32 2015	Working on Mephisto.
+d814715	Vinay Keerthi	Wed Jun 17 23:20:55 2015	Implemented a user id cache in the login dialog. Also added login stamps to Vindaloo, confirmation message on close for Vindaloo, and a confirmation message if the user tries to use the big brother account.
+158956b	Vinay Keerthi	Wed Jun 17 23:02:05 2015	Implemeted cached user_list in the login dialog.
+1c899d4	Vinay Keerthi	Wed Jun 17 22:41:11 2015	Improved PORK Multithreading. I'd messed up a lot with how I'd implemented it the first time around. The UI is far, far smoother and responsive now. Also, the efficiency formulae are fixed completely, and the cleanup is underway. VINDALOO is still under progress though, should be done soon.
+a7ed4ca	Vinay Keerthi	Wed Jun 17 10:38:12 2015	Just fixed the efficiency formula to add relaxation post 11.5.2015. Still need to fix the standalone formula as well.
+490126a	Vinay Keerthi	Wed Jun 17 09:12:41 2015	Working on a new Vindaloo UI.
+d1651d3	Vinay Keerthi	Tue Jun 16 19:39:04 2015	Working on a faster VINDALOO and PORK.
+1eba0d3	Vinay Keerthi	Tue Jun 16 08:44:52 2015	Working on cleanup.
+ec92ba4	Vinay Keerthi	Fri Jun 12 12:13:16 2015	Daily state commit. Working on getting StyCleaner working.
+78a0ccf	Vinay Keerthi	Thu Jun 11 15:33:37 2015	Finished multithreading for StyCleaner. Removed unnecessary files.
+63e651f	Vinay Keerthi	Thu Jun 11 15:31:49 2015	Finished multithreading for StyCleaner. Removed unnecessary files.
+05bc954	Vinay Keerthi	Thu Jun 11 15:31:02 2015	Finished multithreading for StyCleaner. Removed unnecessary files.
+fd4d4e8	Vinay Keerthi	Thu Jun 11 12:33:05 2015	Created readme.md
+92255b3	Vinay Keerthi	Thu Jun 11 12:22:17 2015	Created readme.md
+fc09539	Vinay Keerthi	Thu Jun 11 12:18:37 2015	StyCleaner UI is ready. Multithreading is pending.
+37bf08b	Vinay Keerthi	Thu Jun 11 10:23:58 2015	Working on linking Google Spreadsheets to PyQt.
+e4d78db	Vinay Keerthi	Thu Jun 11 10:23:39 2015	Working on linking Google Spreadsheets to PyQt.
+53aa1b8	Vinay Keerthi	Tue Jun 9 14:56:23 2015	Optimized seeker. It's far more responsive and it sends FSNs cumulatively.
+3714289	Vinay Keerthi	Tue Jun 9 10:46:55 2015	Improved StyCleaner, now it transposes the output array before saving.
+c30e10f	Vinay Keerthi	Mon Jun 8 18:05:34 2015	Finished StyCleaner
+d05043f	Vinay Keerthi	Mon Jun 8 11:04:36 2015	Working on the audit assignment function in MOSES. Created the base variables. Now I just need to loop through them. Also, fixed the lower limit in Graphinator. I've also improved the function to dump fsns. It'll accept a description type and get data accordingly.
+5d78161	Vinay Keerthi	Fri Jun 5 08:55:19 2015	Working on a MOSES method to calculate the audit assignment table.
+1380daa	Vinay Keerthi	Wed Jun 3 15:28:13 2015	Added a method to create an FSN dump.
+0a23b77	Vinay Keerthi	Wed Jun 3 15:02:40 2015	Daily commit
+11202e3	Vinay Keerthi	Wed Jun 3 10:29:22 2015	Improved recursiveUploadRawDataFile in MOSES and created a run_daily script that does most of the daily tasks automatically.
+86063c3	Vinay Keerthi	Tue Jun 2 15:40:36 2015	Fixed targets bug.
+3b5df33	Vinay Keerthi	Mon Jun 1 23:02:19 2015	Working on Graphite.
+3a5920c	Vinay Keerthi	Mon Jun 1 19:37:32 2015	Added brand assets, the font and fixed a date bug in Graphinator.
+2c07b05	Vinay Keerthi	Sat May 30 19:32:07 2015	Added search by Item ID option to seeker, and subclassed it in the Main() function in order to override the copy function.
+21ba673	Vinay Keerthi	Sat May 30 08:34:21 2015	Working on integrating graphs in PyQt using stored images.
+5124007	Vinay Keerthi	Fri May 29 09:55:49 2015	Working on graphs.
+eb120d3	Vinay Keerthi	Thu May 28 08:36:42 2015	Created quality, efficiency and cfm_gseo graphs. Still haven't integrated them into OINK. I need to learn how to use subplots to layout graphs.
+57b2bd7	Vinay Keerthi	Tue May 26 11:12:00 2015	Daily commit.
+31bdf64	Vinay Keerthi	Mon May 25 21:55:44 2015	Working on the Farmer class to manage headcount.
+8529748	Vinay Keerthi	Mon May 25 21:25:23 2015	Working on the Farmer class to manage headcount.
+31c51b8	Vinay Keerthi	Mon May 25 21:25:03 2015	Working on the Farmer class to manage headcount.
+a01da61	Vinay Keerthi	Mon May 25 20:55:38 2015	Working on the graphs.
+9461fb8	Vinay Keerthi	Mon May 25 20:49:25 2015	Working on the graphs.
+2d7f99b	Vinay Keerthi	Mon May 25 20:07:16 2015	Cleaned up graph_trial. I need to replicate this in PyQt.
+3079cf8	Vinay Keerthi	Mon May 25 19:26:21 2015	Updated VINDALOO. Currently displays version, server ip address, user_id and the user's name.
+a254b4a	Vinay Keerthi	Mon May 25 19:21:13 2015	PORK now displays the server IP and the current user's ID and name in the titlebar.
+e8bbfdb	Vinay Keerthi	Mon May 25 17:52:57 2015	Fixed the getETA method. It had a clash with the future division method.
+1c7c074	Vinay Keerthi	Mon May 25 08:16:28 2015	Disabled future division
+5a12f9b	Vinay Keerthi	Mon May 25 08:13:37 2015	Improved PORK Writer Statistics table UI, added table borders, better conditional formatting and also added half yearly statistics. Added appropriate methods to MOSES and OINKMethods.
+bd54a8e	Vinay Keerthi	Sat May 23 18:32:58 2015	Preoverhaul for Bacon.
+9cf1bde	Vinay Keerthi	Thu May 21 16:01:20 2015	Working on implementing graphs in Pork and VINDALOO. Also wrote the putItemIDs code and fixed it to get item ids for all FSNs.
+dc2a193	Vinay Keerthi	Wed May 20 13:35:37 2015	Created Napoleon v0.1a. Only UI, no events. Still hasn't been mapped to OINK. Should be done in another day.
+6252904	Vinay Keerthi	Wed May 20 09:18:44 2015	Added the Seeker panel to VINDALOO. Speed seems much better. However, there seem to be bugs with the report upon compiling. Debug.
+1d6840f	Vinay Keerthi	Tue May 19 12:29:31 2015	Daily commit; Also, working on getting a team report working in VINDALOO.
+f8eaaf8	Vinay Keerthi	Mon May 18 08:23:23 2015	Working on a team report. Managed to write a VINDALOO module that triggers after the writers' summary is displayed. Next, I need to work towards compiling this data into a single report.
+a235f2c	Vinay Keerthi	Fri May 15 15:00:07 2015	Improved getTargetFor to use Max(Revisiondate) in the sqlcmdstring.
+947cad4	Vinay Keerthi	Fri May 15 12:14:41 2015	Modified PorkKent to add a new signal. It emits a string after each step in building a writer's summary dictionary. Also modified VINDALOO to catch that signal and display the string in the status bar. Also modified the displayStatus method of VINDALOO to prefix the datetime when posting a message.
+ddcfeaa	Vinay Keerthi	Thu May 14 16:10:04 2015	Fixed a major bug with getCFMFor and getGSEOFor. Eliminated the error with Average of Averages.
+0357fd9	Vinay Keerthi	Wed May 13 17:45:42 2015	Fixed an error in the PORK code where it was calling getTargetFor in the old format. I'll need to improve the responsiveness of this program soon.
+c920866	Vinay Keerthi	Wed May 13 09:45:18 2015	Added article and audit counting methods to the MOSES module. Also implemented them in PorkKent and VINDALOO displays them properly.
+b26609e	Vinay Keerthi	Tue May 12 15:29:26 2015	Created the EventManager class for taking care of all the team event processes. Back end coding is pending.
+37986c2	Vinay Keerthi	Tue May 12 10:12:47 2015	Fixed bugs with the new getTargetFor method in MOSES. Also fixed UI issues in VINDALOO, now it shows '-' instead of 0.0% wherever required.
+02cc362	Vinay Keerthi	Tue May 12 08:55:34 2015	Daily Commit before starting work
+12db1f4	Vinay Keerthi	Mon May 11 13:40:45 2015	Daily commit. Beginning to add various additional database tables for new event management system
+d8cc8c7	Vinay Keerthi	Sat May 9 10:38:50 2015	Daily commit
+24daaac	Vinay Keerthi	Thu May 7 14:42:18 2015	Daily commit. Plus I wrote some temporary methods. I need to start work on Seeker.
+e1ba148	Vinay Keerthi	Tue May 5 21:04:11 2015	* Gathered data related to writers' efficiency, quality on a datewise basis for three months. * Shifted the collated data into a folder within the database subfolder. * Worked on Prophet, trying to get stuff to work. Wrote the writeToOINK method.
+026fe3d	Vinay Keerthi	Mon May 4 16:27:37 2015	Removed the MySQL dump file.
+cb7f1bd	Vinay Keerthi	Mon May 4 16:22:49 2015	Made changes to the Former thread class used by Vindaloo. all of this really needs to go into Prophet. I'm just wasting my time writing pseudoclasses that won't be necessary. Also, added an interim retry mechanism to PorkKent so that it tries to fetch data even if others are using VINDALOO.
+cbb5273	Vinay Keerthi	Mon May 4 10:32:00 2015	Changed the PORKER getStats method. Now it returns - if the value is None. However, there are connectivity problems. I really need to focus on Prophet.
+b3a4b2b	Vinay Keerthi	Mon May 4 10:31:42 2015	Changed the PORKER getStats method. Now it returns - if the value is None. However, there are connectivity problems. I really need to focus on Prophet.
+0d228a8	Vinay Keerthi	Fri May 1 08:17:58 2015	Daily commit before working.
+5f02ac6	Vinay Keerthi	Thu Apr 30 10:06:19 2015	Updated raw data csv.
+1a520d5	Vinay Keerthi	Thu Apr 30 09:03:46 2015	OINKV1.2
+48ed2e5	Vinay Keerthi	Thu Apr 30 09:00:33 2015	OINK V1.2
