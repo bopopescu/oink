@@ -3645,6 +3645,8 @@ def takeOINKBackup():
     import datetime
     import os
     import glob
+    import zipfile
+    
     import xlsxwriter
     import pandas as pd
     u, p = getBigbrotherCredentials()
@@ -3723,8 +3725,19 @@ def takeOINKBackup():
                 print "Failed in a CSV or an Excel file for %s.nThis could have happened for many reasons, try using HeidiSQL to save the data instead."%table_name
     print "Closing connection."
     connectdb.close()
+    zip_file_path = os.path.join(folder_path, folder_name+"_OINK_Backup.zip")
+    print "Adding all the files into one zip file %s"%zip_file_path
+    if os.path.exists(zip_file_path):
+        print "Found previous archive. Removing..."
+        os.remove(zip_file_path)
+    zipf = zipfile.ZipFile(zip_file_path, 'w')
+    for root, dirs, files in os.walk(folder_path):
+        for file_name in files:
+            zipf.write(os.path.join(root, file_name))
+    print "Finished archiving..."
     print "Opening output location."
     subprocess.call('explorer /select,"%s"'%file_path, shell=True)
+
 
 if __name__ == "__main__":
     print "Never call Moses mainly."
