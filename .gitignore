@@ -77,3 +77,5 @@ OINKModules/Archive/
 *.spec
 desktop.ini
 *.ini
+backups/
+OINKModules/backups/

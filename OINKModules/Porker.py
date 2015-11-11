@@ -114,7 +114,6 @@ class Porker(QtCore.QThread):
             self.sendActivity.emit("Refreshed efficiency. Moving on to next process.", MOSES.getETA(self.start_time, 2, 3), False)
         #print "I'm leaving broadcastEfficiency"
 
-            
     def broadcastDatesData(self):
         #print "Running mode 1"
         self.process_month = self.process_date.month

@@ -7,6 +7,7 @@ import datetime
 
 import numpy
 from PyQt4 import QtGui, QtCore
+
 from EfficiencyCalculator import EfficiencyCalculator
 from WeekCalendar import WeekCalendar
 from LeavePlanner import LeavePlanner
@@ -23,15 +24,12 @@ import MOSES
 from CategoryFinder import CategoryFinder
 from Player import Player
 from TNAViewer import TNAViewer
+from ProgressBar import ProgressBar
 
 class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
-        """PORK initializer. Takes the userID and password"""
         super(QtGui.QMainWindow, self).__init__()
         self.x_pos, self.right_pos = "center","middle"
-        #pork_style = open("stylesheet.css",'r').read()
-        #print pork_style
-        #self.setStyleSheet(open("stylesheet.css",'r').read())
         #store the variables so they are accessible elsewhere in this class.
         self.userID = userID
         self.password = password
@@ -41,7 +39,6 @@ class Pork(QtGui.QMainWindow):
         self.clip = QtGui.QApplication.clipboard()
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
         
-
         #Create the widgets and arrange them as needed.
         self.mainWidget = QtGui.QWidget()
         self.setCentralWidget(self.mainWidget)
@@ -68,9 +65,6 @@ class Pork(QtGui.QMainWindow):
         #self.displayEfficiency()
         #Ignorance is bliss.
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
-
-    def focusInEvent(self, event):
-        print "Pork Focus in"
 
     def eventFilter(self, source, event):
         if event.type() == QtCore.QEvent.MouseMove:
@@ -104,12 +98,7 @@ class Pork(QtGui.QMainWindow):
         message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2014, by Vinay Keerthi. The <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding development."
         QtGui.QMessageBox.about(self, title, message)
 
-
-    def FocusOutEvent(self, event):
-        print "Pork Focus out"
-
     def widgetGenerator(self):
-        """PORK Window."""
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
         self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
@@ -185,18 +174,7 @@ class Pork(QtGui.QMainWindow):
         self.refresh_stats_button = ImageButton(os.path.join("Images","refresh.png"),24,24, os.path.join("Images","refresh_mouseover.png"))
         self.refresh_stats_button.setFlat(True)
 
-        self.stats_progress_bar = QtGui.QProgressBar()
-        progressbar_style = """
-            .QProgressBar {
-                 border: 0.5px solid black;
-                 border-radius: 5px;
-                 text-align: center;
-             }
-
-            .QProgressBar::chunk {
-                 background-color: #0088D6;
-                 width: 20px;
-             }""" #05B8CC
+        self.stats_progress_bar = ProgressBar()
         self.stats_progress_message = QtGui.QLabel("Awaiting signals.")
         self.stats_progress_message.setStyleSheet("QLabel { font-size: 8px }")
         self.stats_progress = QtGui.QWidget()
@@ -207,7 +185,6 @@ class Pork(QtGui.QMainWindow):
         self.stats_progress_layout.setColumnStretch(0,0)
         self.stats_progress.setLayout(self.stats_progress_layout)
         self.stats_progress_bar.setRange(0,1)
-        self.stats_progress_bar.setStyleSheet(progressbar_style)
         self.stats_layout = QtGui.QVBoxLayout()
         self.stats_layout.addLayout(self.icon_panel,0)
         self.stats_layout.addWidget(self.stats_table)
@@ -243,11 +220,10 @@ class Pork(QtGui.QMainWindow):
 
 
 
-        self.efficiencyProgress = QtGui.QProgressBar()
+        self.efficiencyProgress = ProgressBar()
         self.efficiencyProgress.setRange(0,100)
         self.efficiencyProgress.setMinimumWidth(200)
 
-        self.efficiencyProgress.setStyleSheet(progressbar_style)
 
         self.efficiencyProgress.setTextVisible(True)
         #Create all the widgets associated with the form.
@@ -300,7 +276,6 @@ class Pork(QtGui.QMainWindow):
 
 
     def widgetLayout(self):
-        """PORK Window."""
         #Begin the form's layout.
         form_fields_layout = QtGui.QGridLayout()
         
@@ -376,7 +351,6 @@ class Pork(QtGui.QMainWindow):
         self.mainWidget.setLayout(self.finalLayout)
 
     def mapToolTips(self):
-        """PORK Window."""
         self.piggybank.setToolTip("Piggy Bank for %s" % self.getActiveDateString())
         self.workCalendar.setToolTip("Select a date to display the Piggy Bank.")
         self.buttonAddFSN.setToolTip("Click this button to add an FSN for %s" % self.getActiveDateString())
@@ -424,7 +398,6 @@ class Pork(QtGui.QMainWindow):
                 self.clip.setText(s)
 
     def createTabOrder(self):
-        """PORK Window."""
         self.setTabOrder(self.workCalendar, self.buttonAddFSN)
         self.setTabOrder(self.buttonAddFSN, self.buttonModifyFSN)
         self.setTabOrder(self.buttonModifyFSN, self.lineEditFSN)
@@ -442,7 +415,6 @@ class Pork(QtGui.QMainWindow):
         self.setTabOrder(self.lineEditRefLink, self.buttonBox)
 
     def addMenus(self):
-        """PORK Window."""
         self.fileMenu = self.menu.addMenu("&File")
         self.toolsMenu = self.menu.addMenu("&Tools")
         self.commMenu = self.menu.addMenu("Co&mmunication")
@@ -461,7 +433,6 @@ class Pork(QtGui.QMainWindow):
         self.chatmessenger = self.toolsMenu.addAction(self.callOpenChat)
 
     def createActions(self):
-        """PORK Window."""
         #self.exitAction = QtGui.QAction(QIcon('exit.png'),"&Exit",self)
         #self.exitAction.setToolTip("Click to Exit.")
         #self.exitAction.triggered.connect(self.closeEvent)
@@ -522,7 +493,6 @@ class Pork(QtGui.QMainWindow):
         self.lineEditBrand.setText("")
 
     def setEvents(self):
-        """PORK Window."""
         self.workCalendar.clicked[QtCore.QDate].connect(self.changedDate)
         self.workCalendar.currentPageChanged.connect(self.calendarPageChanged)
         self.piggybank.cellClicked.connect(self.cellSelected)
@@ -551,8 +521,7 @@ class Pork(QtGui.QMainWindow):
         self.bigbrother_icon.clicked.connect(self.playTMNT)
 
     def playTMNT(self):
-        self.player.allow_play = True
-                
+        self.player.allow_play = True           
 
     def setFormValues(self, values_dict):
         self.comboBoxBU.setCurrentIndex(self.comboBoxBU.findText(values_dict["BU"]))
@@ -596,15 +565,12 @@ class Pork(QtGui.QMainWindow):
         self.password = passwordResetter(self.userID, self.password)
 
     def viewEscalations(self):
-        """PORK Window."""
         self.featureUnavailable()
 
     def openChat(self):
-        """PORK Window."""
         self.featureUnavailable()
 
     def showEfficiencyCalc(self):
-        """PORK Window."""
         self.calculator = EfficiencyCalculator(self.userID, self.password, self.category_tree)
         self.calculator.show()
 
@@ -715,23 +681,18 @@ class Pork(QtGui.QMainWindow):
 
     
     def openStyleSheet(self):
-        """PORK Window."""
         self.featureUnavailable()
 
     def AskAnEditor(self):
-        """PORK Window."""
         self.featureUnavailable()
 
     def askTL(self):
-        """PORK Window."""
         self.featureUnavailable()
 
     def featureUnavailable(self):
-        """PORK Window."""
         self.notify("Feature unavailable.", "That feature is still in development. Thank you for your patience.")
 
     def changedDate(self):
-        """PORK Window."""
         new_date = self.getActiveDate()
         self.piggybanker_thread.setDate(new_date)
         self.piggybanker_thread.getPiggyBank()
@@ -754,17 +715,14 @@ class Pork(QtGui.QMainWindow):
         self.piggybank.displayData()
 
     def getActiveDateFileString(self):
-        """PORK Window."""
         date = self.workCalendar.selectedDate()
         return "CSVs\\" + str(date.toString('yyyyMMdd')) + ".pork"
 
     def getActiveDateString(self):
-        """PORK Window."""
         date = self.workCalendar.selectedDate()
         return str(date.toString('dddd, dd MMMM yyyy'))
 
     def getActiveDate(self):
-        """PORK Window."""
         """Returns the python datetime for the selected date in the calendar."""
         dateAsQDate = self.workCalendar.selectedDate()
         dateString = str(dateAsQDate.toString('dd/MM/yyyy'))
@@ -772,7 +730,6 @@ class Pork(QtGui.QMainWindow):
         return dateAsDateTime
 
     def displayEfficiencyThreaded(self, efficiency):
-        """PORK Window."""
         #print "Received %f efficiency." % efficiency
         #self.alertMessage("Efficiency","Efficiency is %0.2f%%" % (efficiency*100))
         self.efficiencyProgress.setFormat("%0.02f%%" %(efficiency*100))
@@ -822,17 +779,12 @@ class Pork(QtGui.QMainWindow):
         self.efficiencyProgress.setValue(efficiency)
 
     def submit(self):
-        """PORK Window."""
         """Method to send the FSN data to SQL."""
-        #print "Sending data to MOSES."
         data = self.getFSNDataDict()
         if data != []:
             MOSES.addToPiggyBank(data, self.userID, self.password)
-        else:
-            print "I got nothing!"
 
     def populateBU(self):
-        """PORK Window."""
         self.comboBoxBU.clear()
         bus = list(set(self.category_tree["BU"]))
         bus.sort()
@@ -840,7 +792,6 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxBU.setCurrentIndex(-1)
 
     def populateSuperCategory(self):
-        """PORK Window."""
         self.comboBoxSuperCategory.clear()
         bu = str(self.comboBoxBU.currentText())
         filtered_category_tree = self.category_tree.loc[self.category_tree["BU"] == bu]
@@ -849,7 +800,6 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxSuperCategory.addItems(super_categories)
 
     def populateCategory(self):
-        """PORK Window."""
         self.comboBoxCategory.clear()
         super_category = str(self.comboBoxSuperCategory.currentText())
         filtered_category_tree = self.category_tree.loc[self.category_tree["Super-Category"] == super_category]
@@ -858,7 +808,6 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxCategory.addItems(categories)
 
     def populateSubCategory(self):
-        """PORK Window."""
         self.comboBoxSubCategory.clear()
         category = str(self.comboBoxCategory.currentText())
         filtered_category_tree = self.category_tree.loc[self.category_tree["Category"] == category]
@@ -867,7 +816,6 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxSubCategory.addItems(sub_categories)
 
     def populateBrandVertical(self):
-        """PORK Window."""
         self.comboBoxVertical.clear()
         sub_category = str(self.comboBoxSubCategory.currentText())
         filtered_category_tree = self.category_tree.loc[self.category_tree["Sub-Category"] == sub_category]
@@ -877,7 +825,6 @@ class Pork(QtGui.QMainWindow):
 
 
     def closeEvent(self,event):
-        """PORK Window."""
         self.askToClose = QtGui.QMessageBox.question(self, 'Close P.O.R.K?', "Are you sure you'd like to quit?\nPlease keep this application open when you're working since it guides you through the process and helps you interact with your process suppliers and customers.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
         if self.askToClose == QtGui.QMessageBox.Yes:
             MOSES.createLogoutStamp(self.userID, self.password)
@@ -915,14 +862,12 @@ class Pork(QtGui.QMainWindow):
                 
 
     def generateUploadLink(self, fsnString):
-        """PORK Window."""
         """if (len(str(self.lineEditUploadLink.text())) == 0) and (str(self.lineEditUploadLink.text()).count(' ') <= 0):
                                     fsnString = str(self.lineEditFSN.text()).strip()
                                     if (len(fsnString) == 13) or (len(fsnString) == 16):"""
         self.lineEditUploadLink.setText("http://www.flipkart.com/search?q=" + fsnString)
 
     def validateForm(self):
-        """PORK Window."""
         self.listData = self.fsnData()
         self.done = 0
         for value in self.listData:
@@ -941,8 +886,8 @@ class Pork(QtGui.QMainWindow):
         mode = self.getMode()
         selected_date = self.getActiveDate()
         last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
-
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), last_working_date]
+
         if selected_date not in dates_user_is_allowed_to_manipulate:
             allowAction = False
             self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
@@ -982,12 +927,14 @@ class Pork(QtGui.QMainWindow):
                     completion = False
                 #print "Modified!"
             if completion:
+                #Upon completion, do the following things:
+                    #Reset the form
+                    #Update the efficiency.
                 self.resetForm()
                 self.piggybanker_thread.getPiggyBank()
                 self.porker_thread.getEfficiency()
 
     def alertMessage(self, title, message):
-        """PORK Window."""
         QtGui.QMessageBox.about(self, title, message)
 
     def isValidType(self, fsn, fsn_type):
@@ -1020,7 +967,6 @@ class Pork(QtGui.QMainWindow):
         return is_valid
 
     def getMode(self):
-        """PORK Window."""
         mode = None
         if self.buttonModifyFSN.isChecked():
             mode = "Modification"
@@ -1029,7 +975,6 @@ class Pork(QtGui.QMainWindow):
         return mode
 
     def resetForm(self):
-        """PORK Window."""
         self.lineEditFSN.setText("")
         self.spinBoxWordCount.setValue(0)
         self.lineEditRefLink.setText("NA")
@@ -1054,7 +999,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
         #ask for a confirmation about clearing it, clear it and then call this function once again.
 
     def fetchDataToForm(self, row, column, fields="Recent"):
-        """PORK Window."""
         """Fills the form with all/some of the fields."""
         columns = self.piggybank.columnCount()
 
@@ -1117,7 +1061,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
         self.fetchDataToForm(self.selected_row, self.selected_column, fields = "Recent")
 
     def clearAll(self):
-        """PORK Window."""
         """Clears all the fields of the form."""
         self.lineEditFSN.setText("")
         self.comboBoxType.setCurrentIndex(-1)

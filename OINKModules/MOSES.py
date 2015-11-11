@@ -3640,7 +3640,91 @@ def getWritersListForEditor(user_id, password, editor_name=None):
     writers_list = list(set(writers_list))
     return writers_list
 
+def takeOINKBackup():
+    import subprocess
+    import datetime
+    import os
+    import glob
+    import xlsxwriter
+    import pandas as pd
+    u, p = getBigbrotherCredentials()
+    connectdb = getOINKConnector(u, p, 1)
+    print "Established OINK connection."
+    cursor = connectdb.cursor()
 
+    print "Getting a list of tables."
+    sqlcmdstring = "SHOW TABLES;"
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    table_description = cursor.description
+    table_columns = [x[0] for x in table_description]
+    ordered_data = [list(row) for row in data]
+    table_data_frame = pd.DataFrame(ordered_data, columns=table_columns)
+    connectdb.commit()
+    table_list = sorted(list(table_data_frame["Tables_in_oink"]))
+    print "There are %d tables in the OINK database."%len(table_list)
     
+    print "Checking if a backup folder exists."
+    backup_folder_path = os.path.join(os.getcwd(),"backups")
+    if not(os.path.exists(backup_folder_path)):
+        os.makedirs(backup_folder_path)
+        print "Created a backup folder: %s."%backup_folder_path
+    else:
+        print "Found backup folder. Using %s."%backup_folder_path
+
+    folder_name = datetime.date.today().strftime("%Y_%m_%d")
+    print "Creating a subfolder for %s."%datetime.date.today()
+    folder_path = os.path.join(backup_folder_path, folder_name)
+    if not(os.path.exists(folder_path)):
+        os.makedirs(folder_path)
+    else:
+        print "Found a subfolder. Proceeding to use %s."%folder_path
+    print "Starting backup."
+    for table_name in table_list:
+        print "Retrieving all rows in the %s table."%table_name
+        sqlcmdstring = "SELECT * from %s;"%(table_name)
+        cursor.execute(sqlcmdstring)
+        connectdb.commit()
+        data = cursor.fetchall()
+        table_description = cursor.description
+        table_columns = [x[0] for x in table_description]
+        ordered_data = [list(row) for row in data]
+        if ordered_data == []:
+            ordered_data = [["" for x in range(len(table_columns))]]
+        try:
+            table_data_frame = pd.DataFrame(ordered_data, columns=table_columns)
+        except:
+            print ordered_data
+            print table_name
+            connectdb.close()
+            raise
+        file_name = "%s.xlsx"%(table_name)
+        print "Writing to file %s"%(file_name)
+        file_path = os.path.join(folder_path, file_name)
+        csv_file_name = "%s.csv"%(table_name)
+        csv_file_path = os.path.join(folder_path, csv_file_name)
+        if os.path.exists(csv_file_path):
+            print "Found a previous version of %s. Proceeding to delete."%(csv_file_name)
+            os.remove(csv_file_path)
+        if os.path.exists(file_path):
+            print "Found a previous version of %s. Proceeding to delete."%(file_name)
+            os.remove(file_path)
+        try:
+            table_data_frame.to_excel(file_path, engine="xlsxwriter")
+            print "Successfully dumped %s."%table_name
+        except Exception, e:
+            print "Failed in backing up %s. Trying to dump to a csv instead."%table_name
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            print "Writing to file %s"%(csv_file_name)
+            try:
+                table_data_frame.to_csv(csv_file_path)
+            except Exception, err:
+                print "Failed in a CSV or an Excel file for %s.nThis could have happened for many reasons, try using HeidiSQL to save the data instead."%table_name
+    print "Closing connection."
+    connectdb.close()
+    print "Opening output location."
+    subprocess.call('explorer /select,"%s"'%file_path, shell=True)
+
 if __name__ == "__main__":
     print "Never call Moses mainly."

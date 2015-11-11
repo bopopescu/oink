@@ -10,7 +10,6 @@ class PiggyBanker(QtCore.QThread):
         super(PiggyBanker, self).__init__(parent)
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
-
         self.user_id = user_id
         self.password = password
         self.sleeper = 10
