@@ -1,7 +1,12 @@
 from __future__ import division
 import os
+import time
+import datetime
+import sys
 from PyQt4 import QtGui, QtCore
-
+from PIL import ImageQt
+from PIL import Image
+import PIL
 
 class ImageButton(QtGui.QPushButton):
     def __init__(self, image_path, height=None, width=None, mouseover_image_path=None):
@@ -28,8 +33,8 @@ class ImageButton(QtGui.QPushButton):
         self.showImage(self.image_path)
 
     def showImage(self, image_path):
-        type = os.path.splitext(os.path.basename(str(image_path)))[1]
-        image_pixmap = QtGui.QPixmap(image_path, type)
+        type_ = os.path.splitext(os.path.basename(str(image_path)))[1]
+        image_pixmap = QtGui.QPixmap(image_path, type_)
 
         image_pixmap = image_pixmap.scaled(
                                         QtCore.QSize(self.width, self.height),
@@ -48,4 +53,16 @@ class ImageButton(QtGui.QPushButton):
         self.showImage(self.image_path)
 
         super(ImageButton, self).leaveEvent(evnt)
-                
+    
+    def updateImage(self, qimage_object):
+        type_ = os.path.splitext(os.path.basename(str(self.image_path)))[1]
+        image_pixmap = QtGui.QPixmap(self.image_path, type_)
+        conversion_status = image_pixmap.convertFromImage(qimage_object)
+        image_pixmap = image_pixmap.scaled(
+                                        QtCore.QSize(self.width, self.height),
+                                        QtCore.Qt.KeepAspectRatio, 
+                                        QtCore.Qt.SmoothTransformation)
+        icon = QtGui.QIcon(image_pixmap)
+        self.setIcon(icon)
+        self.setIconSize(image_pixmap.rect().size())
+        self.setFixedSize(image_pixmap.rect().size())
