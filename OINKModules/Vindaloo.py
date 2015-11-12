@@ -27,6 +27,7 @@ from SwineHerd import SwineHerd
 from ImageButton import ImageButton
 from TNAViewer import TNAViewer
 from UserManager import UserManager
+from OverrideTool import OverrideTool
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -63,9 +64,9 @@ class Vindaloo(QtGui.QMainWindow):
         self.piggy_bank_button.setToolTip("Click here to pull Piggy Bank data.")
         self.piggy_bank_button.setFlat(True)
 
-        self.swine_herd_button = ImageButton(os.path.join("Images","swineherd.png"),width, height,os.path.join("Images","swineherd_mouseover.png"))
-        self.swine_herd_button.setToolTip("Click here to view the Head Count Report")
-        self.swine_herd_button.setFlat(True)
+        self.head_count_button = ImageButton(os.path.join("Images","headcount.png"),width, height,os.path.join("Images","headcount_mouseover.png"))
+        self.head_count_button.setToolTip("Click here to view the Head Count Report")
+        self.head_count_button.setFlat(True)
 
         self.calc_button = ImageButton(os.path.join("Images","calculator.png"),width, height, os.path.join("Images","calculator_mouseover.png"))
         self.calc_button.setToolTip("Click to open the Efficiency Calculator")
@@ -95,6 +96,10 @@ class Vindaloo(QtGui.QMainWindow):
         self.category_tree_button.setToolTip("Click to open the category tree manager.")
         self.category_tree_button.setFlat(True)
 
+        self.override_button =ImageButton(os.path.join("Images","override.png"), width, height, os.path.join("Images","override_mouseover.png"))
+        self.override_button.setToolTip("Click to open the FSN override tool.")
+        self.override_button.setFlat(True)
+
         buttons_layout = QtGui.QHBoxLayout()
 
         layout = QtGui.QGridLayout()
@@ -108,9 +113,10 @@ class Vindaloo(QtGui.QMainWindow):
         layout.addWidget(self.user_management_button,1,2)
         layout.addWidget(self.category_tree_button,1,3)
         layout.addWidget(self.farmhand_button, 1, 4)
-        layout.addWidget(self.swine_herd_button, 2, 0)
+        layout.addWidget(self.head_count_button, 2, 0)
         layout.addWidget(self.seeker_button, 2, 1)
         layout.addWidget(self.sty_cleaner_button, 2, 2)
+        layout.addWidget(self.override_button, 3, 0)
 
         self.main_widget.setLayout(layout)
 
@@ -158,7 +164,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.daily_porker_button.clicked.connect(self.openDailyPorker)
         self.farmhand_button.clicked.connect(self.openFarmHand)
         self.sty_cleaner_button.clicked.connect(self.openStyCleaner)
-        self.swine_herd_button.clicked.connect(self.openSwineHerd)
+        self.head_count_button.clicked.connect(self.openHeadCountReport)
         self.seeker_button.clicked.connect(self.openSeeker)
         
         self.tna_button.clicked.connect(self.openTNAViewer)
@@ -167,6 +173,10 @@ class Vindaloo(QtGui.QMainWindow):
         self.relaxation_button.clicked.connect(self.openRelaxationTracker)
         self.leaves_button.clicked.connect(self.openLeaveManager)
         self.user_management_button.clicked.connect(self.openUserManagement)
+        self.override_button.clicked.connect(self.openOverrideTool)
+
+    def openOverrideTool(self):
+        self.overrider = OverrideTool(self.user_id, self.password)
 
     def openTNAViewer(self):
         self.tna_viewer = TNAViewer(self.user_id, self.password, self.category_tree)
@@ -205,21 +215,17 @@ class Vindaloo(QtGui.QMainWindow):
         #self.sty_cleaner = ()
         #self.sty_cleaner.show()
     
-    def openSwineHerd(self):
-        self.swine = SwineHerd()
-        self.swine.show()
+    def openHeadCountReport(self):
+        self.alertMessage("Head Count Report", "The headcount report hasn't been developed yet.")
     
     def openSeeker(self):
-        #self.alertMessage("Seeker", "Porko Dormeins Nunquam Titlandus")
         self.seeker = Seeker(self.user_id, self.password)
         self.seeker.show()
         
     def alertMessage(self, title, message):
-        """Vindaloo."""
         QtGui.QMessageBox.about(self, title, message)
 
     def notify(self,title,message):
-        """Vindaloo."""
         self.trayIcon.showMessage(title,message)
 
     def closeEvent(self,event):
