@@ -14,6 +14,7 @@ import getpass
 import MySQLdb
 import MySQLdb.cursors
 import numpy
+import pandas as pd
 import OINKMethods as OINKM
 from PyQt4 import QtCore
 
@@ -2474,11 +2475,11 @@ def getUserRole(user_id, password=None, targetuser=None):
     return role
 
 def getHostID():
-    hostid_file = OINKM.getLatestFile("hostid.txt","Data")
-    #hostID = "localhost"
-    #print hostid_file
-    hostID = open(hostid_file).read()
-    return hostID
+    import os
+    host_id_file = os.path.join(os.getcwd(), "Data", "hostid.txt") if "OINKModules" not in os.getcwd() else os.path.join(os.getcwd(), "..","Data", "hostid.txt")
+    if os.path.exists(host_id_file):
+        return open(host_id_file).read()
+    return "localhost"
 
 def getDBName():
     dbName = "oink"
@@ -2521,19 +2522,28 @@ def changeHostID(hostID):
         success = False
     return success
 
-def addOverride(FSN, override_date, user_id, password):
+def addOverride(FSN, override_date, user_id, password, comment=None):
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
-    sqlcmdstring = "INSERT INTO `overriderecord` (`FSN`, `Override Date`, `Overridden By`) VALUES ('%s', '%s', '%s');" %(FSN, convertToMySQLDate(override_date), user_id)
+    if comment is None:
+        comment = "NA"
+    elif len(comment) <=0:
+        comment = "NA"
+    success = False
+    sqlcmdstring = """INSERT INTO `overriderecord` (`FSN`, `Override Date`, `Overridden By`, `Reason For Override`) VALUES ('%s', '%s', '%s', '%s');""" %(FSN, convertToMySQLDate(override_date), user_id, comment)
     #print sqlcmdstring
-    dbcursor.execute(sqlcmdstring)
+    try:
+        dbcursor.execute(sqlcmdstring)
+        success = True
+    except MySQLdb.IntegrityError:
+        success = False
     connectdb.commit()
     connectdb.close()
+    return success
 
 def checkForOverride(FSN, query_date, user_id, password):
     """Checks if an override has been scheduled for a specific FSN and date by the TL.
     It returns True if there's an override for a particular date, and it returns the number of overrides for this FSN so far."""
-
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
     sqlcmdstring = "SELECT * FROM `overriderecord` WHERE `FSN` = '%s' AND `Override Date` = '%s';" %(FSN, convertToMySQLDate(query_date))
@@ -2546,6 +2556,18 @@ def checkForOverride(FSN, query_date, user_id, password):
     connectdb.commit()
     connectdb.close()
     return (len(retrieved_data) > 0), len(overall_retrieved_data)
+
+def getOverrideTable(user_id, password):
+    import pandas as pd
+    connectdb = getOINKConnector(user_id, password, 1)
+    dbcursor = connectdb.cursor()
+    sqlcmdstring = "SELECT * FROM `overriderecord`;"
+    dbcursor.execute(sqlcmdstring)
+    data = dbcursor.fetchall()
+    override_record_description = dbcursor.description
+    override_column_names = [x[0] for x in override_record_description]
+    data_as_list_of_lists = [list(row) for row in data]
+    return pd.DataFrame(data_as_list_of_lists, columns=override_column_names)
 
 def getLastWorkingDate(user_id, password, queryDate = None, queryUser = None):
     """Returns the last working date for the requested user.
@@ -3139,11 +3161,8 @@ def getManagerMappingTable(user_id, password, query_user=None):
     manager_columns = [x[0] for x in manager_description]
     conn.close()
     if len(manager_data)>0:
-        ordered_data = []
-        ordered_data.append
         data_as_list = [list(row) for row in manager_data]
-        ordered_data.extend(data_as_list)
-        return_this = pd.DataFrame(ordered_data, columns=manager_columns)
+        return_this = pd.DataFrame(data_as_list, columns=manager_columns)
     else:
         return_this = None
     return return_this

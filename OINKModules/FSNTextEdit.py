@@ -1,3 +1,4 @@
+import OINKMethods as OINKM
 from PyQt4.QtGui import QWidget, QLabel, QTextEdit, QVBoxLayout
 
 class FSNTextEdit(QWidget):
@@ -28,4 +29,7 @@ class FSNTextEdit(QWidget):
             fsn_list = [fsn for fsn in fsns_string if ((len(fsn) == 16) or (len(fsn) == 13))]
         else:
             fsn_list = fsns_string
-        return list(set(fsn_list))
+
+        validated_list = filter(OINKM.checkIfFSN, list(set(fsn_list)))
+        return validated_list
+

@@ -9,6 +9,7 @@ import MOSES
 import OINKMethods as OINKM
 from FSNTextEdit import FSNTextEdit
 from FormattedDateEdit import FormattedDateEdit
+from CopiableQTableWidget import CopiableQTableWidget
 
 class OverrideTool(QtGui.QWidget):
     """Opens an override dialog."""
@@ -17,23 +18,30 @@ class OverrideTool(QtGui.QWidget):
         super(OverrideTool, self).__init__()
         self.user_id = user_id
         self.password = password
-        self.override_table = MOSES.getOverrideTable(self.user_id, self.password)
+        self.getOverrideTable()
         self.createUI()
         self.mapEvents()
+        self.override_date.setDate(datetime.date.today())
         #self.getFSNs()
 
+    def getOverrideTable(self):
+        self.override_table = MOSES.getOverrideTable(self.user_id, self.password)
+
     def createUI(self):
-        """"""
         self.fsn_text_edit = FSNTextEdit()
         self.override_date = FormattedDateEdit()
-        self.override_button = QtGui.QPushButton("Create Overrides for selected FSNs.")
+        self.override_button = QtGui.QPushButton("Override")
+        self.override_comment_label = QtGui.QLabel("Reason:")
+        self.override_comment_field = QtGui.QLineEdit()
+        self.override_comment_field.setToolTip("Enter a reason for the override here.")
         self.data_tabulator = CopiableQTableWidget()
-        self.data_tabulator.setDataFrame(self.override_table[self.override_table["Override Date"] == datetime.date.today()])
 
         column2 = QtGui.QVBoxLayout()
         column2.addStretch(2)
         column2.addWidget(self.override_date, 1)
         column2.addWidget(self.override_button, 1)
+        column2.addWidget(self.override_comment_label, 1)
+        column2.addWidget(self.override_comment_field, 1)
         column2.addStretch(2)
 
         options_layout = QtGui.QHBoxLayout()
@@ -43,71 +51,68 @@ class OverrideTool(QtGui.QWidget):
         layout = QtGui.QVBoxLayout()
         layout.addLayout(options_layout,1)
         layout.addWidget(self.data_tabulator,3)
-       
-        self.FSN_layout = QtGui.QHBoxLayout()
-        self.FSN_layout.addWidget(self.FSN_Label)
-        self.FSN_layout.addWidget(self.FSN_list)
-        self.FSN_layout.addLayout(self.FSN_Buttons_layout)
         
-        self.layout = QtGui.QVBoxLayout()
-        self.layout.addLayout(self.FSN_layout)
-        self.layout.addWidget(self.data_tabulator)
-        
-        self.setLayout(self.layout)
+        self.setLayout(layout)
 
-        self.FSN_list.setToolTip("Paste FSN(s) here.")
-        self.check_button.setToolTip("Click to compute.")
-        self.open_file.setToolTip("Click to open a file and get FSNs from it.")
-        self.exportData_button.setToolTip("Click to save data to file")
-
-        self.setWindowTitle("Kung Pao! The Override Dialog and FSN Finder.")
-        self.move(350, 150)
-        self.resize(300, 400)
+        self.setWindowTitle("Override Tool")
         self.show()
 
     def mapEvents(self):
         """"""
-        self.override_button.clicked.connect(self.create_override)
-        self.check_button.clicked.connect(self.populate_result_table)
+        self.override_button.clicked.connect(self.createOverride)
+        self.override_date.dateChanged.connect(self.changedDate)
 
-    def getFSNs(self):
+    def changedDate(self):
+        query_date = self.override_date.date().toPyDate()
+        resultant_data_frame = self.override_table[self.override_table["Override Date"] == query_date]
+        self.showDataFrame(resultant_data_frame)
+
+    def showDataFrame(self, data_frame):
+        self.data_tabulator.showDataFrame(data_frame)
+        self.data_tabulator.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.data_tabulator.verticalHeader().setStretchLastSection(False)
+        self.data_tabulator.verticalHeader().setVisible(True)
+
+        self.data_tabulator.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.data_tabulator.horizontalHeader().setStretchLastSection(False)
+        self.data_tabulator.horizontalHeader().setVisible(True)
+
+    def createOverride(self):
         """"""
-        fsns_as_a_string = str(self.FSN_list.toPlainText()).strip()
-        #print fsns_as_a_string
-        if "," in fsns_as_a_string:
-            fsnsList = fsns_as_a_string.split(",")
-        elif r"\n" in fsns_as_a_string:
-            fsnsList = fsns_as_a_string.split(r"\n")
-        elif " " in fsns_as_a_string:
-            fsnsList = fsns_as_a_string.split(" ")
-        elif r"\t" in fsns_as_a_string:
-            fsnsList = fsns_as_a_string.split(r"\t")
-        elif type(fsns_as_a_string) == type(""):
-            fsnsList = [fsns_as_a_string]
-        validated_list = filter(OINKM.checkIfFSN, fsnsList)
+        fsn_list = self.fsn_text_edit.getFSNs()
 
-        return validated_list
-
-    def populate_result_table(self):
-        """"""
-        fsnsList = self.getFSNs()
-        #print "I got these FSNS:\n", fsnsList
-        if fsnsList != None:
-            for FSN in fsnsList:
-                entries = MOSES.readFromPiggyBank({"FSN": FSN}, self.user_id, self.password)
-                fsn_dump_entries = MOSES.readFromDump({"FSN": FSN})
-                
-                if (len(entries) == 0) or (len(fsn_dump_entries) == 0):
-                    print "I didn't receive any entries in the piggybank table."
-
-    def create_override(self):
-        """"""
-        if len(getFSNs()) > 0:
-            for FSN in getFSNs():
-                MOSES.addOverride(FSN, self.date_time_planner.date().toPyDate(), self.user_id, self.password)
+        if len(fsn_list) > 0:
+            comment = str(self.override_comment_field.text()).strip()
+            if len(comment)==0:
+                self.ask_comment = QtGui.QMessageBox.question(self, 'No reason for override?', "Hi there! You seem to be trying to override an FSN without giving a reason for doing so. Are you sure you want to do that? If you don't want to type a reason, go on ahead. I suggest typing one, because you'll have a neat record of that here.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+                if self.ask_comment == QtGui.QMessageBox.Yes:
+                    allow = True
+                else:
+                    allow = False
+            else:
+                allow = True
+            if allow:
+                self.override_button.setEnabled(False)
+                if len(fsn_list)>1:
+                    self.alertMessage("Please Wait","Looks like you're trying to override more than one FSN so this step could take a second or a minute, though definitely not more than that. Please wait, and remember, <i>Roma die uno non aedificata est</i>.")
+                failures = []
+                for FSN in fsn_list:
+                    trial_status = MOSES.addOverride(FSN, self.override_date.date().toPyDate(), self.user_id, self.password, comment)
+                    if not trial_status:
+                        failures.append(FSN)
+                if len(failures) == 0:
+                    self.alertMessage("Success!","Successfully overrided the requested %d FSN(s)."%len(fsn_list))
+                else:
+                    self.alertMessage("Failed!","Failed in overriding %d of the %d FSN(s)."%(len(failures),len(fsn_list)))
+                self.getOverrideTable()
+                self.changedDate()
         else:
-            print "OK!" #I STOPPED CODING HERE!
+            self.alertMessage("No FSNs Provided","You don't seem to have pasted any valid FSNs. Could you try that again?")
+        self.override_button.setEnabled(True)
         return True
+
+    def alertMessage(self, title, message):
+        QtGui.QMessageBox.about(self, title, message)
 
 
 if __name__ == "__main__":
