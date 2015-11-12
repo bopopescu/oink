@@ -120,7 +120,7 @@ class Pork(QtGui.QMainWindow):
         self.calculator_button = ImageButton(os.path.join("Images","calculator.png"),height, width, os.path.join("Images","calculator_mouseover.png"))
         self.calculator_button.setToolTip("Open the Efficiency calculator tool.")
         self.calculator_button.setFlat(True)
-        self.tna_button = ImageButton(os.path.join("Images","tna.png"),height, width, os.path.join("Images","tna_mouseover.png"))
+        self.tna_button = ImageButton(os.path.join("Images","quality.png"),height, width, os.path.join("Images","quality_mouseover.png"))
         self.tna_button.setToolTip("Open the training needs assessment window")
         self.tna_button.setFlat(True)
         self.find_button = ImageButton(os.path.join("Images","find.png"),height, width,os.path.join("Images","find_mouseover.png"))

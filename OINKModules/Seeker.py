@@ -36,8 +36,14 @@ class Seeker(QtGui.QWidget):
         form_searcher_layout.addWidget(self.fsns_label, 0)
         form_searcher_layout.addWidget(self.fsns_text_edit, 2)
 
+        self.seeker_button = ImageButton(os.path.join("Images","seeker.png"),100,100,os.path.join("Images","seeker_mouseover.png"))
+        self.seeker_button.setFlat(True)
+        self.seeker_button.setToolTip("You're a Wizard, Harry.")
+        
         form_options_layout = QtGui.QVBoxLayout()
-        form_options_layout.addStretch(3)
+        form_options_layout.addStretch(1)
+        form_options_layout.addWidget(self.seeker_button,1, QtCore.Qt.AlignHCenter | QtCore.Qt.AlignBottom)
+        form_options_layout.addStretch(2)
         form_options_layout.addWidget(self.type_selector, 0)
         form_options_layout.addWidget(self.fetch_data_button, 0, QtCore.Qt.AlignHCenter | QtCore.Qt.AlignBottom)
 

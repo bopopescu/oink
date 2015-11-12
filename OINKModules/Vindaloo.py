@@ -38,67 +38,93 @@ class Vindaloo(QtGui.QMainWindow):
         self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         MOSES.createLoginStamp(self.user_id, self.password)
         self.createUI()
-        self.mapEvents()
+
+    def makeButton(self, button_image_base_name, tooltip, connected_function):
+        width, height = 64, 64
+        button = ImageButton(os.path.join("Images","%s.png"%button_image_base_name),width, height,os.path.join("Images","%s_mouseover.png"%button_image_base_name))
+        button.setToolTip(tooltip)
+        button.setFlat(True)
+        button.clicked.connect(connected_function)
+        return button
 
     def createUI(self):
         self.main_widget = QtGui.QWidget()
         self.setCentralWidget(self.main_widget)
-        width, height = 64, 64
-        self.daily_porker_button = ImageButton(os.path.join("Images","newspaper.png"),width, height,os.path.join("Images","newspaper_mouseover.png"))
-        self.daily_porker_button.setToolTip("Click here to pull the report.")
-        self.daily_porker_button.setFlat(True)
-        
-        self.seeker_button = ImageButton(os.path.join("Images","find.png"),width, height,os.path.join("Images","find_mouseover.png"))
-        self.seeker_button.setToolTip("Click here to search for an FSN or ItemID in the PiggyBank and FSN Dump.")
-        self.seeker_button.setFlat(True)
 
-        self.sty_cleaner_button = ImageButton(os.path.join("Images","stycleaner.png"),width, height,os.path.join("Images","stycleaner_mouseover.png"))
-        self.sty_cleaner_button.setToolTip("Click here to summarize the clarifications sheet.")
-        self.sty_cleaner_button.setFlat(True)
-
-        self.farmhand_button = ImageButton(os.path.join("Images","farmhand.png"),width, height,os.path.join("Images","farmhand_mouseover.png"))
-        self.farmhand_button.setToolTip("Click here to view feedback report(s).")
-        self.farmhand_button.setFlat(True)
-
-        self.piggy_bank_button = ImageButton(os.path.join("Images","piggybank.png"),width, height,os.path.join("Images","piggybank_mouseover.png"))
-        self.piggy_bank_button.setToolTip("Click here to pull Piggy Bank data.")
-        self.piggy_bank_button.setFlat(True)
-
-        self.head_count_button = ImageButton(os.path.join("Images","headcount.png"),width, height,os.path.join("Images","headcount_mouseover.png"))
-        self.head_count_button.setToolTip("Click here to view the Head Count Report")
-        self.head_count_button.setFlat(True)
-
-        self.calc_button = ImageButton(os.path.join("Images","calculator.png"),width, height, os.path.join("Images","calculator_mouseover.png"))
-        self.calc_button.setToolTip("Click to open the Efficiency Calculator")
-        self.calc_button.setFlat(True)
-
-        self.leaves_button = ImageButton(os.path.join("Images","leave.png"), width, height, os.path.join("Images","leave_mouseover.png"))
-        self.leaves_button.setToolTip("Click to open the leave approval system")
-        self.leaves_button.setFlat(True)
-
-        self.tna_button = ImageButton(os.path.join("Images","tna.png"),width, height, os.path.join("Images","tna_mouseover.png"))
-        self.tna_button.setToolTip("Click to open the training needs analysis tool")
-        self.tna_button.setFlat(True)
-
-        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),width, height, os.path.join("Images","relaxation_mouseover.png"))
-        self.relaxation_button.setToolTip("Click to open the relaxation approval system")
-        self.relaxation_button.setFlat(True)
-
-        self.escalation_button = ImageButton(os.path.join("Images","alert.png"), width, height, os.path.join("Images","alert_mouseover.png"))
-        self.escalation_button.setToolTip("Click to open the escalation tracker")
-        self.escalation_button.setFlat(True)
-
-        self.user_management_button = ImageButton(os.path.join("Images","users.png"), width, height, os.path.join("Images","users_mouseover.png"))
-        self.user_management_button.setToolTip("Click to open the user management tool")
-        self.user_management_button.setFlat(True)
-
-        self.category_tree_button = ImageButton(os.path.join("Images","category_tree.png"), width, height, os.path.join("Images","category_tree_mouseover.png"))
-        self.category_tree_button.setToolTip("Click to open the category tree manager.")
-        self.category_tree_button.setFlat(True)
-
-        self.override_button =ImageButton(os.path.join("Images","override.png"), width, height, os.path.join("Images","override_mouseover.png"))
-        self.override_button.setToolTip("Click to open the FSN override tool.")
-        self.override_button.setFlat(True)
+        self.daily_porker_button = self.makeButton(
+                                                "newspaper",
+                                                "Click here to pull reports.", 
+                                                self.openDailyPorker
+                                            )
+        self.seeker_button = self.makeButton(
+                                        "find",
+                                        "Click here to search for an FSN or ItemID in the PiggyBank and FSN Dump.", 
+                                        self.openSeeker
+                                       )
+        self.sty_cleaner_button = self.makeButton(
+                                            "stycleaner",
+                                            "Click here to summarize the clarifications sheet.", 
+                                            self.openStyCleaner
+                                        )
+        self.farmhand_button = self.makeButton(
+                                            "farmhand",
+                                            "Click here to view feedback report(s).", 
+                                            self.openFarmHand
+                                        )
+        self.piggy_bank_button = self.makeButton(
+                                            "piggybank",
+                                            "Click here to pull Piggy Bank data.", 
+                                            self.openPiggyBank
+                                        )
+        self.head_count_button = self.makeButton(
+                                            "headcount",
+                                            "Click here to view the Head Count Report.", 
+                                            self.openHeadCountReport
+                                        )
+        self.calc_button = self.makeButton(
+                                        "calculator",
+                                        "Click to open the Efficiency Calculator.", 
+                                        self.openCalculator
+                                    )
+        self.leaves_button = self.makeButton(
+                                        "leave",
+                                        "Click to open the leave approval system.", 
+                                        self.openLeaveManager
+                                    )
+        self.tna_button = self.makeButton(
+                                        "quality",
+                                        "Click to open the training needs analysis tool.",
+                                        self.openTNAViewer
+                                    )
+        self.relaxation_button = self.makeButton(
+                                            "relaxation",
+                                            "Click to open the relaxation approval system.", 
+                                            self.openRelaxationTracker
+                                        )
+        self.escalation_button = self.makeButton(
+                                            "alert",
+                                            "Click to open the escalation tracker.",
+                                            self.openEscalationTracker
+                                        )
+        self.user_management_button = self.makeButton(
+                                                    "users",
+                                                    "Click to open the user management tool.",
+                                                    self.openUserManagement
+                                                )
+        self.category_tree_button = self.makeButton(
+                                                "category_tree",
+                                                "Click to open the category tree manager.",
+                                                self.openCategoryTreeManager
+                                            )
+        self.override_button = self.makeButton(
+                                            "override",
+                                            "Click to open the FSN override tool.", 
+                                            self.openOverrideTool
+                                        )
+        self.upload_raw_data_button = self.makeButton(
+                                                "upload_raw_data",
+                                                "Click to upload Raw Data.", 
+                                                self.openRawDataUploader)
 
         buttons_layout = QtGui.QHBoxLayout()
 
@@ -116,6 +142,7 @@ class Vindaloo(QtGui.QMainWindow):
         layout.addWidget(self.head_count_button, 2, 0)
         layout.addWidget(self.seeker_button, 2, 1)
         layout.addWidget(self.sty_cleaner_button, 2, 2)
+        layout.addWidget(self.upload_raw_data_button, 2, 3)
         layout.addWidget(self.override_button, 3, 0)
 
         self.main_widget.setLayout(layout)
@@ -158,22 +185,11 @@ class Vindaloo(QtGui.QMainWindow):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
     
-    def mapEvents(self):
-        """Vindaloo."""
-        self.piggy_bank_button.clicked.connect(self.openPiggyBank)
-        self.daily_porker_button.clicked.connect(self.openDailyPorker)
-        self.farmhand_button.clicked.connect(self.openFarmHand)
-        self.sty_cleaner_button.clicked.connect(self.openStyCleaner)
-        self.head_count_button.clicked.connect(self.openHeadCountReport)
-        self.seeker_button.clicked.connect(self.openSeeker)
-        
-        self.tna_button.clicked.connect(self.openTNAViewer)
-        self.calc_button.clicked.connect(self.openCalculator)
-        self.escalation_button.clicked.connect(self.openEscalationTracker)
-        self.relaxation_button.clicked.connect(self.openRelaxationTracker)
-        self.leaves_button.clicked.connect(self.openLeaveManager)
-        self.user_management_button.clicked.connect(self.openUserManagement)
-        self.override_button.clicked.connect(self.openOverrideTool)
+    def openCategoryTreeManager(self):
+        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+
+    def openRawDataUploader(self):
+        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
 
     def openOverrideTool(self):
         self.overrider = OverrideTool(self.user_id, self.password)
