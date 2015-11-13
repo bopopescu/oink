@@ -172,6 +172,7 @@ class DailyPorker(QtGui.QWidget):
         self.report_time_frames_combobox.changedSelection.connect(self.refreshSortFilter)
         self.parameters_combobox.changedSelection.connect(self.refreshSortFilter)
         self.build_dbr_button.clicked.connect(self.buildDBR)
+        self.build_wbr_button.clicked.connect(self.buildWBR)
 
     def buildDBR(self):
         self.build_dbr_button.setEnabled(False)
@@ -181,6 +182,16 @@ class DailyPorker(QtGui.QWidget):
         self.dbr_report.adjustToColumns()
         self.build_dbr_button.setEnabled(True)
         self.alertMessage("Success","Successfully Pulled the DBR")
+
+    def buildWBR(self):
+        self.build_wbr_button.setEnabled(False)
+        self.alertMessage("Please Wait","This could take a while.")
+        wbr = MOSES.getWBR(self.user_id, self.password, self.start_date_edit.date().toPyDate(), self.category_tree)
+        self.wbr_report.showDataFrame(wbr)
+        self.wbr_report.adjustToColumns()
+        self.build_wbr_button.setEnabled(True)
+        self.alertMessage("Success","Successfully Pulled the WBR")
+
 
     def getWritersList(self):
         self.writers_data_frame = MOSES.getWritersList(self.user_id, self.password, self.start_date_edit.date().toPyDate())

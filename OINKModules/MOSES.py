@@ -1063,32 +1063,32 @@ def getPiggyBankWithFilters(user_id, password, data_set_filters):
     conn = getOINKConnector(user_id, password, 1)
     cursor = conn.cursor()
 
-    if data_set_filters["Description Types"] is not None:
+    if data_set_filters.get("Description Types") is not None:
         description_filter = "`Description Type` in (%s)"%", ".join(["'%s'"%x for x in data_set_filters["Description Types"]]) 
     else:
         description_filter = None
 
-    if data_set_filters["Dates"] is not None:
+    if data_set_filters.get("Dates") is not None:
         date_filter = "`Article Date` BETWEEN '%s' and '%s'"%(data_set_filters["Dates"][0], data_set_filters["Dates"][1])
     else:
         date_filter = None
 
-    if data_set_filters["Writers"] is not None:
+    if data_set_filters.get("Writers") is not None:
         writer_filter = "`Writer Name` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Writers"])
     else:
         writer_filter = None
 
-    if data_set_filters["Category Tree"] is not None:
+    if data_set_filters.get("Category Tree") is not None:
         category_tree_filter = "`Vertical` in (%s)"%", ".join("'%s'"%x for x in list(data_set_filters["Category Tree"]["Vertical"]))
     else:
         category_tree_filter = None
 
-    if data_set_filters["Brands"] is not None:
+    if data_set_filters.get("Brands") is not None:
         brand_filter = "`Brand` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Brands"])
     else:
         brand_filter = None
 
-    if data_set_filters["Sources"] is not None:
+    if data_set_filters.get("Sources") is not None:
         source_filter = "`Source` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Sources"])
     else:
         source_filter = None
@@ -1750,7 +1750,7 @@ def getRawDataWithFilters(user_id, password, data_set_filters):
     cursor = conn.cursor()
     rawdata_table, cfm_keys, gseo_keys = getRawDataTableAndAuditParameters()
 
-    if data_set_filters["Description Types"] is not None:
+    if data_set_filters.get("Description Types") is not None:
         description_filter_list = []
         if "PD" in data_set_filters["Description Types"]:
             description_filter_list.append("Regular Description")
@@ -1762,22 +1762,22 @@ def getRawDataWithFilters(user_id, password, data_set_filters):
     else:
         description_filter = None
 
-    if data_set_filters["Dates"] is not None:
+    if data_set_filters.get("Dates") is not None:
         date_filter = "`Audit Date` BETWEEN '%s' and '%s'"%(data_set_filters["Dates"][0], data_set_filters["Dates"][1])
     else:
         date_filter = None
 
-    if data_set_filters["Writers"] is not None:
+    if data_set_filters.get("Writers") is not None:
         writer_filter = "`Writer Name` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Writers"])
     else:
         writer_filter = None
     
-    if data_set_filters["Editors"] is not None:
+    if data_set_filters.get("Editors") is not None:
         editor_filter = "`Editor Name` in (%s)"%", ".join("'%s'"%x for x in data_set_filters["Editors"])
     else:
         editor_filter = None
 
-    if data_set_filters["Category Tree"] is not None:
+    if data_set_filters.get("Category Tree") is not None:
         category_tree_filter = "`Vertical` in (%s)"%", ".join("'%s'"%x for x in list(data_set_filters["Category Tree"]["Vertical"]))
     else:
         category_tree_filter = None
@@ -3778,7 +3778,7 @@ def takeOINKBackup():
 
     print "Sending mail."
     #"content-leads@flipkart.com"
-    email_ids_list = ["manjeet.s@flipkart.com","amrita.ghosh@flipkart.com","namrathac@flipkart.com","sherinb@flipkart.com","vinay.kt@flipkart.com","content-leads@flipkart.com"]
+    email_ids_list = ["manjeet.s@flipkart.com","amrita.ghosh@flipkart.com","namrathac@flipkart.com","sherinb@flipkart.com","vinay.kt@flipkart.com"]
 
     print "Renaming file for Google's sake."
     oink_zip_file_path = zip_file_path[:zip_file_path.find(".zip")]+".oink"
@@ -3944,6 +3944,51 @@ def getOverallQualityBetweenDates(user_id, password, start_date, end_date, query
 def getPathToImages():
     import os
     return os.path.join(os.getcwd(),"Images") if "OINKModules" not in os.getcwd() else os.path.join(os.getcwd(),"..","Images") 
+
+def getWBR(user_id, password, query_date, category_tree):
+    import math
+    import datetime
+    import pandas as pd
+    start_date = getFirstDayOfWeek(query_date - datetime.timedelta(days=7))
+    end_date = getLastDayOfWeek(query_date - datetime.timedelta(days=7))
+    wbr = []
+    piggy_bank = getPiggyBankWithFilters(user_id, password, {"Dates":[start_date, end_date]})
+    raw_data = getRawDataWithFilters(user_id, password, {"Dates": [start_date, end_date]})
+    dates_list = getWorkingDatesBetween(user_id, password, start_date, end_date, mode="All")
+    
+    for each_date in dates_list:
+        filtered_piggy_bank = piggy_bank[piggy_bank["Article Date"] == each_date]
+
+        article_count = len(list(filtered_piggy_bank["FSN"]))
+        non_uploaded_article_count = len(list(filtered_piggy_bank[filtered_piggy_bank["Description Type"].str.contains("SEO")]["FSN"]))
+        uploaded_article_count = article_count - non_uploaded_article_count
+
+        filtered_raw_data = raw_data[raw_data["Audit Date"] == each_date]
+        expected_audit_count = len(list(filtered_raw_data["FSN"]))
+        actual_audit_count = expected_audit_count
+        scored_audit_count = expected_audit_count
+        quality, fatals = getOverallQualityBetweenDates(user_id, password, each_date, each_date, use_all=True)
+        if type(quality) != str and not(math.isnan(quality)):
+            quality = "%7.4f%%"%(quality*100)
+        else:
+            quality = "-"
+
+        wbr.append([each_date, each_date.strftime("%A"), article_count, uploaded_article_count, expected_audit_count, actual_audit_count, scored_audit_count, quality, fatals])
+    return pd.DataFrame(wbr, columns=["Date","Day","Written","Uploaded","Expected Audits","Actual Audits","Scored","Quality","Fatal Error"])
+
+def getFirstDayOfWeek(query_date):
+    import datetime
+    day = query_date.isocalendar()[2]
+    monday = query_date - datetime.timedelta(day - 1)
+    getWorkingDatesBetween
+    return monday
+
+def getLastDayOfWeek(query_date):
+    import datetime
+    day = query_date.isocalendar()[2]
+    monday = query_date - datetime.timedelta(day - 1)
+    return monday + datetime.timedelta(days=5)
+
 
 if __name__ == "__main__":
     print "Never call Moses mainly."
