@@ -47,5 +47,11 @@ class CopiableQTableWidget(QtGui.QTableWidget):
             self.horizontalHeader().setVisible(True)
         else:
             self.setRowCount(0)
+
+    def adjustToColumns(self):
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+        self.horizontalHeader().setStretchLastSection(False)
+        self.horizontalHeader().setVisible(True)
             
 

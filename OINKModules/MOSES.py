@@ -9,6 +9,7 @@ import sys
 import datetime
 import csv
 import os
+import math
 import time
 import getpass
 import MySQLdb
@@ -3804,9 +3805,100 @@ def takeOINKBackup():
         os.remove(zip_file_path)
     print "Completed backup."
 
+def getDBR(user_id, password, query_date, category_tree):
+    """Returns a dataframe with the daily report."""
+    import math
+    import pandas as pd
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    cmd = """SELECT * from piggybank WHERE `Article Date` = '%s';"""%(query_date)
+    cursor.execute(cmd)
+    data = cursor.fetchall()
+    data_frame = pd.DataFrame.from_records(data)
+    conn.commit()
+    conn.close()
+    rpd_filter = data_frame[data_frame["Description Type"].str.contains("Rich Product Description")]
+    rpd_variant_updation_filter = data_frame[data_frame["Description Type"].str.contains("RPD")]
+    rpd_count = len(list(rpd_filter["FSN"])) + len(list(rpd_variant_updation_filter["FSN"]))
+    seo_filter = data_frame[data_frame["Description Type"].str.contains("SEO")]
+    seo_count = len(list(seo_filter["FSN"]))
+    pd_filter = data_frame[data_frame["Description Type"].str.contains("Regular Description")]
+    pd_count = len(list(pd_filter["FSN"]))
+
+
+    efficiency = getEfficiencyForTeamFor(user_id, password, query_date,category_tree)
+    quality, fatals = getQualityForTeamFor(user_id, password, query_date)
+
+    sku_count = rpd_count + pd_count + seo_count
+    sku_planned_count = int(math.floor(sku_count/efficiency))
+
+    dbr = [
+        ["No. of SKUs Planned", sku_planned_count],
+        ["No. of SKUs Completed", sku_count],
+        ["",""],
+        ["No. of RPD Planned", rpd_count],
+        ["No. of RPD Completed", rpd_count],
+        ["Cost per Article RPD", "-"],
+        ["",""],
+        ["No. of SEO Planned", seo_count],
+        ["No. of SEO Completed",seo_count],
+        ["Cost per Article SEO","-"],
+        ["",""],
+        ["No. of PD Planned",pd_count],
+        ["No. of PD Completed",pd_count],
+        ["Cost per Article PD","-"],
+        ["Cost Per Article (PD, SEO)","-"],
+        ["",""],
+        ["Efficiency","%7.4f%%"%(efficiency*100)],
+        ["Quality","%7.4f%%"%(quality*100)],
+        ["Fatals",fatals],
+        ["Buying Guides Planned","-"],
+        ["Buying Guides Completed","-"],
+        ["Buying Guides Pending","-"],
+        ["USP Images Planned","-"],
+        ["USP Images Completed","-"],
+        ["USP Images Pending","-"],
+        ["Overall Helpfulness - RPD","-"],
+        ["Desktop Helpfulness","-"],
+        ["PPV Impact %","-"],
+        ["Band 4 & 5 RPD/PD Coverage Target","-"],
+        ["Band 4 & 5 RPD/PD Coverage Completed","-"],
+        ["Band 4 & 5 RPD/PD Coverage Pending","-"]
+        ]
+    return pd.DataFrame(dbr, columns=["Report Detail","Value"])
+
+def getEfficiencyForTeamFor(user_id, password, query_date, category_tree):
+    import math
+    writers_list = getWritersList(user_id, password, query_date)
+    print list(writers_list["Name"])
+    writer_ids_list = sorted(set(list(writers_list["Employee ID"])))
+    efficiency = 0.0
+    counter = 0
+    for writer_id in writer_ids_list:
+        writer_efficiency = getEfficiencyFor(user_id, password, query_date, writer_id, category_tree)
+        if (type(writer_efficiency) != str) and not(math.isnan(writer_efficiency)):
+            efficiency += writer_efficiency
+            counter += 1
+        else:
+            print list(writers_list[writers_list["Employee ID"] == writer_id]["Name"])[0], writer_id, efficiency
+    if counter <= len(writer_ids_list):
+        print "%d mandays lost on %s out of %s.."%((len(writer_ids_list)- counter), query_date, len(writer_ids_list))
+    if counter >0:
+        team_efficiency = efficiency/counter
+    else:
+        team_efficiency = 1.0
+    return team_efficiency
+
+def getQualityForTeamFor(user_id, password, query_date):
+    writers_list = getWritersList(user_id, password, query_date)
+    writer_ids_list = sorted(set(list(writers_list["Employee ID"])))
+    quality = 0.0
+
+    return 1.00, 0
 
 def getPathToImages():
     import os
     return os.path.join(os.getcwd(),"Images") if "OINKModules" not in os.getcwd() else os.path.join(os.getcwd(),"..","Images") 
+
 if __name__ == "__main__":
     print "Never call Moses mainly."

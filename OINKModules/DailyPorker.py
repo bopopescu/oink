@@ -103,9 +103,9 @@ class DailyPorker(QtGui.QWidget):
         self.export_graphs_button.setToolTip("Click this button to save the generated reports and graphs in a desired folder location.")
 
         self.report = CopiableQTableWidget(0, 0)
-        self.t_report = QtGui.QTableWidget(0, 0)
-        self.dbr_report = QtGui.QTableWidget(0, 0)
-        self.wbr_report = QtGui.QTableWidget(0, 0)
+        self.t_report = CopiableQTableWidget(0, 0)
+        self.dbr_report = CopiableQTableWidget(0, 0)
+        self.wbr_report = CopiableQTableWidget(0, 0)
 
         self.graphs = DailyGraphView()
         self.t_graphs = DailyGraphView()
@@ -171,6 +171,16 @@ class DailyPorker(QtGui.QWidget):
         self.pork_lane.sendGraphs.connect(self.displayGraphs)
         self.report_time_frames_combobox.changedSelection.connect(self.refreshSortFilter)
         self.parameters_combobox.changedSelection.connect(self.refreshSortFilter)
+        self.build_dbr_button.clicked.connect(self.buildDBR)
+
+    def buildDBR(self):
+        self.alertMessage("Please Wait","This could take a while.")
+        self.build_dbr_button.setEnabled(False)
+        dbr = MOSES.getDBR(self.user_id, self.password, self.start_date_edit.date().toPyDate(), self.category_tree)
+        self.dbr_report.showDataFrame(dbr)
+        self.dbr_report.adjustToColumns()
+        self.build_dbr_button.setEnabled(True)
+        self.alertMessage("Success","Successfully Pulled the DBR")
 
     def getWritersList(self):
         self.writers_data_frame = MOSES.getWritersList(self.user_id, self.password, self.start_date_edit.date().toPyDate())

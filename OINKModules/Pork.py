@@ -4,7 +4,7 @@ import os
 import getpass
 import math
 import datetime
-
+import random
 import numpy
 from PyQt4 import QtGui, QtCore
 
@@ -25,11 +25,13 @@ from CategoryFinder import CategoryFinder
 from Player import Player
 from TNAViewer import TNAViewer
 from ProgressBar import ProgressBar
+from SharinganButton import SharinganButton
 
 class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
         super(QtGui.QMainWindow, self).__init__()
         self.x_pos, self.right_pos = "center","middle"
+        self.flip = random.randint(0, 1)
         #store the variables so they are accessible elsewhere in this class.
         self.userID = userID
         self.password = password
@@ -88,8 +90,9 @@ class Pork(QtGui.QMainWindow):
                 else:
                     y_pos = "middle"
                 if (x_pos != self.x_pos) or (y_pos !=self.y_pos):
-                    image_path = os.path.join("Images","bigbrother","sauron","%s_%s.png"%(x_pos,y_pos))
-                    self.bigbrother_icon.showImage(image_path)
+                    if self.flip == 0:
+                        image_path = os.path.join("Images","bigbrother","sauron","%s_%s.png"%(x_pos,y_pos))
+                        self.bigbrother_icon.showImage(image_path)
                     self.x_pos, self.y_pos = x_pos, y_pos
         return QtGui.QMainWindow.eventFilter(self, source, event)
 
@@ -102,7 +105,10 @@ class Pork(QtGui.QMainWindow):
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
         self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
-        self.bigbrother_icon = ImageButton(os.path.join("Images","bigbrother.png"), 64, 64)
+        if self.flip == 0:
+            self.bigbrother_icon = ImageButton(os.path.join("Images","bigbrother.png"), 64, 64)
+        else:
+            self.bigbrother_icon = SharinganButton(64, 64)
         self.pork_icon = ImageLabel(os.path.join("Images","pork_logo.png"),64, 64)
         self.v_icon = ImageButton(os.path.join("Images","v.png"),64,64)
         self.fk_icon.setToolTip("Flipkart Content Team")
@@ -746,7 +752,7 @@ class Pork(QtGui.QMainWindow):
                  text-align: center;
              }
             .QProgressBar::chunk {
-                 background-color: #05B8CC;
+                 background-color: #008000;
                  width: 20px;
              }"""
             self.efficiencyProgress.setStyleSheet(new_style)

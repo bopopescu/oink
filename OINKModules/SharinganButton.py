@@ -88,7 +88,7 @@ def getSharinganFileLists():
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
-    sharingan_button = SharinganButton(os.path.join("..","Images","sharingan","uchiha_eye"),100,100)
+    sharingan_button = SharinganButton(100,100)
     test_window = QtGui.QMainWindow()
     test_window.setCentralWidget(sharingan_button)
     test_window.show()
