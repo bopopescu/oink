@@ -5,7 +5,7 @@ import math
 import time
 import glob
 import datetime
-
+import MOSES
 from PyQt4 import QtGui, QtCore
 from PIL import Image, ImageQt
 import PIL
@@ -56,7 +56,7 @@ class ThreadOfSixPaths(QtCore.QThread):
 
 class SharinganButton(ImageButton):
     def __init__(self, *args, **kwargs):
-        super(SharinganButton, self).__init__(*args, **kwargs)
+        super(SharinganButton, self).__init__(os.path.join(MOSES.getPathToImages(),"sharingan","sharingan_base.png"), *args, **kwargs)
         self.ashura = ThreadOfSixPaths()
         self.ashura.updateImage.connect(self.updateImage)
 
@@ -66,7 +66,7 @@ class SharinganButton(ImageButton):
 def getSharinganFileLists():
     import os
     import glob
-    path_to_folder = os.path.join(os.getcwd(),"Images","sharingan") if "OINKModules" not in os.getcwd() else os.path.join(os.getcwd(),"..","Images","sharingan")
+    path_to_folder = os.path.join(MOSES.getPathToImages(),"sharingan")
     base_sharingan_file = os.path.join(path_to_folder,"sharingan_base.png")
     search_string = os.path.join(path_to_folder,"sharingan_mangyeko_*.png")
     mangyeko_file_list = glob.glob(search_string)

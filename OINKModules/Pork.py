@@ -6,6 +6,7 @@ import math
 import datetime
 import random
 import numpy
+import pandas as pd
 from PyQt4 import QtGui, QtCore
 
 from EfficiencyCalculator import EfficiencyCalculator
