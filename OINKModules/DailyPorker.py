@@ -8,13 +8,15 @@ from PyQt4 import QtGui, QtCore
 import numpy
 import pandas as pd
 
-import MOSES
 from DailyGraphView import DailyGraphView
-import Graphinator
 from ProgressBar import ProgressBar
 from CopiableQTableWidget import CopiableQTableWidget
 from CheckableComboBox import CheckableComboBox
 from PorkLane import PorkLane
+from ImageButton import ImageButton
+
+import MOSES
+import Graphinator
 
 class DailyPorker(QtGui.QWidget):
     def __init__(self, user_id, password, category_tree=None):
@@ -143,12 +145,21 @@ class DailyPorker(QtGui.QWidget):
         options_layout = QtGui.QVBoxLayout()
         options_layout.addLayout(options_layout_row_1,0)
         options_layout.addLayout(options_layout_row_2,0)
-
+        self.daily_porker_logo = ImageButton(
+                                        os.path.join(MOSES.getPathToImages(),"newspaper.png"),
+                                        100,
+                                        100,
+                                        os.path.join(MOSES.getPathToImages(),"newspaper_mouseover.png")
+                                    )
+        self.daily_porker_logo.setFlat(True)
         options = QtGui.QGroupBox("Report Options")
         options.setLayout(options_layout)
+        options_with_logo = QtGui.QHBoxLayout()
+        options_with_logo.addWidget(self.daily_porker_logo, 0, QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        options_with_logo.addWidget(options, 3)
 
         layout = QtGui.QVBoxLayout()
-        layout.addWidget(options,1)
+        layout.addLayout(options_with_logo,1)
         layout.addWidget(self.reports_tab,3)
         layout.addWidget(self.progress_bar,0)
         layout.addWidget(self.status,0)
@@ -156,10 +167,7 @@ class DailyPorker(QtGui.QWidget):
         self.setLayout(layout)
         self.setWindowTitle("The Daily Porker: Straight from the Pigs")
 
-        if "OINKModules" in os.getcwd():
-            icon_file_name_path = os.path.join(os.path.join('..',"Images"),'PORK_Icon.png')
-        else:
-            icon_file_name_path = os.path.join('Images','PORK_Icon.png')
+        icon_file_name_path = os.path.join(MOSES.getPathToImages(),'PORK_Icon.png')
         self.setWindowIcon(QtGui.QIcon(icon_file_name_path))
 
     def mapEvents(self):
