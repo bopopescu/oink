@@ -10,6 +10,7 @@ import OINKMethods as OINKM
 from FSNTextEdit import FSNTextEdit
 from FormattedDateEdit import FormattedDateEdit
 from CopiableQTableWidget import CopiableQTableWidget
+from ImageButton import ImageButton
 
 class OverrideTool(QtGui.QWidget):
     """Opens an override dialog."""
@@ -30,6 +31,9 @@ class OverrideTool(QtGui.QWidget):
     def createUI(self):
         self.fsn_text_edit = FSNTextEdit()
         self.override_date = FormattedDateEdit()
+        self.override_logo = ImageButton(os.path.join(MOSES.getPathToImages(),"override.png"),64,64,os.path.join(MOSES.getPathToImages(),"override_mouseover.png"))
+        self.override_logo.setFlat(True)
+        self.override_logo.setToolTip("If you can't do something once, do it again, and again.")
         self.override_button = QtGui.QPushButton("Override")
         self.override_comment_label = QtGui.QLabel("Reason:")
         self.override_comment_field = QtGui.QLineEdit()
@@ -37,7 +41,7 @@ class OverrideTool(QtGui.QWidget):
         self.data_tabulator = CopiableQTableWidget()
 
         column2 = QtGui.QVBoxLayout()
-        column2.addStretch(2)
+        column2.addWidget(self.override_logo,1, QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
         column2.addWidget(self.override_date, 1)
         column2.addWidget(self.override_button, 1)
         column2.addWidget(self.override_comment_label, 1)
@@ -45,7 +49,7 @@ class OverrideTool(QtGui.QWidget):
         column2.addStretch(2)
 
         options_layout = QtGui.QHBoxLayout()
-        options_layout.addWidget(self.fsn_text_edit,2)
+        options_layout.addWidget(self.fsn_text_edit,2, QtCore.Qt.AlignTop)
         options_layout.addLayout(column2,1)
 
         layout = QtGui.QVBoxLayout()
@@ -53,7 +57,7 @@ class OverrideTool(QtGui.QWidget):
         layout.addWidget(self.data_tabulator,3)
         
         self.setLayout(layout)
-
+        self.setWindowIcon(QtGui.QIcon(os.path.join(MOSES.getPathToImages(),"PORK_Icon.png")))
         self.setWindowTitle("Override Tool")
         self.show()
 

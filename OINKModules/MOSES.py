@@ -3804,5 +3804,9 @@ def takeOINKBackup():
         os.remove(zip_file_path)
     print "Completed backup."
 
+
+def getPathToImages():
+    import os
+    return os.path.join(os.getcwd(),"Images") if "OINKModules" not in os.getcwd() else os.path.join(os.getcwd(),"..","Images") 
 if __name__ == "__main__":
     print "Never call Moses mainly."
