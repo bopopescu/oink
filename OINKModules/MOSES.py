@@ -3837,6 +3837,16 @@ def getDBR(user_id, password, query_date, category_tree):
     efficiency = getEfficiencyForTeamFor(user_id, password, query_date,category_tree)
     quality, fatals = getOverallQualityBetweenDates(user_id, password, query_date, query_date, use_all=True)
 
+    if type(efficiency) != str and not(math.isnan(efficiency)):
+        string_formatted_efficiency = "%7.4f%%"%(efficiency*100)
+    else:
+        string_formatted_efficiency = "-"
+
+    if type(quality) != str and not(math.isnan(quality)):
+        string_formatted_quality = "%7.4f%%"%(quality*100)
+    else:
+        string_formatted_quality = "-"
+
     sku_count = rpd_count + pd_count + seo_count
     sku_planned_count = int(math.floor(sku_count/efficiency))
 
@@ -3857,8 +3867,8 @@ def getDBR(user_id, password, query_date, category_tree):
         ["Cost per Article PD","-"],
         ["Cost Per Article (PD, SEO)","-"],
         ["",""],
-        ["Efficiency","%7.4f%%"%(efficiency*100)],
-        ["Quality","%7.4f%%"%(quality*100)],
+        ["Efficiency",string_formatted_efficiency],
+        ["Quality",string_formatted_quality],
         ["Fatals",fatals],
         ["Buying Guides Planned","-"],
         ["Buying Guides Completed","-"],
@@ -3878,7 +3888,7 @@ def getDBR(user_id, password, query_date, category_tree):
 def getEfficiencyForTeamFor(user_id, password, query_date, category_tree):
     import math
     writers_list = getWritersList(user_id, password, query_date)
-    print list(writers_list["Name"])
+    #print list(writers_list["Name"])
     writer_ids_list = sorted(set(list(writers_list["Employee ID"])))
     efficiency = 0.0
     counter = 0
@@ -3887,10 +3897,10 @@ def getEfficiencyForTeamFor(user_id, password, query_date, category_tree):
         if (type(writer_efficiency) != str) and not(math.isnan(writer_efficiency)):
             efficiency += writer_efficiency
             counter += 1
-        else:
-            print list(writers_list[writers_list["Employee ID"] == writer_id]["Name"])[0], writer_id, efficiency
-    if counter <= len(writer_ids_list):
-        print "%d mandays lost on %s out of %s.."%((len(writer_ids_list)- counter), query_date, len(writer_ids_list))
+        #else:
+            #print list(writers_list[writers_list["Employee ID"] == writer_id]["Name"])[0], writer_id, writer_efficiency
+    #if counter <= len(writer_ids_list):
+        #print "%d mandays lost on %s out of %s.."%((len(writer_ids_list)- counter), query_date, len(writer_ids_list))
     if counter >0:
         team_efficiency = efficiency/counter
     else:
@@ -3950,8 +3960,8 @@ def getWBR(user_id, password, query_date, category_tree):
     import math
     import datetime
     import pandas as pd
-    start_date = getFirstDayOfWeek(query_date - datetime.timedelta(days=7))
-    end_date = getLastDayOfWeek(query_date - datetime.timedelta(days=7))
+    start_date = getFirstDayOfWeek(query_date - datetime.timedelta(days=4))
+    end_date = getLastDayOfWeek(query_date - datetime.timedelta(days=4))
     wbr = []
     piggy_bank = getPiggyBankWithFilters(user_id, password, {"Dates":[start_date, end_date]})
     raw_data = getRawDataWithFilters(user_id, password, {"Dates": [start_date, end_date]})
