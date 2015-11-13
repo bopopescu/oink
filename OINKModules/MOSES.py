@@ -3833,7 +3833,6 @@ def getDBR(user_id, password, query_date, category_tree):
     pd_filter = data_frame[data_frame["Description Type"].str.contains("Regular Description")]
     pd_count = len(list(pd_filter["FSN"]))
 
-
     efficiency = getEfficiencyForTeamFor(user_id, password, query_date,category_tree)
     quality, fatals = getOverallQualityBetweenDates(user_id, password, query_date, query_date, use_all=True)
 
