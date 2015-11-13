@@ -2219,20 +2219,27 @@ def getAverageTeamGSEOBetween(start_date, end_date, consider_fatal=None):
     #print GSEO_scores
     return GSEO_score_average
 
-def getCFMGSEOFor(user_id, password, query_date, query_user=None):
+def getCFMGSEOFor(user_id, password, query_date, query_user=None, use_all=None):
     import numpy
     if query_user is None:
         query_user = user_id
-    return getCFMGSEOBetweenDates(user_id, password, query_date, query_date, query_user)
+    return getCFMGSEOBetweenDates(user_id, password, query_date, query_date, query_user, use_all)
 
-def getCFMGSEOBetweenDates(user_id, password, start_date, end_date, query_user=None):
+def getCFMGSEOBetweenDates(user_id, password, start_date, end_date, query_user=None, use_all=None):
     import numpy
     if query_user is None:
         query_user = user_id
     raw_data_table, CFM_key_list, GSEO_key_list = getRawDataTableAndAuditParameters()
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
-    sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    if use_all is not None:
+        use_all = False
+    else:
+        use_all = True
+    if not use_all:
+        sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    else:
+        sqlcmdstring = """SELECT * FROM `%s` WHERE `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
     conn.close()
@@ -3827,7 +3834,7 @@ def getDBR(user_id, password, query_date, category_tree):
 
 
     efficiency = getEfficiencyForTeamFor(user_id, password, query_date,category_tree)
-    quality, fatals = getQualityForTeamFor(user_id, password, query_date)
+    quality, fatals = getOverallQualityBetweenDates(user_id, password, query_date, query_date, use_all=True)
 
     sku_count = rpd_count + pd_count + seo_count
     sku_planned_count = int(math.floor(sku_count/efficiency))
@@ -3889,12 +3896,50 @@ def getEfficiencyForTeamFor(user_id, password, query_date, category_tree):
         team_efficiency = 1.0
     return team_efficiency
 
-def getQualityForTeamFor(user_id, password, query_date):
-    writers_list = getWritersList(user_id, password, query_date)
-    writer_ids_list = sorted(set(list(writers_list["Employee ID"])))
-    quality = 0.0
+def getOverallQualityBetweenDates(user_id, password, start_date, end_date, query_user=None, use_all=None):
+    import numpy
+    if query_user is None:
+        query_user = user_id
+    raw_data_table, CFM_key_list, GSEO_key_list = getRawDataTableAndAuditParameters()
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    if use_all is None:
+        use_all = False
+    else:
+        use_all = True
+    if not use_all:
+        sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    else:
+        sqlcmdstring = """SELECT * FROM `%s` WHERE `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.close()
+    audits = len(data)
+    #print "Found %d audited articles." % audits
+    counter = 0
+    fat_key_list = ["FAT01","FAT02","FAT03"]
+    overall_scores = []
+    fatal_count = 0
+    for each_entry in data:
+        cfm_total = numpy.sum(list(each_entry[CFM_key] for CFM_key in CFM_key_list))
+        gseo_total = numpy.sum(list(each_entry[GSEO_key] for GSEO_key in GSEO_key_list))
+        overall_score = (cfm_total + gseo_total)/100.0
+        fatals = list(each_entry[fat_key] for fat_key in fat_key_list)
+        if "Yes" in fatals:
+            overall_score = 0.0
+            fatal_count += 1
 
-    return 1.00, 0
+        counter += 1
+        overall_score = numpy.around(overall_score, decimals=3)
+        overall_scores.append(overall_score)
+    if audits > 0:
+        overall_score_average = numpy.mean(overall_scores)
+        overall_score_average = numpy.around(overall_score_average, decimals=6)
+    else:
+        print overall_scores
+        overall_score_average = None
+
+    return overall_score_average, fatal_count
 
 def getPathToImages():
     import os

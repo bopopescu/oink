@@ -174,8 +174,8 @@ class DailyPorker(QtGui.QWidget):
         self.build_dbr_button.clicked.connect(self.buildDBR)
 
     def buildDBR(self):
-        self.alertMessage("Please Wait","This could take a while.")
         self.build_dbr_button.setEnabled(False)
+        self.alertMessage("Please Wait","This could take a while.")
         dbr = MOSES.getDBR(self.user_id, self.password, self.start_date_edit.date().toPyDate(), self.category_tree)
         self.dbr_report.showDataFrame(dbr)
         self.dbr_report.adjustToColumns()
