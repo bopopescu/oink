@@ -27,6 +27,7 @@ from Player import Player
 from TNAViewer import TNAViewer
 from ProgressBar import ProgressBar
 from SharinganButton import SharinganButton
+from CopiableQTableWidget import CopiableQTableWidget
 
 class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
@@ -65,7 +66,6 @@ class Pork(QtGui.QMainWindow):
         #self.porker_thread.getStatsData(self.getActiveDate())
         #Final set up.
         self.currentFSNDataList = []
-        #self.displayEfficiency()
         #Ignorance is bliss.
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
 
@@ -164,7 +164,7 @@ class Pork(QtGui.QMainWindow):
         #self.status_bar.setMaximumWidth()
         self.status_bar.showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
         self.menu = self.menuBar()
-        self.stats_table = QtGui.QTableWidget(0, 0, self)
+        self.stats_table = CopiableQTableWidget(0, 0, self)
         self.stats_table.setColumnCount(len(self.stats_table_headers))
         self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
         self.stats_table.setStyleSheet("gridline-color: rgb(0, 0, 0); font: Georgia 18 pt;")
@@ -704,18 +704,14 @@ class Pork(QtGui.QMainWindow):
         new_date = self.getActiveDate()
         self.piggybanker_thread.setDate(new_date)
         self.piggybanker_thread.getPiggyBank()
-        self.porker_thread.setDate(new_date)
-        self.porker_thread.getEfficiency()
+
+        self.displayEfficiencyThreaded(self.porker_thread.getEfficiencyFor(new_date))
         self.mapToolTips()
         self.FSNEditFinishTriggers()
         self.refreshStatsTable()
 
     def refreshStatsTable(self):
-        self.porker_thread.stats_date = self.getActiveDate()
-        self.porker_thread.sentStatsData = False
-        self.porker_thread.sentDatesData = False
-        self.porker_thread.mode = 3
-        
+        self.porker_thread.updateForDate(self.getActiveDate())        
 
     def populateTableThreaded(self, data, efficiencies):
         #print "Got %d Articles from the piggybanker_thread." %len(data)
@@ -747,43 +743,10 @@ class Pork(QtGui.QMainWindow):
         efficiency = int(efficiency*100) #this works
         if efficiency > 100:
             self.efficiencyProgress.setRange(0,efficiency)
-            new_style = """
-            .QProgressBar {
-                 border: 2px solid grey;
-                 border-radius: 5px;
-                 text-align: center;
-             }
-            .QProgressBar::chunk {
-                 background-color: #008000;
-                 width: 20px;
-             }"""
-            self.efficiencyProgress.setStyleSheet(new_style)
         elif 99 <= efficiency <= 100:
-            new_style = """
-            .QProgressBar {
-                 border: 0.5px solid black;
-                 border-radius: 5px;
-                 text-align: center;
-             }
-            .QProgressBar::chunk {
-                 background-color: #008000;
-                 width: 20px;
-             }"""
             self.efficiencyProgress.setRange(0,efficiency)
-            self.efficiencyProgress.setStyleSheet(new_style)
         else:
-            new_style = """
-            .QProgressBar {
-                 border: 0.5px solid black;
-                 border-radius: 5px;
-                 text-align: center;
-             }
-            .QProgressBar::chunk {
-                 background-color: #FF0000;
-                 width: 20px;
-             }"""
             self.efficiencyProgress.setRange(0,100)
-            self.efficiencyProgress.setStyleSheet(new_style)
         self.efficiencyProgress.setValue(efficiency)
 
     def submit(self):
@@ -1278,18 +1241,27 @@ the existing data in the form with the data in the cell and modify that cell?"""
             self.alertMessage("Heil Vinay!", "Changing the date to %s so that you have data to look at."%init_date)
         self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date, category_tree=self.category_tree)
         self.piggybanker_thread.piggybankChanged.connect(self.populateTableThreaded)
-        self.porker_thread = Porker(self.userID, self.password, init_date, mode=2, category_tree=self.category_tree)
-        self.porker_thread.sendEfficiency.connect(self.displayEfficiencyThreaded)
-        self.porker_thread.sendDatesData.connect(self.sendDatesDataToCalendar)
-        self.porker_thread.sendStatsData.connect(self.updateStatsTable)
-        self.porker_thread.sendActivity.connect(self.displayPorkerProgress)
+        #Main thread that supplies daily data based on PORK activities, such as calendar action and entering FSNs.
+        self.porker_thread = Porker(self.userID, self.password, init_date, category_tree=self.category_tree)
+        self.porker_thread.sendResultDictionary.connect(self.useResultDictionary)
 
+    def useResultDictionary(self, result_dictionary):
+        current_dict = result_dictionary.get(self.getActiveDate())
+        if current_dict is not None:
+            self.displayEfficiencyThreaded(current_dict["Efficiency"])
+            self.stats_table.showDataFrame(current_dict["Stats"])
+        self.workCalendar.setDatesData(result_dictionary)
 
     def calendarPageChanged(self, year, month):
         """When the calendar page is changed, this triggers the porker method which
         fetches the efficiency values for the entire month."""
-        self.porker_thread.setVisibleDates(datetime.date(year, month, 15))
-        self.porker_thread.sentDatesData = False
+        success = self.porker_thread.extendDates(datetime.date(year, month, 1))
+        if success:
+            self.alertMessage("Success!","Increased process dates!")
+        else:
+            self.alertMessage("Failure!","Didn't increase process dates!")
+        #efficiency = self.porker_thread.getEfficiencyFor(self.getActiveDate())
+        #self.porker_thread.sentDatesData = False
 
     def sendDatesDataToCalendar(self, dates_data):
         self.workCalendar.setDatesData(dates_data)

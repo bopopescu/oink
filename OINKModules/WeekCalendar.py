@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import datetime
-
+import math
 from PyQt4 import QtGui, QtCore
 from Porker import Porker
 
@@ -18,7 +18,17 @@ class WeekCalendar(QtGui.QCalendarWidget):
         self.setHorizontalHeaderFormat(QtGui.QCalendarWidget.SingleLetterDayNames)
         self.setFirstDayOfWeek(QtCore.Qt.Monday)
         self.counter = 0
-        self.datesData = {datetime.date.today():["Working", "0", "0"]}
+        self.datesData = {
+                            datetime.date.today():
+                                                {
+                                                    "Efficiency":0,
+                                                    "Status":None, 
+                                                    "CFM":None, 
+                                                    "GSEO": None, 
+                                                    "Fatals":False,
+                                                    "Relaxation":0
+                                                }
+                        }
     
     def setDatesData(self, dates_data):
         self.datesData = dates_data
@@ -79,29 +89,29 @@ class WeekCalendar(QtGui.QCalendarWidget):
         else:
             #print "%s found!" % date_
             #print len(self.datesData)
-            status = self.datesData[date_][0]
-            relaxation = self.datesData[date_][1]
-            efficiency = self.datesData[date_][2]
-            if len(self.datesData[date_])>3:
-                cfm = self.datesData[date_][3]
-                gseo = self.datesData[date_][4]
-                fatals = self.datesData[date_][5]
-            else:
-                cfm = None
-                gseo = None
-                fatals = False
+            status = self.datesData[date_].get("Status")
+            relaxation = self.datesData[date_].get("Relaxation")
+
+            efficiency = self.datesData[date_].get("Efficiency")
+            cfm = self.datesData[date_].get("CFM")
+            gseo = self.datesData[date_].get("GSEO")
+            fatals = self.datesData[date_].get("Fatals")
             #Start painting the cell.
-            if status == "Working":
-                if (date == datetime.date.today()):
-                    cell_color = selection_color
-                else:
+            if status is not None:
+                if status == "Working":
+                    if (date == datetime.date.today()):
+                        cell_color = selection_color
+                    else:
+                        cell_color = white_color
+                elif status == "Leave":
                     cell_color = white_color
-            elif status == "Leave":
-                cell_color = white_color
-            elif status == "Holiday":
-                cell_color = holiday_color
+                elif status == "Holiday":
+                    cell_color = holiday_color
+                else:
+                    cell_color = disabled_color
             else:
                 cell_color = disabled_color
+
             painter.fillRect(rect, cell_color)
             if date == self.selectedDate():
                 image_path = os.path.join("Images","circle_today.png")
@@ -147,8 +157,6 @@ class WeekCalendar(QtGui.QCalendarWidget):
                 y = int(y_top+height*0.1)
                 painter.drawPixmap(x, y, relaxation_pixmap)
                 #print "Drew relaxation pixmap"
-            #if status == "Working":
-
             #Fill the efficiency bar
             if efficiency is None:
                 progress_bar_color = cell_color
@@ -165,6 +173,7 @@ class WeekCalendar(QtGui.QCalendarWidget):
                 progress_bar_color = progress_bar_100_color
             else:
                 progress_bar_color = progress_bar_101_color
+
             if efficiency > 1.0:
                 efficiency = 1.0
             #Create a gradient across the progress bar section.
@@ -172,18 +181,21 @@ class WeekCalendar(QtGui.QCalendarWidget):
             #For this, we need to use two points which go from the bottom left to the top right corner.
             progress_origin = QtCore.QPoint(x_left, y_bottom) 
             progress_end = QtCore.QPoint(x_right, (y_bottom+0.1*y_range))
-            efficiency_gradient = QtGui.QLinearGradient(progress_origin, progress_end)
-            efficiency_gradient.setSpread(QtGui.QGradient.PadSpread)
-            steps = [float(x)/100.00 for x in range(int(efficiency*100))]
-            for x in steps:
-                efficiency_gradient.setColorAt(x, progress_bar_color)
-            efficiency_gradient.setColorAt(efficiency, cell_color)
-            efficiency_gradient.setColorAt(1, cell_color)
+            if status == "Working":
+                if efficiency is None or math.isnan(efficiency):
+                    efficiency = 0
+                efficiency_gradient = QtGui.QLinearGradient(progress_origin, progress_end)
+                efficiency_gradient.setSpread(QtGui.QGradient.PadSpread)
+                steps = [float(x)/100.00 for x in range(int(efficiency*100))]
+                for x in steps:
+                    efficiency_gradient.setColorAt(x, progress_bar_color)
+                efficiency_gradient.setColorAt(efficiency, cell_color)
+                efficiency_gradient.setColorAt(1, cell_color)
+                efficiency_bar_rect_topleft = QtCore.QPoint(x_left, (y_bottom+0.1*y_range))
+                efficiency_bar_rect_bottomright = QtCore.QPoint(x_right, y_bottom)
+                efficiency_bar_rect = QtCore.QRect(efficiency_bar_rect_topleft, efficiency_bar_rect_bottomright)
+                painter.fillRect(efficiency_bar_rect, efficiency_gradient)
             #Create 
-            efficiency_bar_rect_topleft = QtCore.QPoint(x_left, (y_bottom+0.1*y_range))
-            efficiency_bar_rect_bottomright = QtCore.QPoint(x_right, y_bottom)
-            efficiency_bar_rect = QtCore.QRect(efficiency_bar_rect_topleft, efficiency_bar_rect_bottomright)
-            painter.fillRect(efficiency_bar_rect, efficiency_gradient)
             #Paint CFM and GSEO
             #CFM at (0.25x-0.30x, 0.3y)self.
             #GSEO at (0.70x-0.75x, 0.3y)

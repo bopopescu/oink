@@ -823,6 +823,7 @@ def isHoliday(user_id, password, query_date):
     sqlcmdstring = "Select * from `teamcalendar` WHERE `Record Date` = '%s'" % convertToMySQLDate(query_date)
     dbcursor.execute(sqlcmdstring)
     data = dbcursor.fetchall()
+    connectdb.close()
     if len(data) == 0:
         status = False
         comment = "NA"
@@ -833,7 +834,7 @@ def isHoliday(user_id, password, query_date):
     return status, comment
 
 def isWorkingDay(user_id, password, queryDate):
-    """Method to check if the company is working on a particular date."""
+    """Method to check if the company is working on a particular date. Doesn't take leaves into account."""
     is_weekend = OINKM.isWeekend(queryDate)
     is_holiday = isHoliday(user_id, password, queryDate)[0]
     #if is_weekend:
@@ -1347,10 +1348,10 @@ def oldWritersList(user_id, password, query_date=None):
     writers_data_list = []
     for employee in employees_data_list:
         if employee["Role"] == "Content Writer":
-            if queryDate == None:
+            if queryDate is None:
                 writers_data_list.append(employee)
             elif (queryDate >= employee["DOJ"]):
-                if employee["DOL"] == None:
+                if employee["DOL"] is None:
                     writers_data_list.append(employee)
                 elif (queryDate <= employee["DOL"]):
                     writers_data_list.append(employee)
@@ -1445,7 +1446,7 @@ def getPiggyBankDataForDate(queryDate, user_id, password):
 
 def getUserPiggyBankData(queryDate, user_id, password, queryUser = None):
     #print "In getUserPiggyBankData"
-    if queryUser == None:
+    if queryUser is None:
         queryUser = user_id
     queryDict = {"WriterID" : queryUser}
     return getPiggyBankDataBetweenDates(queryDate, \
@@ -1460,7 +1461,6 @@ def getWorkingStatus(user_id, password, querydate, lookupuser=None):#DONT USE TH
     Returns "Leave" if the employee is on leave.
     Returns n/10 if the employee is granted a relaxation of n%
     Returns "Holiday" if the company has granted a holiday on a particular date.
-    Returns False if there's no information.
     If lookupuser isn't specified, it'll just pull the status for the current user.
     """
 
@@ -1481,7 +1481,7 @@ def getWorkingStatus(user_id, password, querydate, lookupuser=None):#DONT USE TH
         relaxation = data[0]["Relaxation"]
         return status, relaxation
     else:
-        return False, 0
+        return "Working", 0
 
 def checkWorkStatus(user_id, password,queryDate, targetUser = None):
     """This method checks the work calendar in the database and checks whether the employee is 
@@ -1489,25 +1489,35 @@ def checkWorkStatus(user_id, password,queryDate, targetUser = None):
     #print "In checkWorkStatus"
     if targetUser is None:
         targetUser = user_id
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = "SELECT * FROM `workcalendar` WHERE `Employee ID` = '%s' AND `Date` = '%s'" %(targetUser, convertToMySQLDate(queryDate))
-    #print sqlcmdstring
-    dbcursor.execute(sqlcmdstring)
-    data = dbcursor.fetchall()
-    connectdb.commit()
-    connectdb.close()
-    #print data
-    try:
-        data = data[0]
-        status = data["Status"]
-        relaxation = data["Relaxation"]
-        approval = data["Approval"]
-    except Exception, e:
-        status = "Working"
+    if isWorkingDay(user_id, password,queryDate):
+        connectdb = getOINKConnector(user_id, password)
+        dbcursor = connectdb.cursor()
+        sqlcmdstring = "SELECT * FROM `workcalendar` WHERE `Employee ID` = '%s' AND `Date` = '%s'" %(targetUser, convertToMySQLDate(queryDate))
+        #print sqlcmdstring
+        dbcursor.execute(sqlcmdstring)
+        data = dbcursor.fetchall()
+        connectdb.commit()
+        connectdb.close()
+        #print data
+        try:
+            if len(data)>0:
+                data = data[0]
+                status = data["Status"]
+                relaxation = data["Relaxation"]
+                approval = data["Approval"]
+            else:
+                status = "Holiday"
+                relaxation = 0.0
+                approval = "Approved"
+        except Exception, e:
+            status = "Working"
+            relaxation = 0.0
+            approval = "Approved"
+            #print "Unknown error in MOSES.checkWorkStatus.\nPrinting verbatim:\n%s" % repr(e)
+    else:
+        status = "Holiday"
         relaxation = 0.0
         approval = "Approved"
-        #print "Unknown error in MOSES.checkWorkStatus.\nPrinting verbatim:\n%s" % repr(e)
     #print status, relaxation, approval
     #print "Leaving checkWorkStatus"
     return status, relaxation, approval
@@ -1586,12 +1596,12 @@ def getETA(start_time, counter, total):
     return ETA
 
 def getArticleCount(user_id, password, query_date, query_user=None):
-    if query_user == None:
+    if query_user is None:
         query_user = user_id
     return getArticleCountBetween(user_id, password, query_date, query_date, query_user)
 
 def getArticleCountBetween(user_id, password, start_date, end_date, query_user = None):
-    if query_user == None:
+    if query_user is None:
         query_user = user_id
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
@@ -1644,12 +1654,12 @@ def getArticleCountForHalfYear(user_id, password, query_date, query_user=None):
     return getArticleCountBetween(user_id, password, half_year_start_date, query_date, query_user)
 
 def getAuditCount(user_id, password, query_date, query_user=None):
-    if query_user == None:
+    if query_user is None:
         query_user = user_id
     return getAuditCountBetween(user_id, password, query_date, query_date, query_user)
 
 def getAuditCountBetween(user_id, password, start_date, end_date, query_user = None):
-    if query_user == None:
+    if query_user is None:
         query_user = user_id
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
@@ -1933,7 +1943,7 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     return efficiency
 
 def getEfficiencyFor(user_id, password, query_date, query_user=None, category_tree=None):
-    if query_user == None:
+    if query_user is None:
         query_user = user_id
     return getEfficiencyForDateRange(user_id, password, query_date, query_date, query_user, category_tree)
 
@@ -2428,7 +2438,7 @@ def checkDuplicacy(FSN, articleType, articleDate):
 def modWorkingStatus(user_id, password, querydate, status, relaxation, comment, approval = "\\N",rejectionComment = "\\N", targetuser = None):
     """Method to modify the working status/relaxation of an employee.
     If no record exists, then the method creates an entry for it."""
-    if targetuser == None:
+    if targetuser is None:
         targetuser = user_id
     
     connectdb = getOINKConnector(user_id, password)
@@ -2462,13 +2472,13 @@ def modWorkingStatus(user_id, password, querydate, status, relaxation, comment, 
 
 def getUserRole(user_id, password=None, targetuser=None):
     """Returns the role of the user or of a targetuser."""
-    if password == None and user_id != getBigbrotherCredentials()[0]:
-        if targetuser == None:
+    if password is None and user_id != getBigbrotherCredentials()[0]:
+        if targetuser is None:
             targetuser = user_id
         user_id, password = getBigbrotherCredentials()
-    elif targetuser == None and user_id == getBigbrotherCredentials()[0]:
+    elif targetuser is None and user_id == getBigbrotherCredentials()[0]:
         return "Big Brother"
-    elif targetuser == None:
+    elif targetuser is None:
         targetuser = user_id
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
@@ -2666,7 +2676,7 @@ def getOneToOneStringFromDict(query_dict, joiner = None):
     keys_list = query_dict.keys()
 
     result_string = ""
-    if joiner == None:
+    if joiner is None:
         joiner = " AND "
     elif joiner.lower() == "and":
         joiner = " AND "
