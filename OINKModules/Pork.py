@@ -110,6 +110,7 @@ class Pork(QtGui.QMainWindow):
             self.bigbrother_icon = ImageButton(os.path.join("Images","bigbrother.png"), 64, 64)
         else:
             self.bigbrother_icon = SharinganButton(64, 64)
+
         self.pork_icon = ImageLabel(os.path.join("Images","pork_logo.png"),64, 64)
         self.v_icon = ImageButton(os.path.join("Images","v.png"),64,64)
         self.fk_icon.setToolTip("Flipkart Content Team")
@@ -1274,8 +1275,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
         if self.userID == "62487":
             init_date = datetime.date(2015,6,10)
             self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
-            print "Heil Vinay!"
-            print "Changing the date to %s so that you have data to look at."%init_date
+            self.alertMessage("Heil Vinay!", "Changing the date to %s so that you have data to look at."%init_date)
         self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date, category_tree=self.category_tree)
         self.piggybanker_thread.piggybankChanged.connect(self.populateTableThreaded)
         self.porker_thread = Porker(self.userID, self.password, init_date, mode=2, category_tree=self.category_tree)
