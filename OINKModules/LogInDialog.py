@@ -3,6 +3,8 @@
 
 import os
 import datetime
+import getpass
+
 from PyQt4 import QtGui, QtCore
 import OINKMethods as OINKM
 import MOSES
@@ -95,6 +97,9 @@ class LogInDialog(QtGui.QDialog):
         self.layout.addWidget(self.buttons)
         self.setLayout(self.layout)
 
+    def useUserID(self, user_id):
+        self.loginLineEdit.setText(user_id)
+
     def createVisuals(self):
         """Login Dialog"""
         self.setWindowIcon(QtGui.QIcon('Images\PORK_Icon.png'))
@@ -152,6 +157,9 @@ class LogInDialog(QtGui.QDialog):
             MOSES.changeHostID(hostID)
         if MOSES.checkHostID(hostID):
             if self.validateUserID():
+                with open(os.path.join("cache","%s.login"%getpass.getuser()),"w") as login_history:
+                    login_history.truncate()
+                    login_history.write("%s"%self.getUserDetails()[0])
                 super(LogInDialog,self).accept()
             else:
                 userID, password = self.getUserDetails()
@@ -165,4 +173,4 @@ class LogInDialog(QtGui.QDialog):
                         "The password and user ID do not match: thou shall not pass!",QtGui.QMessageBox.Ok,QtGui.QMessageBox.Ok)
         else:
             self.warningmessage = QtGui.QWidget()
-            self.warningmessage.say = QtGui.QMessageBox.question(self.warningmessage, "Error with host ID!", "The host seems to be unreachable. This could happen for one of several reasons:\n\t1. Your computer may be having some network issues. If you're using a Laptop, check if you're connected to fknet on the same network as the server.\n\t2.If you're using a desktop, please check your LAN cable.\n\t3. The server might be off. Ask your TL or Manager to boot it up.\n\t4. The IP Address of the server might have changed. This is possible from time to time. Ask your TL or Manager to give you the latest IP.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+            self.warningmessage.say = QtGui.QMessageBox.question(self.warningmessage, "Error with host ID!", "The host seems to be unreachable. This could happen for one of several reasons:\n  1. Your computer may be having some network issues. If you're using a Laptop, check if you're connected to fknet on the same network as the server.\n  2.If you're using a desktop, please check your LAN cable.\n  3. The server might be off. Ask your TL or Manager to boot it up.\n  4. The IP Address of the server might have changed. This is possible from time to time. Ask your TL or Manager to give you the latest IP.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)

@@ -81,10 +81,17 @@ def detectFileOpen():
 def login():
     """Opens a login dialog and returns the username and password."""
     from LogInDialog import LogInDialog
-    userID = 0
+    import getpass
+    cached_file = os.path.join("cache","%s.login"%getpass.getuser())
+    if os.path.exists(cached_file):
+        userID = open(cached_file).read().strip()
+    else:
+        userID = 0
     password = 0
     success = False
     loginPrompt = LogInDialog()
+    if userID != 0:
+        loginPrompt.useUserID(userID)
     if loginPrompt.exec_():
         userID, password2 = loginPrompt.getUserDetails()
         return userID, password2

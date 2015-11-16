@@ -82,3 +82,4 @@ OINKModules/backups/
 *.sql
 Database/
 Usersvinay.keerthi/
+*.login
