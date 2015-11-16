@@ -24,10 +24,12 @@ class PiggyBanker(QtCore.QThread):
             self.end_date = self.start_date
         else:
             self.end_date = end_date
+            
         if category_tree is None:
             self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         else:
             self.category_tree = category_tree
+
         if not self.isRunning():
             self.start(QtCore.QThread.LowPriority)
 

@@ -1,8 +1,9 @@
 
 from PyQt4 import QtGui
 import MOSES
+from CopiableQTableWidget import CopiableQTableWidget
 
-class PiggyBank(QtGui.QTableWidget):
+class PiggyBank(CopiableQTableWidget):
     """Piggy Bank Class Definition."""
     def __init__(self):
         QtGui.QTableWidget.__init__(self, 0 ,0)
@@ -42,7 +43,7 @@ class PiggyBank(QtGui.QTableWidget):
                     text_color = QtGui.QColor(0, 0, 0)
                     
                     if self.targets_data[row_index] == 0:
-                        cell_color = QtGui.QColor(255, 0, 0, 100) #Transparent red.
+                        cell_color = QtGui.QColor(255, 0, 0, 50) #Transparent red.
                     elif self.targets_data[row_index] == -1:
                         cell_color = QtGui.QColor(0, 0, 0, 10)
                         text_color = QtGui.QColor(255, 0, 0)

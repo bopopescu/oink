@@ -8,12 +8,17 @@ class AnimalFarm(QtCore.QThread):
         super(AnimalFarm, self).__init__(parent)
         self.mutex = QtCore.QMutex()
         self.condition = QtCore.QWaitCondition()
-        self.quotes = open(os.path.join("Data","Quotes.txt"),"r").read().split("\n")
-        random.shuffle(self.quotes)
+        path_to_quotes_file = os.path.join(os.getcwd(),"Data","Quotes.txt")
+
+        if os.path.exists(path_to_quotes_file):
+            self.quotes = open(path_to_quotes_file,"r").read().split("\n")
+            random.shuffle(self.quotes)
+        else:
+            self.quotes = ["""Heard joke once: Man goes to doctor. Says he's depressed. Says life seems harsh and cruel. Says he feels all alone in a threatening world where what lies ahead is vague and uncertain. Doctor says, "Treatment is simple. Great clown Pagliacci is in town tonight. Go and see him. That should pick you up." Man bursts into tears. Says, "But doctor...I am Pagliacci"."""]
        # print "Starting Animal Farm thread."
         self.quotes_size = len(self.quotes)
         if width is None:
-            self.width = 300
+            self.width = 200
         else:
             self.width = width
 
@@ -38,12 +43,15 @@ class AnimalFarm(QtCore.QThread):
                 for characters in range(len(quote)+1):
                     quote_part = quote[:characters]
                     quote_len = len(quote_part)
+                    delay = 0.03
                     if quote_len > self.width:
-                        shorten = quote_part[quote_len - self.width:]
+                        cut_position = quote_part[:self.width].rfind(" ")
+                        shorten = quote_part[:cut_position] +"\n" + quote_part[cut_position+1:]
+                        # quote_part[(quote_len - self.width):]
                     else:
-                        shorten = quote_part    
+                        shorten = quote_part
                     self.quoteSent.emit(shorten)
-                    time.sleep(0.03)
+                    time.sleep(delay)
                 time.sleep(5)
         self.mutex.lock()
 

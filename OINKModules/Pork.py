@@ -52,12 +52,11 @@ class Pork(QtGui.QMainWindow):
         self.mapThreads()
         self.quote_thread = AnimalFarm()
         self.quote_thread.quoteSent.connect(self.updateStatusBar)
-        self.widgetLayout()
+        self.createLayouts()
         #Create all visual and usability aspects of the program.
         self.mapToolTips()
-        self.setEvents()
-        self.createActions()
-        self.createTabOrder()
+        self.mapEvents()
+        self.setTabOrders()
         self.addMenus()
         self.setVisuals()
         self.refreshStatsTable()
@@ -71,38 +70,18 @@ class Pork(QtGui.QMainWindow):
         #Ignorance is bliss.
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
 
-    def eventFilter(self, source, event):
-        if event.type() == QtCore.QEvent.MouseMove:
-            if event.buttons() == QtCore.Qt.NoButton:
-                pos = QtGui.QCursor().pos()
-                x, y = pos.x(), pos.y()
-                bigbrother_pos = self.bigbrother_icon.pos()
-                x_diff = (x-bigbrother_pos.x())
-                width, height = 64, 64
-                if x_diff>width:
-                    x_pos = "right"
-                elif x_diff<0:
-                    x_pos = "left"
-                else:
-                    x_pos = "center"
-                y_diff = (y - bigbrother_pos.y())
-                if y_diff <0:
-                    y_pos = "above"
-                elif y_diff>height:
-                    y_pos = "below"
-                else:
-                    y_pos = "middle"
-                if (x_pos != self.x_pos) or (y_pos !=self.y_pos):
-                    if self.flip == 0:
-                        image_path = os.path.join("Images","bigbrother","sauron","%s_%s.png"%(x_pos,y_pos))
-                        self.bigbrother_icon.showImage(image_path)
-                    self.x_pos, self.y_pos = x_pos, y_pos
-        return QtGui.QMainWindow.eventFilter(self, source, event)
-
-    def showAbout(self):
-        title = "About OINK"
-        message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2014, by Vinay Keerthi. The <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding development."
-        QtGui.QMessageBox.about(self, title, message)
+    def mapThreads(self):
+        init_date = datetime.date.today()
+        if self.userID == "62487":
+            init_date = datetime.date(2015,6,10)
+            self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
+            self.alertMessage("Heil Vinay!", "Changing the date to %s so that you have data to look at."%init_date)
+        self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date, category_tree=self.category_tree)
+        self.piggybanker_thread.piggybankChanged.connect(self.populateTable)
+        #Main thread that supplies daily data based on PORK activities, such as calendar action and entering FSNs.
+        self.porker_thread = Porker(self.userID, self.password, init_date, category_tree=self.category_tree)
+        self.porker_thread.sendResultDictionary.connect(self.useResultDictionary)
+        self.porker_thread.sendStats.connect(self.useStatsData)
 
     def createUI(self):
         #creates all the widgets
@@ -147,15 +126,6 @@ class Pork(QtGui.QMainWindow):
         self.project_button.setToolTip("Open Project Log")
         self.project_button.setFlat(True)
 
-        self.report_label = QtGui.QLabel("Report Date:")
-        self.report_date_edit = FormattedDateEdit()
-        self.report_date_edit.setDate(self.last_working_date)
-
-        self.report_date_layout = QtGui.QHBoxLayout()
-        self.report_date_layout.addWidget(self.report_label,0)
-        self.report_date_layout.addWidget(self.report_date_edit,1)
-        self.report_date_layout.addStretch(3)
-
         self.icon_panel = QtGui.QHBoxLayout()
         self.icon_panel.addWidget(self.calculator_button,0)
         self.icon_panel.addWidget(self.tna_button,0)
@@ -172,9 +142,8 @@ class Pork(QtGui.QMainWindow):
         self.workCalendar.setMaximumHeight(350)
 
         self.stats = QtGui.QGroupBox("My Performance and Tools")
-        self.status_bar = self.statusBar()
-        #self.status_bar.setMaximumWidth()
-        self.status_bar.showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
+        self.status_bar = QtGui.QLabel()
+        self.status_bar.setText("Welcome to P.O.R.K. Big Brother is watching you.")
         self.menu = self.menuBar()
         self.stats_table = CopiableQTableWidget(0, 0)
 
@@ -196,7 +165,6 @@ class Pork(QtGui.QMainWindow):
         self.stats_progress_bar.setRange(0,1)
         self.stats_layout = QtGui.QVBoxLayout()
         self.stats_layout.addLayout(self.icon_panel,0)
-        self.stats_layout.addLayout(self.report_date_layout,0)
         self.stats_layout.addWidget(self.stats_table)
         self.stats_layout.addWidget(self.stats_progress)
         self.stats_layout.addStretch(3)
@@ -230,12 +198,12 @@ class Pork(QtGui.QMainWindow):
 
 
 
-        self.efficiencyProgress = ProgressBar()
-        self.efficiencyProgress.setRange(0,100)
-        self.efficiencyProgress.setMinimumWidth(200)
+        self.efficiency_progress_bar = ProgressBar()
+        self.efficiency_progress_bar.setRange(0,100)
+        self.efficiency_progress_bar.setMinimumWidth(200)
 
 
-        self.efficiencyProgress.setTextVisible(True)
+        self.efficiency_progress_bar.setTextVisible(True)
         #Create all the widgets associated with the form.
         self.labelFSN = QtGui.QLabel("FSN:")
         self.lineEditFSN = QtGui.QLineEdit(self)
@@ -285,7 +253,7 @@ class Pork(QtGui.QMainWindow):
         self.buttonBox.setMaximumHeight(40)
 
 
-    def widgetLayout(self):
+    def createLayouts(self):
         #Begin the form's layout.
         form_fields_layout = QtGui.QGridLayout()
         
@@ -351,7 +319,7 @@ class Pork(QtGui.QMainWindow):
         self.finalLayout = QtGui.QGridLayout()
         self.finalLayout.addWidget(self.menu,0,0,1,5)
         self.finalLayout.addLayout(self.piggy_bank_calendar_and_report_layout,2,0,5,5)
-        self.finalLayout.addWidget(self.efficiencyProgress,7,0,1,5)
+        self.finalLayout.addWidget(self.efficiency_progress_bar,7,0,1,5)
         self.finalLayout.addWidget(self.status_bar,8,0,2,5, QtCore.Qt.AlignTop)
 
         #self.finalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
@@ -371,11 +339,16 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxCategory.setToolTip("Select the category of the FSN here.")
         self.comboBoxSubCategory.setToolTip("Select the sub-category of the FSN here.")
         self.comboBoxVertical.setToolTip("Select the vertical of the FSN here.")
-        self.lineEditBrand.setToolTip("Type the FSN's brand here.\nFor Books, use the writer's name as the brand where appropriate.\nContact your TL for assistance.")
+        self.lineEditBrand.setToolTip("Type the FSN's brand here.\nFor Books, use the writer's name as the brand where appropriate. (If Flipkart ever writes on Books again). \nContact your TL for assistance.")
         self.spinBoxWordCount.setToolTip("Type the word count of the article here.")
         self.lineEditUploadLink.setToolTip("If you are not using an FSN or an ISBN, please paste the appropriate upload link here.")
         self.lineEditRefLink.setToolTip("Paste the reference link(s) here.\nMultiple links can be appended by using a comma or a semi-colon.\nAvoid spaces like the plague.")
-    
+
+    def keyPressEvent(self, e):
+        if (e.modifiers() & QtCore.Qt.ControlModifier):
+            if e.key() == QtCore.Qt.Key_S:
+                self.say = QtGui.QMessageBox.question(self,"All Animals are created equal.","But some animals are <b>more</b> equal than others.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+
     def displayPorkerProgress(self, activity, eta, completed):
         if completed:
             #print "Completed one porker cycle."
@@ -387,27 +360,8 @@ class Pork(QtGui.QMainWindow):
             time_as_string = datetime.datetime.strftime(eta,"%H:%M:%S")
             time_diff = (eta-datetime.datetime.now()).seconds if eta>datetime.datetime.now() else -1
             self.stats_progress_message.setText(" %s\n ETA: %s (%d sec)" %(activity, time_as_string, time_diff))
-
-    def keyPressEvent(self, e):
-        """PORK Window: Found this code online. Go through it and try to improve it."""
-        if (e.modifiers() & QtCore.Qt.ControlModifier):
-            selected = self.piggybank.selectedRanges()
-            if e.key() == QtCore.Qt.Key_S:
-                self.say = QtGui.QMessageBox.question(self,"All Animals are created equal.","But some animals are <b>more</b> equal than others.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-            if e.key() == QtCore.Qt.Key_C: #copy
-                s = '\t'+"\t".join([str(self.piggybank.horizontalHeaderItem(i).text()) for i in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1)])
-                s = s + '\n'
-                for r in xrange(selected[0].topRow(), selected[0].bottomRow()+1):
-                    s += str(r+1) + '\t'
-                    for c in xrange(selected[0].leftColumn(), selected[0].rightColumn()+1):
-                        try:
-                            s += str(self.piggybank.item(r,c).text()) + "\t"
-                        except AttributeError:
-                            s += "\t"
-                    s = s[:-1] + "\n" #eliminate last '\t'
-                self.clip.setText(s)
-
-    def createTabOrder(self):
+            
+    def setTabOrders(self):
         self.setTabOrder(self.workCalendar, self.buttonAddFSN)
         self.setTabOrder(self.buttonAddFSN, self.buttonModifyFSN)
         self.setTabOrder(self.buttonModifyFSN, self.lineEditFSN)
@@ -426,59 +380,9 @@ class Pork(QtGui.QMainWindow):
 
     def addMenus(self):
         self.fileMenu = self.menu.addMenu("&File")
-        self.toolsMenu = self.menu.addMenu("&Tools")
-        self.commMenu = self.menu.addMenu("Co&mmunication")
-        self.helpMenu = self.menu.addMenu("&Help")
-        self.exportMenu = self.fileMenu.addMenu("E&xport")
-        self.fileMenu.addAction(self.resetPassword_action)
-        self.KRAMenu = self.toolsMenu.addMenu("&KRA Tools")
-        #self.KRAMenu.addAction(self.viewKRATable)
-        #self.KRAMenu.addAction(self.generateKRAReport)
-        self.qualityMenu = self.toolsMenu.addMenu("Quality Reports")
-        self.openEffCalcOption = self.toolsMenu.addAction(self.openEffCalc)
-        self.askForLeave = self.commMenu.addAction(self.applyLeave)
-        self.askEditor = self.commMenu.addAction(self.callAskAnEditor)
-        self.askTL = self.commMenu.addAction(self.callAskYourTL)
-        self.viewStyleSheet = self.toolsMenu.addAction(self.callStyleSheet)
-        self.chatmessenger = self.toolsMenu.addAction(self.callOpenChat)
-
-    def createActions(self):
-        #self.exitAction = QtGui.QAction(QIcon('exit.png'),"&Exit",self)
-        #self.exitAction.setToolTip("Click to Exit.")
-        #self.exitAction.triggered.connect(self.closeEvent)
-        #Close event doesn't close it.
-        #And qApp.exit doesn't call CloseEvent. I can't bypass closeEvent, that's how I prevent multiple instances.
-        self.resetPassword_action = QtGui.QAction("Reset password", self)
-        self.resetPassword_action.triggered.connect(self.reset_password)
-        self.applyLeave = QtGui.QAction(QtGui.QIcon('Images\AskForLeave.png'),\
-            "Apply For Leaves or Relaxation in Targets", self)
-
-        self.applyLeave.setToolTip("Click to apply for a leave or for a relaxation of your targets.")
-        self.applyLeave.triggered.connect(self.applyForLeave)
-        self.openEffCalc = QtGui.QAction(QtGui.QIcon('Images\Efficiency_Icon.png'),\
-            "Efficiency Calculator", self)
-        self.openEffCalc.setToolTip(\
-            "Click to open the efficiency calculator.")
-        self.openEffCalc.triggered.connect(self.showEfficiencyCalc)
-        self.callAskAnEditor = QtGui.QAction(QtGui.QIcon("Images\AskAnEditor_Icon.png"),\
-            "Ask An Editor", self)
-        self.callAskAnEditor.setToolTip(\
-            "Post a question to the editors.")
-        self.callAskAnEditor.triggered.connect(self.AskAnEditor)
-        self.callAskYourTL = QtGui.QAction(QtGui.QIcon("Images\AskYourTL_Icon.png"),\
-                    "Ask Your TL", self)
-        self.callAskYourTL.setToolTip(\
-            "Post a question for your TL.")
-        self.callAskYourTL.triggered.connect(self.askTL)
-
-        self.callStyleSheet = QtGui.QAction(QtGui.QIcon("Images\StyleSheet_Icon.png"),\
-            "View Style Sheet", self)
-        self.callStyleSheet.triggered.connect(self.openStyleSheet)
-        self.callStyleSheet.setToolTip(\
-            "View the Content Team Style Sheet")
-        self.callOpenChat = QtGui.QAction(QtGui.QIcon("Images\Chat_Icon.png"),\
-                        "Open Messenger", self)
-        self.callOpenChat.triggered.connect(self.openChat)
+        self.reset_password_action = QtGui.QAction("Reset password", self)
+        self.reset_password_action.triggered.connect(self.reset_password)
+        self.fileMenu.addAction(self.reset_password_action)
 
     def setVisuals(self):
         """PORK Window: Sets all the visual aspects of the PORK Main Window."""
@@ -502,7 +406,7 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxVertical.setCurrentIndex(-1)
         self.lineEditBrand.setText("")
 
-    def setEvents(self):
+    def mapEvents(self):
         self.workCalendar.clicked[QtCore.QDate].connect(self.changedDate)
         self.workCalendar.currentPageChanged.connect(self.calendarPageChanged)
         self.piggybank.cellClicked.connect(self.cellSelected)
@@ -577,153 +481,28 @@ class Pork(QtGui.QMainWindow):
     def viewEscalations(self):
         self.featureUnavailable()
 
-    def openChat(self):
-        self.featureUnavailable()
-
     def showEfficiencyCalc(self):
         self.calculator = EfficiencyCalculator(self.userID, self.password, self.category_tree)
         self.calculator.show()
-
-    def updateStatsTable(self, stats_data):
-        """PORK Window method that updates the writer's statistics sheet.
-        This should be triggered along with the populateTable method
-        when the date is changed."""
-        red = QtGui.QColor(231, 90, 83)
-        green = QtGui.QColor(60, 179, 113)
-        blue = QtGui.QColor(23, 136, 216)
-        blue1 = QtGui.QColor(1, 172, 218)
-        grey = QtGui.QColor(143,143,143)
-
-        rows = []
-        #get data for last working date (lwd)
-        if "LWD" in stats_data.keys():
-            rows.append([str(stats_data["LWD"]), stats_data["LWD Efficiency"], stats_data["LWD CFM"], stats_data["LWD GSEO"]])
-        #get data for current week (cw)
-        if "Current Week" in stats_data.keys():
-            rows.append(["Current Week: %d"%stats_data["Current Week"], stats_data["CW Efficiency"], stats_data["CW CFM"], stats_data["CW GSEO"]])
-        #get data for current month (cm)
-        if "Current Month" in stats_data.keys():
-            rows.append(["Current Month: %d"%stats_data["Current Month"], stats_data["CM Efficiency"], stats_data["CM CFM"], stats_data["CM GSEO"]])
-        #get data for current quarter (cq)
-        if "Current Quarter" in stats_data.keys():
-            rows.append(["Current Quarter: %s"%stats_data["Current Quarter"], stats_data["CQ Efficiency"], stats_data["CQ CFM"], stats_data["CQ GSEO"]])
-        if "Current Half Year" in stats_data.keys():
-            rows.append(["Current Half Year: %s"%stats_data["Current Half Year"], stats_data["CHY Efficiency"], stats_data["CHY CFM"], stats_data["CHY GSEO"]])
-
-        self.stats_table.setColumnCount(4)
-        self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
-        self.stats_table.setRowCount(len(rows))
-        if len(rows)>0:
-            row_counter = 0
-            for row in rows:
-                time_frame = row[0]
-                efficiency = row[1]       
-                cfm = row[2]       
-                gseo = row[3]
-                time_frame_item = QtGui.QTableWidgetItem(str(time_frame))
-                if efficiency is not None:
-                    if type(efficiency) is not str:
-                        efficiency_item = QtGui.QTableWidgetItem("%6.3f%%" %efficiency)
-                        if 0.000 <= efficiency < 100.000:
-                            efficiency_color = red
-                        elif 100.000 <= efficiency < 105.000:
-                            efficiency_color = green
-                        elif 105.000 <= efficiency < 110.000:
-                            efficiency_color = blue
-                        else:
-                            efficiency_color = blue1
-                        efficiency_item.setBackgroundColor(efficiency_color)
-                    else:
-                        efficiency_item = QtGui.QTableWidgetItem(efficiency)
-                        efficiency_item.setBackgroundColor(grey)
-                else:
-                    efficiency_item = QtGui.QTableWidgetItem("-")
-
-                if cfm is not None:
-                    if type(cfm) != str:
-                        cfm_item = QtGui.QTableWidgetItem(str("%6.3f%%" %cfm))
-                        if 0.000 <= cfm < 95.000:
-                            cfm_color = red
-                        elif 95.000 <= cfm < 98.000:
-                            cfm_color = green
-                        elif 98.000 <= cfm < 100.000:
-                            cfm_color = blue
-                        elif cfm == 100.000:
-                            cfm_color = blue1
-                        cfm_item.setBackgroundColor(cfm_color)
-                    else:
-                        cfm_item = QtGui.QTableWidgetItem(cfm)
-                        cfm_item.setBackgroundColor(grey)
-                else:
-                    cfm_item = QtGui.QTableWidgetItem("-")
-
-                if gseo is not None:
-                    if type(gseo) != str:
-                        gseo_item = QtGui.QTableWidgetItem(str("%6.3f%%" %gseo))
-                        if 0.000 <= gseo < 95.000:
-                            gseo_color = red
-                        elif 95.000 <= gseo < 98.000:
-                            gseo_color = green
-                        elif 98.000 <= gseo < 100.000:
-                            gseo_color = blue
-                        elif gseo == 100.000:
-                            gseo_color = blue1
-                        gseo_item.setBackgroundColor(gseo_color)
-                    else:
-                        gseo_item = QtGui.QTableWidgetItem(gseo)
-                        gseo_item.setBackgroundColor(grey)
-                else:
-                    gseo_item = QtGui.QTableWidgetItem("-")
-                self.stats_table.setItem(row_counter,0,time_frame_item)
-                self.stats_table.setItem(row_counter,1,efficiency_item)
-                self.stats_table.setItem(row_counter,2,cfm_item)
-                self.stats_table.setItem(row_counter,3,gseo_item)
-                row_counter+=1
-        self.stats_table.setStyleSheet("gridline-color: rgb(0, 0, 0); font: 10px;")
-        self.stats_table.resizeColumnsToContents()
-        self.stats_table.resizeRowsToContents()
-        self.stats_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.stats_table.horizontalHeader().setStretchLastSection(True)
-        self.stats_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.stats_table.verticalHeader().setStretchLastSection(False)
-        self.stats_table.verticalHeader().setVisible(False)
-        
-
-    
-    def openStyleSheet(self):
-        self.featureUnavailable()
-
-    def AskAnEditor(self):
-        self.featureUnavailable()
-
-    def askTL(self):
-        self.featureUnavailable()
-
-    def featureUnavailable(self):
-        self.notify("Feature unavailable.", "That feature is still in development. Thank you for your patience.")
 
     def changedDate(self):
         new_date = self.getActiveDate()
         self.piggybanker_thread.setDate(new_date)
         self.piggybanker_thread.getPiggyBank()
-        self.porker_thread.getStatsFor(new_date)
+        self.refreshStatsTable()
         self.displayEfficiencyThreaded(self.porker_thread.getEfficiencyFor(new_date))
         self.mapToolTips()
         self.FSNEditFinishTriggers()
-        self.refreshStatsTable()
 
     def refreshStatsTable(self):
-        self.porker_thread.updateForDate(self.getActiveDate())
-        self.porker_thread.getStatsFor(self.getActiveDate())
+        active_date = self.getActiveDate()
+        self.porker_thread.updateForDate(active_date)
+        self.porker_thread.getStatsFor(active_date)
 
-    def populateTableThreaded(self, data, efficiencies):
+    def populateTable(self, data, efficiencies):
         #print "Got %d Articles from the piggybanker_thread." %len(data)
         self.piggybank.setData(data, efficiencies)
         self.piggybank.displayData()
-
-    def getActiveDateFileString(self):
-        date = self.workCalendar.selectedDate()
-        return "CSVs\\" + str(date.toString('yyyyMMdd')) + ".pork"
 
     def getActiveDateString(self):
         date = self.workCalendar.selectedDate()
@@ -739,18 +518,21 @@ class Pork(QtGui.QMainWindow):
     def displayEfficiencyThreaded(self, efficiency):
         #print "Received %f efficiency." % efficiency
         #self.alertMessage("Efficiency","Efficiency is %0.2f%%" % (efficiency*100))
-        self.efficiencyProgress.setFormat("%0.02f%%" %(efficiency*100))
+        self.efficiency_progress_bar.setFormat("%0.02f%%" %(efficiency*100))
         #print "Integer value of efficiency = %d" % efficiency
         if math.isnan(efficiency):
             efficiency = 0.0
         efficiency = int(efficiency*100) #this works
         if efficiency > 100:
-            self.efficiencyProgress.setRange(0,efficiency)
+            self.efficiency_progress_bar.setRange(0,efficiency)
+            self.efficiency_progress_bar.setColor("#0088D6")
         elif 99 <= efficiency <= 100:
-            self.efficiencyProgress.setRange(0,efficiency)
+            self.efficiency_progress_bar.setRange(0,efficiency)
+            self.efficiency_progress_bar.setColor("#008000")
         else:
-            self.efficiencyProgress.setRange(0,100)
-        self.efficiencyProgress.setValue(efficiency)
+            self.efficiency_progress_bar.setRange(0,100)
+            self.efficiency_progress_bar.setColor("#cc0000")
+        self.efficiency_progress_bar.setValue(efficiency)
 
     def submit(self):
         """Method to send the FSN data to SQL."""
@@ -1233,21 +1015,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
 
     def updateStatusBar(self, message):
         #print "Received ", message
-        self.status_bar.showMessage(message)
-
-    def mapThreads(self):
-        init_date = datetime.date.today()
-        if self.userID == "62487":
-            init_date = datetime.date(2015,6,10)
-            self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
-            self.alertMessage("Heil Vinay!", "Changing the date to %s so that you have data to look at."%init_date)
-        self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date, category_tree=self.category_tree)
-        self.piggybanker_thread.piggybankChanged.connect(self.populateTableThreaded)
-        #Main thread that supplies daily data based on PORK activities, such as calendar action and entering FSNs.
-        self.porker_thread = Porker(self.userID, self.password, init_date, category_tree=self.category_tree)
-        self.porker_thread.sendResultDictionary.connect(self.useResultDictionary)
-        self.porker_thread.sendStats.connect(self.useStatsData)
-
+        self.status_bar.setText(message)
 
     def useResultDictionary(self, result_dictionary):
         current_dict = result_dictionary.get(self.getActiveDate())
@@ -1277,3 +1045,37 @@ the existing data in the form with the data in the cell and modify that cell?"""
         centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
+
+    def showAbout(self):
+        title = "About OINK"
+        message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2014, by Vinay Keerthi. The <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding development."
+        QtGui.QMessageBox.about(self, title, message)
+
+
+    def eventFilter(self, source, event):
+        if event.type() == QtCore.QEvent.MouseMove:
+            if event.buttons() == QtCore.Qt.NoButton:
+                pos = QtGui.QCursor().pos()
+                x, y = pos.x(), pos.y()
+                bigbrother_pos = self.bigbrother_icon.pos()
+                x_diff = (x-bigbrother_pos.x())
+                width, height = 64, 64
+                if x_diff>width:
+                    x_pos = "right"
+                elif x_diff<0:
+                    x_pos = "left"
+                else:
+                    x_pos = "center"
+                y_diff = (y - bigbrother_pos.y())
+                if y_diff <0:
+                    y_pos = "above"
+                elif y_diff>height:
+                    y_pos = "below"
+                else:
+                    y_pos = "middle"
+                if (x_pos != self.x_pos) or (y_pos !=self.y_pos):
+                    if self.flip == 0:
+                        image_path = os.path.join("Images","bigbrother","sauron","%s_%s.png"%(x_pos,y_pos))
+                        self.bigbrother_icon.showImage(image_path)
+                    self.x_pos, self.y_pos = x_pos, y_pos
+        return QtGui.QMainWindow.eventFilter(self, source, event)

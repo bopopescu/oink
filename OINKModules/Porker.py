@@ -31,9 +31,8 @@ class Porker(QtCore.QThread):
         self.stats_date = start_date
         self.stats_data = {}
         #Prepare a list of dates to process.
-        l_span = 300
         r_span = 15
-        self.process_dates = list(reversed(OINKM.getDatesBetween((start_date-datetime.timedelta(days=l_span)), start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=r_span)))
+        self.process_dates = list(reversed(OINKM.getDatesBetween(datetime.date(2015,1,1), start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=r_span)))
 
         self.queue = []
         self.force_update_dates = []
@@ -150,6 +149,7 @@ class Porker(QtCore.QThread):
     def sendStatsAfterUpdatingIfNecessary(self):
         stats = self.stats_data.get(self.stats_date)
         if stats is None:
+            print "Getting stats for %s."%self.stats_date
             self.updateStats()
             stats = self.stats_data[self.stats_date]
         #else:
@@ -163,7 +163,12 @@ class Porker(QtCore.QThread):
         self.stats_data.update({self.stats_date: self.getWriterStatsForDate(self.stats_date)})
 
     def getStatsFor(self, query_date):
-        self.stats_date = query_date
+        if self.stats_date != query_date:
+            print "Changing stats date from %s to %s."%(self.stats_date, query_date)
+            self.stats_date = query_date
+        else:
+            print "No need to change stats date from %s."%self.stats_date
+
 
     def updateForDate(self, queried_date):
         if queried_date not in self.process_dates: self.queue.append(queried_date)
@@ -212,14 +217,10 @@ class Porker(QtCore.QThread):
             lwd_fatals = previous_dictionary.get("Fatals")
         
         
-        if lwd_efficiency is None:
-            self.updateEfficiencyForDate(lwd)
+        if lwd_efficiency is None or lwd_cfm is None or lwd_gseo is None or lwd_fatals is None:
+            self.updateResultsDictionaryForDate(lwd)
             previous_dictionary = self.result_dictionary.get(lwd)
             lwd_efficiency = previous_dictionary.get("Efficiency")
-
-        
-        if lwd_cfm is None or lwd_gseo is None or lwd_fatals is None:
-            self.updateQualityForDate(lwd)
             previous_dictionary = self.result_dictionary.get(lwd)
             lwd_cfm = previous_dictionary.get("CFM")
             lwd_gseo = previous_dictionary.get("GSEO")
@@ -234,13 +235,13 @@ class Porker(QtCore.QThread):
         else:
             cw_efficiency = MOSES.getEfficiencyForWeek(self.user_id, self.password, lwd, category_tree=self.category_tree)
             cw_cfm, cw_gseo, cw_fatals = MOSES.getCFMGSEOForWeek(self.user_id, self.password, lwd)
-
-        cw_stats = ["Week#%d"%lwd.isocalendar()[1], cw_efficiency, cw_cfm, cw_gseo]
+            cw_stats = ["Week#%d"%lwd.isocalendar()[1], cw_efficiency, cw_cfm, cw_gseo]
+            
 
         cm_efficiency = MOSES.getEfficiencyForMonth(self.user_id, self.password, lwd, category_tree=self.category_tree)
         cm_cfm, cm_gseo, cm_fatals = MOSES.getCFMGSEOForMonth(self.user_id, self.password, lwd)
-        
-        cm_stats = ["%s:"%lwd.strftime("%b"), cm_efficiency, cm_cfm, cm_gseo]
+        current_month = lwd.strftime("%b") if (len(lwd.strftime("%B"))>6) else lwd.strftime("%B")
+        cm_stats = [current_month, cm_efficiency, cm_cfm, cm_gseo]
 
         stats = [lwd_stats, cw_stats, cm_stats]
         formatted_stats = []
@@ -257,23 +258,12 @@ class Porker(QtCore.QThread):
             formatted_stats.append(formatted_row)
         return pd.DataFrame(formatted_stats, columns=stats_keys)
     
-    def updateEfficiencyForDate(self, query_date):
+    def updateResultsDictionaryForDate(self, query_date):
         previous_dictionary = self.result_dictionary.get(query_date)
         efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, query_date, category_tree=self.category_tree)
-        updated_dict = {"Efficiency": efficiency}
-        if previous_dictionary is not None:
-            previous_dictionary.update(updated_dict)
-        else:
-            self.result_dictionary[query_date] = updated_dict
-
-    def updateQualityForDate(self, query_date):
-        previous_dictionary = self.result_dictionary.get(query_date)
         cfm, gseo, fatals = MOSES.getCFMGSEOFor(self.user_id, self.password, query_date)
-        updated_dict = {"CFM": cfm, "GSEO": gseo, "Fatals": fatals}
+        updated_dict = {"Efficiency": efficiency, "CFM": cfm, "GSEO": gseo, "Fatals": fatals}
         if previous_dictionary is not None:
             previous_dictionary.update(updated_dict)
         else:
             self.result_dictionary[query_date] = updated_dict
-
-    def getEfficiencyForDateRange(start_date, end_date):
-        pass
