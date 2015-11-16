@@ -38,41 +38,10 @@ def setupmethods():
     """Set up methods."""
     print "This section is for setup."
 
-def addToRawData(user_id, password, process_dict):
-    columns, values = getDictStrings(process_dict)
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor = connectdb.cursor()
-    sqlcmdstring = "INSERT INTO `rawdata` (%s) VALUES (%s);" % (columns, values)
-    #print sqlcmdstring
-    try:
-        dbcursor.execute(sqlcmdstring)
-        status = "Success"
-    except MySQLdb.IntegrityError:
-        status = "Duplicate"
-        pass
-        #raise
-    except:
-        status = "Error"
-        pass
-        #raise
-    connectdb.commit()
-    connectdb.close()
-    return status
+
 
 def getRawDataKeys():
-    keys = [
-        "WriterID", "Writer Email ID", "Writer Name",
-        "Editor ID", "Editor Email ID", "Editor Name",
-        "Category", "Sub-Category", "Audit Date", "WS Name",
-        "WC", "FSN", "CFM01", "CFM02", "CFM03", "CFM04", "CFM05",
-        "CFM06", "CFM07", "CFM08", "GSEO01", "GSEO02", "GSEO03",
-        "GSEO04", "GSEO05", "GSEO06", "GSEO07", "FAT01", "FAT02",
-        "FAT03", "CFM Quality", "GSEO Quality", "Overall Quality",
-        "Fatals Count", "Non Fatals Count", "CFM01C", "CFM02C", "CFM03C",
-        "CFM04C", "CFM05C", "CFM06C", "CFM07C", "CFM08C", "GSEO01C",
-        "GSEO02C",  "GSEO03C",  "GSEO04C",  "GSEO05C", "GSEO06C",
-        "GSEO07C", "FAT01C", "FAT02C", "FAT03C"
-        ]
+    keys = ["WriterID","Writer Email ID","Writer Name","Description Type","Source","BU","Super-Category","Category","Sub-Category","Vertical","Brand","Editor ID","Editor Email ID","Editor Name","Audit Date","Week","Month","WS Name","Word Count","FSN","CFM01","CFM02","CFM03","CFM04","CFM05","CFM06","CFM07","CFM08","GSEO01","GSEO02","GSEO03","GSEO04","GSEO05","GSEO06","GSEO07","FAT01","FAT02","FAT03","CFM Quality","GSEO Quality","Overall Quality","Fatals Count","Non Fatals Count","CFM01C","CFM02C","CFM03C","CFM04C","CFM05C","CFM06C","CFM07C","CFM08C","GSEO01C","GSEO02C","GSEO03C","GSEO04C","GSEO05C","GSEO06C","GSEO07C","FAT01C","FAT02C","FAT03C","Comments"]
     return keys
 
 def seekFSN(user_id, password, fsn):
@@ -936,6 +905,7 @@ def addToPiggyBank(piggyBankDict, user_id, password):
 def getDictStrings(inputDict):
     """Takes any dictionary and returns a comma separated string of the 
     keys and the corresponding values."""
+    import math
     keysHolder = inputDict.keys()
     keysString = []
     for key in keysHolder:
@@ -948,7 +918,10 @@ def getDictStrings(inputDict):
     valuesString = []
     for value in valuesHolder:
         if len(valuesString) == 0:
-            valuesString = '"' + value + '"'
+            if ("\"" not in str(value)):
+                valuesString = '"' + str(value) + '"'
+            else:
+                valuesString = '"' + str(value).replace('"',"'") + '"'
         else:
             valuesString = valuesString + ', "' + str(value) + '"'
     return keysString, valuesString
@@ -4014,6 +3987,79 @@ def getLastDayOfWeek(query_date):
     monday = query_date - datetime.timedelta(day - 1)
     return monday + datetime.timedelta(days=5)
 
+def uploadRawDataFromDataFrame(user_id, password, unfiltered_raw_data):
+    import pandas as pd
+    import xlrd
+    import math
+    unfiltered_raw_data.columns = getRawDataKeys()
+    raw_data = unfiltered_raw_data[[not(match) for match in list(pd.isnull(unfiltered_raw_data["WriterID"]))]]
+    raw_data[["WriterID"]] = raw_data[["WriterID"]].astype(int)
+    accepted_rows = 0
+    #print raw_data.columns
+    rejected_data_frame = raw_data[raw_data["Overall Quality"] == "-"]
+    rejected_rows = rejected_data_frame.shape[0]
+    tentatively_accepted_rows = raw_data[raw_data["Overall Quality"] != "-"]
+    raw_data_as_dicts = tentatively_accepted_rows.to_dict("records")
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    print len(tentatively_accepted_rows), " rows loaded."
+    for each_row in raw_data_as_dicts:
+        success = False
+        columns, values = getDictStrings(each_row)
+        sqlcmdstring = "INSERT INTO `rawdata_copy` (%s) VALUES (%s);" % (columns, values)
+        try:
+            cursor.execute(sqlcmdstring)
+            conn.commit()
+            success = True
+        except MySQLdb.IntegrityError:
+            #print "Integrity Error!"
+            primary_key_columns = ["Audit Date","Editor ID","WriterID", "FSN"]
+            updation_columns = [x for x in each_row.keys() if x not in primary_key_columns]
+            update_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in updation_columns]
+            update_query = ", ".join(update_field_list)
+
+            primary_key_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in primary_key_columns]
+            primary_key_query = " AND ".join(primary_key_field_list)
+            sqlcmdstring = "UPDATE `rawdata_copy` SET %s WHERE %s;" % (update_query, primary_key_query)
+            try:
+                cursor.execute(sqlcmdstring)
+                conn.commit()
+                success = True
+            except Exception, err:
+                print repr(err)
+                print sqlcmdstring
+                success = False
+        except Exception, e:
+            print repr(e)
+            print sqlcmdstring
+            success = False
+        if success:
+            accepted_rows += 1
+    conn.close()
+
+    failed_rows = raw_data.shape[0] - accepted_rows - rejected_rows
+    return accepted_rows, rejected_rows, failed_rows
+
+def addToRawData(user_id, password, process_dict):
+    columns, values = getDictStrings(process_dict)
+    connectdb = getOINKConnector(user_id, password)
+    dbcursor = connectdb.cursor()
+    sqlcmdstring = "INSERT INTO `rawdata` (%s) VALUES (%s);" % (columns, values)
+    #print sqlcmdstring
+    try:
+        dbcursor.execute(sqlcmdstring)
+        status = "Success"
+    except MySQLdb.IntegrityError:
+        status = "Duplicate"
+        pass
+        #raise
+    except:
+        status = "Error"
+        pass
+        #raise
+    connectdb.commit()
+    connectdb.close()
+    return status
 
 if __name__ == "__main__":
     print "Never call Moses mainly."

@@ -28,6 +28,7 @@ from ImageButton import ImageButton
 from TNAViewer import TNAViewer
 from UserManager import UserManager
 from OverrideTool import OverrideTool
+from RawDataManager import RawDataManager
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -189,7 +190,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
 
     def openRawDataUploader(self):
-        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+        self.raw_data_manager = RawDataManager(self.user_id, self.password)
+        self.raw_data_manager.show()
 
     def openOverrideTool(self):
         self.overrider = OverrideTool(self.user_id, self.password)
