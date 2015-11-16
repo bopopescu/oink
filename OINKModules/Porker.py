@@ -235,14 +235,27 @@ class Porker(QtCore.QThread):
             cw_efficiency = MOSES.getEfficiencyForWeek(self.user_id, self.password, lwd, category_tree=self.category_tree)
             cw_cfm, cw_gseo, cw_fatals = MOSES.getCFMGSEOForWeek(self.user_id, self.password, lwd)
 
-        cw_stats = ["Week #%d"%lwd.isocalendar()[1], cw_efficiency, cw_cfm, cw_gseo]
+        cw_stats = ["Week#%d"%lwd.isocalendar()[1], cw_efficiency, cw_cfm, cw_gseo]
 
         cm_efficiency = MOSES.getEfficiencyForMonth(self.user_id, self.password, lwd, category_tree=self.category_tree)
         cm_cfm, cm_gseo, cm_fatals = MOSES.getCFMGSEOForMonth(self.user_id, self.password, lwd)
         
-        cm_stats = ["Month: %s"%lwd.strftime("%b"), cm_efficiency, cm_cfm, cm_gseo]
+        cm_stats = ["%s:"%lwd.strftime("%b"), cm_efficiency, cm_cfm, cm_gseo]
+
         stats = [lwd_stats, cw_stats, cm_stats]
-        return pd.DataFrame(stats, columns=stats_keys)
+        formatted_stats = []
+        for row in stats:
+            formatted_row = [row[0]]
+            for item in row[1:]:
+                if (type(item) is str) or (item is None):
+                    item = "-" 
+                elif math.isnan(item) :
+                    item = "-"
+                else:
+                    item = "%6.3f%%"%(item*100)
+                formatted_row.append(item)
+            formatted_stats.append(formatted_row)
+        return pd.DataFrame(formatted_stats, columns=stats_keys)
     
     def updateEfficiencyForDate(self, query_date):
         previous_dictionary = self.result_dictionary.get(query_date)

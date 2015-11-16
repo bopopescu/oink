@@ -706,7 +706,6 @@ class Pork(QtGui.QMainWindow):
         new_date = self.getActiveDate()
         self.piggybanker_thread.setDate(new_date)
         self.piggybanker_thread.getPiggyBank()
-
         self.porker_thread.getStatsFor(new_date)
         self.displayEfficiencyThreaded(self.porker_thread.getEfficiencyFor(new_date))
         self.mapToolTips()
@@ -714,7 +713,8 @@ class Pork(QtGui.QMainWindow):
         self.refreshStatsTable()
 
     def refreshStatsTable(self):
-        self.porker_thread.updateForDate(self.getActiveDate())        
+        self.porker_thread.updateForDate(self.getActiveDate())
+        self.porker_thread.getStatsFor(self.getActiveDate())
 
     def populateTableThreaded(self, data, efficiencies):
         #print "Got %d Articles from the piggybanker_thread." %len(data)
@@ -1257,6 +1257,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
 
     def useStatsData(self, stats):
         self.stats_table.showDataFrame(stats)
+        self.stats_table.adjustToColumns()
 
     def calendarPageChanged(self, year, month):
         """When the calendar page is changed, this triggers the porker method which
