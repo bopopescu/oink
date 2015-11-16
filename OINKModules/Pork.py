@@ -687,7 +687,7 @@ class Pork(QtGui.QMainWindow):
                     #Update the efficiency.
                 self.resetForm()
                 self.piggybanker_thread.getPiggyBank()
-                self.porker_thread.getEfficiency()
+                self.porker_thread.updateForDate(selected_date)
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
@@ -1019,7 +1019,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
         formatted_message = "\n".join(textwrap.wrap(str(message), width=int(self.status_bar.width())))
         self.status_bar.setText(message)
         self.status_bar.moveCursor(QtGui.QTextCursor.End)
-        self.status_bar.setTooltip(message)
+        self.status_bar.setToolTip(message)
 
     def useResultDictionary(self, result_dictionary):
         current_dict = result_dictionary.get(self.getActiveDate())
