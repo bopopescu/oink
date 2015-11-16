@@ -2243,14 +2243,15 @@ def getCFMGSEOBetweenDates(user_id, password, start_date, end_date, query_user=N
     raw_data_table, CFM_key_list, GSEO_key_list = getRawDataTableAndAuditParameters()
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
-    if use_all is not None:
+    if use_all is None:
         use_all = False
     else:
         use_all = True
-    if not use_all:
-        sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
-    else:
+    if use_all:
+        print "Using all."
         sqlcmdstring = """SELECT * FROM `%s` WHERE `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
+    else:
+        sqlcmdstring = """SELECT * FROM `%s` WHERE `WriterID` = '%s' AND `Audit Date` BETWEEN '%s' AND '%s';""" %(raw_data_table, query_user, convertToMySQLDate(start_date), convertToMySQLDate(end_date))
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
     conn.close()
