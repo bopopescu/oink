@@ -32,8 +32,8 @@ class PiggyBankSummarizer(QtGui.QWidget):
         self.select_method_button = ImageButton(os.path.join(path_to_images_folder,"rightarrow.png"),25,25)
         self.deselect_method_button = ImageButton(os.path.join(path_to_images_folder,"leftarrow.png"),25,25)
 
-        self.move_up_button = ImageButton(os.path.join(path_to_images_folder,"uparrow.png"),25,25)
-        self.move_down_button = ImageButton(os.path.join(path_to_images_folder,"downarrow.png"),25,25)
+        #self.move_up_button = ImageButton(os.path.join(path_to_images_folder,"uparrow.png"),25,25)
+        #self.move_down_button = ImageButton(os.path.join(path_to_images_folder,"downarrow.png"),25,25)
 
         self.summarize_button = ImageButton(os.path.join(path_to_images_folder,"checkmark_green.png"),25,25)
         self.summarize_button.setToolTip("Click to summarize")
@@ -52,8 +52,9 @@ class PiggyBankSummarizer(QtGui.QWidget):
 
         finish_buttons_layout = QtGui.QVBoxLayout()
         finish_buttons_layout.addStretch(2)
-        finish_buttons_layout.addWidget(self.move_up_button,0)
-        finish_buttons_layout.addWidget(self.move_down_button,0)
+        finish_buttons_layout.addStretch(2)
+        #finish_buttons_layout.addWidget(self.move_up_button,0)
+        #finish_buttons_layout.addWidget(self.move_down_button,0)
         finish_buttons_layout.addStretch(2)
         finish_buttons_layout.addWidget(self.summarize_button,0)
         finish_buttons_layout.addWidget(self.reset_button,0)
@@ -107,21 +108,26 @@ class PiggyBankSummarizer(QtGui.QWidget):
     
     def summarize(self):
         no_of_selected_methods = self.selected_methods_list_widget.count()
-        selected_methods = [str(self.selected_methods_list_widget.item(x).text()) for x in range(no_of_selected_methods)]
+        all_selected_fields = [str(self.selected_methods_list_widget.item(x).text()) for x in range(no_of_selected_methods)]
+        selected_methods = [x for x in all_selected_fields if x != "Word Count"] + ["Word Count"]
         if len(selected_methods)>0:
             #print "Selected: %s"%selected_methods
-            summary_list = []
-            column_names = selected_methods + ["Count"]
+            column_names = selected_methods[:-1] + ["Count"] + ["Total Word Count"]
             summary_data = self.piggy_bank[selected_methods]
             #print summary_data
             summary_data_as_list = summary_data.values.tolist()
             #print summary_data_as_list
             final_summary_data = []
             for row in summary_data_as_list:
-                final_summary_data.append(row + [summary_data_as_list.count(row)])
-            summary_data_frame  = pd.DataFrame(final_summary_data, columns=column_names).drop_duplicates()
+                required_list = row[:-1] 
+                word_count = sum([x[-1] for x in summary_data_as_list if x[:-1] == required_list])
+                #word_count = sum[each_row["Word Count"] for each_row in summary_data_as_list if each_row == row]
+                final_summary_data.append(required_list + [[x[:-1] for x in summary_data_as_list].count(required_list)] + [word_count])
+
+            summary_data_frame = pd.DataFrame(final_summary_data, columns=column_names).drop_duplicates()
 
             self.summary_table.showDataFrame(summary_data_frame)
+            self.summary_table.adjustToColumns()
         else:
             print "Select something, Jack."
 

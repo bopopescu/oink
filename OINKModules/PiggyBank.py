@@ -6,7 +6,7 @@ from CopiableQTableWidget import CopiableQTableWidget
 class PiggyBank(CopiableQTableWidget):
     """Piggy Bank Class Definition."""
     def __init__(self):
-        QtGui.QTableWidget.__init__(self, 0 ,0)
+        super(PiggyBank, self).__init__()
         self.setStyleSheet("gridline-color: rgb(0, 0, 0)")
         header_labels = MOSES.getPiggyBankKeys()
         self.setColumnCount(len(header_labels))
