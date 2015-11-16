@@ -77,7 +77,7 @@ class DailyPorker(QtGui.QWidget):
         report_names = ["Article Count","Efficiency","Audit Count","CFM","GSEO","Stack Rank Index","Efficiency KRA","CFM KRA","GSEO KRA"]#,"Audit Percentage"]
         self.parameters_combobox = CheckableComboBox("Report Values")
         self.parameters_combobox.addItems(report_names)
-        self.parameters_combobox.select(["Efficiency","CFM","GSEO", "Stack Rank Index"])
+        self.parameters_combobox.select(["Efficiency","CFM","GSEO", "Article Count", "Audit Count"])
 
         self.report_time_frames_combobox = CheckableComboBox("Timeframe")
         self.report_time_frames_combobox.addItems(["Daily","Weekly","Monthly","Quarterly","Half-Yearly"])
@@ -266,6 +266,7 @@ class DailyPorker(QtGui.QWidget):
     def populateWritersComboBox(self):
         self.writers_combobox.clear()
         self.writers_combobox.addItems(self.getWritersList())
+        self.writers_combobox.selectAll()
 
     def getRequiredReportTypes(self):
         parameter_list = self.parameters_combobox.getCheckedItems()

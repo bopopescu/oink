@@ -4007,7 +4007,7 @@ def uploadRawDataFromDataFrame(user_id, password, unfiltered_raw_data):
     for each_row in raw_data_as_dicts:
         success = False
         columns, values = getDictStrings(each_row)
-        sqlcmdstring = "INSERT INTO `rawdata_copy` (%s) VALUES (%s);" % (columns, values)
+        sqlcmdstring = "INSERT INTO `rawdata` (%s) VALUES (%s);" % (columns, values)
         try:
             cursor.execute(sqlcmdstring)
             conn.commit()
@@ -4021,7 +4021,7 @@ def uploadRawDataFromDataFrame(user_id, password, unfiltered_raw_data):
 
             primary_key_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in primary_key_columns]
             primary_key_query = " AND ".join(primary_key_field_list)
-            sqlcmdstring = "UPDATE `rawdata_copy` SET %s WHERE %s;" % (update_query, primary_key_query)
+            sqlcmdstring = "UPDATE `rawdata` SET %s WHERE %s;" % (update_query, primary_key_query)
             try:
                 cursor.execute(sqlcmdstring)
                 conn.commit()

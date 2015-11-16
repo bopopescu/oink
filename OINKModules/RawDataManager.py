@@ -31,6 +31,8 @@ class RawDataManager(QtGui.QWidget):
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.upload_raw_data_button)
         self.setLayout(layout)
+        self.setWindowTitle("Raw Data Uploader")
+        #self.setIcon(QtGui.QIcon(os.path.join(MOSES.getPathToImages,"PORK_Icon.png")))
         self.show()
 
     def mapEvents(self):
@@ -43,9 +45,10 @@ class RawDataManager(QtGui.QWidget):
                 xl_file = pd.ExcelFile(data_file_name)
                 if "Raw Data" in xl_file.sheet_names:
                     raw_data_frame = xl_file.parse("Raw Data")
-                    self.alertMessage("Success!","Read %d rows of Raw Data from the file."%raw_data_frame.shape[0])
-                    accepted_rows, rejected_rows, failed_rows = MOSES.uploadRawDataFromDataFrame(self.user_id, self.password, raw_data_frame)
-                    message = "Successfully uploaded %d of %d rows of raw data into the server. %d were rejected by editors and uploaded into the rejected raw data table, and %d failed."%(accepted_rows, raw_data_frame.shape[0], rejected_rows, failed_rows)
+                    raw_data = raw_data_frame[[not(match) for match in list(pd.isnull(raw_data_frame["WriterID"]))]]
+                    self.alertMessage("Success!","Read %d rows of Raw Data from the file."%raw_data.shape[0])
+                    accepted_rows, rejected_rows, failed_rows = MOSES.uploadRawDataFromDataFrame(self.user_id, self.password, raw_data)
+                    message = "Successfully uploaded %d of %d rows of raw data into the server. %d were rejected by editors and uploaded into the rejected raw data table, and %d failed."%(accepted_rows, raw_data.shape[0], rejected_rows, failed_rows)
                     print message
                     self.alertMessage("Done!" ,message)
                 else:

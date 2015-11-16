@@ -11,7 +11,6 @@ import MOSES
 #from UsersThread import UsersThread
 
 class LogInDialog(QtGui.QDialog):
-
     def __init__(self):
         """Login Dialog"""
         super(LogInDialog, self).__init__()
