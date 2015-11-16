@@ -44,9 +44,9 @@ class RawDataManager(QtGui.QWidget):
             if os.path.exists(data_file_name):
                 xl_file = pd.ExcelFile(data_file_name)
                 if "Raw Data" in xl_file.sheet_names:
-                    raw_data_frame = xl_file.parse("Raw Data")
-                    raw_data = raw_data_frame[[not(match) for match in list(pd.isnull(raw_data_frame["WriterID"]))]]
-                    self.alertMessage("Success!","Read %d rows of Raw Data from the file."%raw_data.shape[0])
+                    raw_data = xl_file.parse("Raw Data")
+                    #raw_data = raw_data_frame[[not(match) for match in list(pd.isnull(raw_data_frame["WriterID"]))]]
+                    self.alertMessage("Please Wait!","I've received %d possible rows of Raw Data from the file. Proceeding to upload."%raw_data.shape[0])
                     accepted_rows, rejected_rows, failed_rows = MOSES.uploadRawDataFromDataFrame(self.user_id, self.password, raw_data)
                     message = "Successfully uploaded %d of %d rows of raw data into the server. %d were rejected by editors and uploaded into the rejected raw data table, and %d failed."%(accepted_rows, raw_data.shape[0], rejected_rows, failed_rows)
                     print message

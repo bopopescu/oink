@@ -917,13 +917,23 @@ def getDictStrings(inputDict):
     valuesHolder = inputDict.values()
     valuesString = []
     for value in valuesHolder:
+        try:
+            value_as_string = str(value)
+        except UnicodeEncodeError:
+            value_as_string = "Unable to read field from MS Excel due to the presence of special characters."
+        except:
+            value_as_string = "Unable to read field from MS Excel for unknown reasons."
         if len(valuesString) == 0:
-            if ("\"" not in str(value)):
-                valuesString = '"' + str(value) + '"'
+            if ("\"" not in value_as_string):
+                try:
+                    valuesString = '"' + value_as_string + '"'
+                except:
+                    print value
+                    raise
             else:
-                valuesString = '"' + str(value).replace('"',"'") + '"'
+                valuesString = '"' + value_as_string.replace('"',"'") + '"'
         else:
-            valuesString = valuesString + ', "' + str(value) + '"'
+            valuesString = valuesString + ', "' + value_as_string + '"'
     return keysString, valuesString
 
 def markCalendar(calendarEntryDict):
