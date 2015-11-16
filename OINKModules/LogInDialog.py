@@ -98,6 +98,7 @@ class LogInDialog(QtGui.QDialog):
 
     def useUserID(self, user_id):
         self.loginLineEdit.setText(user_id)
+        self.passwordLineEdit.setFocus()
 
     def createVisuals(self):
         """Login Dialog"""
