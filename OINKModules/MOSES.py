@@ -3348,12 +3348,16 @@ def getLastWorkingDayOfWeek(query_date):
     user_id, password = getBigbrotherCredentials()
     current_day = query_date.isocalendar()[2]
     day_difference = 5 - current_day
+    counter = 0
     while True:
         possible_last_date = query_date + datetime.timedelta(days=day_difference)
         if isWorkingDay(user_id, password, possible_last_date):
             break
         else:
             day_difference -= 1
+        counter+=1
+        if counter>20:
+            raise Exception("Possible Infinite Loop.")
     return possible_last_date
 
 def dumpFSNsIntoFile(description_type = None):

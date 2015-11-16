@@ -28,29 +28,36 @@ from TNAViewer import TNAViewer
 from ProgressBar import ProgressBar
 from SharinganButton import SharinganButton
 from CopiableQTableWidget import CopiableQTableWidget
+from FormattedDateEdit import FormattedDateEdit
 
 class Pork(QtGui.QMainWindow):
     def __init__(self, userID, password):
         super(QtGui.QMainWindow, self).__init__()
         self.x_pos, self.right_pos = "center","middle"
         self.flip = random.randint(0, 1)
+        
         #store the variables so they are accessible elsewhere in this class.
         self.userID = userID
         self.password = password
         self.player = Player()
         MOSES.createLoginStamp(self.userID, self.password)
         self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
+        self.last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
+        print "Got lwd."
         self.clip = QtGui.QApplication.clipboard()
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
-        
+        print "here."
         #Create the widgets and arrange them as needed.
         self.mainWidget = QtGui.QWidget()
         self.setCentralWidget(self.mainWidget)
-        self.widgetGenerator()
+        self.createUI()
+        print "here.0"
         self.mapThreads()
+        print "here.1"
         self.quote_thread = AnimalFarm()
         self.quote_thread.quoteSent.connect(self.updateStatusBar)
         self.widgetLayout()
+        print "here2."
         #Create all visual and usability aspects of the program.
         self.mapToolTips()
         self.setEvents()
@@ -102,7 +109,7 @@ class Pork(QtGui.QMainWindow):
         message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2014, by Vinay Keerthi. The <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding development."
         QtGui.QMessageBox.about(self, title, message)
 
-    def widgetGenerator(self):
+    def createUI(self):
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
         self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
@@ -111,6 +118,7 @@ class Pork(QtGui.QMainWindow):
         else:
             self.bigbrother_icon = SharinganButton(64, 64)
 
+        self.bigbrother_icon.setFlat(True)
         self.pork_icon = ImageLabel(os.path.join("Images","pork_logo.png"),64, 64)
         self.v_icon = ImageButton(os.path.join("Images","v.png"),64,64)
         self.fk_icon.setToolTip("Flipkart Content Team")
@@ -143,6 +151,15 @@ class Pork(QtGui.QMainWindow):
         self.project_button = ImageButton(os.path.join("Images","projects.png"),height, width, os.path.join("Images","projects_mouseover.png"))
         self.project_button.setToolTip("Open Project Log")
         self.project_button.setFlat(True)
+
+        self.report_label = QtGui.QLabel("Report Date:")
+        self.report_date_edit = FormattedDateEdit()
+        self.report_date_edit.setDate(self.last_working_date)
+
+        self.report_date_layout = QtGui.QHBoxLayout()
+        self.report_date_layout.addWidget(self.report_label,0)
+        self.report_date_layout.addWidget(self.report_date_edit,1)
+        self.report_date_layout.addStretch(3)
 
         self.icon_panel = QtGui.QHBoxLayout()
         self.icon_panel.addWidget(self.calculator_button,0)
@@ -195,6 +212,7 @@ class Pork(QtGui.QMainWindow):
         self.stats_progress_bar.setRange(0,1)
         self.stats_layout = QtGui.QVBoxLayout()
         self.stats_layout.addLayout(self.icon_panel,0)
+        self.stats_layout.addLayout(self.report_date_layout,0)
         self.stats_layout.addWidget(self.stats_table)
         self.stats_layout.addWidget(self.stats_progress)
         self.stats_layout.addStretch(3)
@@ -856,8 +874,7 @@ class Pork(QtGui.QMainWindow):
         allowAction = False
         mode = self.getMode()
         selected_date = self.getActiveDate()
-        last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
-        dates_user_is_allowed_to_manipulate = [datetime.date.today(), last_working_date]
+        dates_user_is_allowed_to_manipulate = [datetime.date.today(), self.last_working_date]
 
         if selected_date not in dates_user_is_allowed_to_manipulate:
             allowAction = False
@@ -1256,10 +1273,8 @@ the existing data in the form with the data in the cell and modify that cell?"""
         """When the calendar page is changed, this triggers the porker method which
         fetches the efficiency values for the entire month."""
         success = self.porker_thread.extendDates(datetime.date(year, month, 1))
-        if success:
-            self.alertMessage("Success!","Increased process dates!")
-        else:
-            self.alertMessage("Failure!","Didn't increase process dates!")
+        if not success:
+            self.alertMessage("Failure!","Unable to extend the thread's dates for some reason.")
         #efficiency = self.porker_thread.getEfficiencyFor(self.getActiveDate())
         #self.porker_thread.sentDatesData = False
 

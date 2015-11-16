@@ -141,7 +141,9 @@ class Porker(QtCore.QThread):
                 self.process_dates.remove(each_date)
 
         self.process_dates.extend(list(reversed(sorted(set(self.queue)))))
-        print self.process_dates
+        
+        if len(self.process_dates)>0: 
+            print self.process_dates
         self.queue = []
 
     def updateForDate(self, queried_date):
@@ -165,15 +167,14 @@ class Porker(QtCore.QThread):
         earliest_date = min(processed_dates)
         last_date = max(processed_dates)
         success = False
-        if (extension_date not in processed_dates) and (extension_date not in self.queue):
-            if extension_date < earliest_date:
-                dates_list = (list(reversed(OINKM.getDatesBetween(extension_date, earliest_date))))
-                success = True
-            elif extension_date > last_date:
-                dates_list = (list(reversed(OINKM.getDatesBetween(last_date, extension_date))))
-                success = True
-            else:
-                print extension_date," failed for some reason."
+        if extension_date < earliest_date:
+            dates_list = (list(reversed(OINKM.getDatesBetween(extension_date, earliest_date))))
+            success = True
+        elif extension_date > last_date:
+            dates_list = (list(reversed(OINKM.getDatesBetween(last_date, extension_date))))
+            success = True
+        else:
+            print extension_date," failed for some reason."
         if success:
             for date_ in dates_list:
                 self.updateForDate(date_)
