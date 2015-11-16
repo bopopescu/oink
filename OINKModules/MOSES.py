@@ -3994,6 +3994,7 @@ def uploadRawDataFromDataFrame(user_id, password, unfiltered_raw_data):
     unfiltered_raw_data.columns = getRawDataKeys()
     raw_data = unfiltered_raw_data[[not(match) for match in list(pd.isnull(unfiltered_raw_data["WriterID"]))]]
     raw_data[["WriterID"]] = raw_data[["WriterID"]].astype(int)
+    raw_data[["Editor ID"]] = raw_data[["Editor ID"]].astype(int)
     accepted_rows = 0
     #print raw_data.columns
     rejected_data_frame = raw_data[raw_data["Overall Quality"] == "-"]
