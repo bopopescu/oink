@@ -16,6 +16,7 @@ class Porker(QtCore.QThread):
     sendResultDictionary = QtCore.pyqtSignal(dict)
     #Send a message, alert_bool, progress_value, possible_eta
     sendActivityMessage = QtCore.pyqtSignal(str, bool, int, datetime.datetime)
+    sendStats = QtCore.pyqtSignal(pd.DataFrame)
 
     def __init__(self, user_id, password, start_date, end_date=None, category_tree=None, *args, **kwargs):
         """New version.
@@ -27,14 +28,18 @@ class Porker(QtCore.QThread):
         self.user_id, self.password = user_id, password
 
         self.start_date = start_date
+        self.stats_date = start_date
+        self.stats_data = {}
         #Prepare a list of dates to process.
-        span = 15
-        self.process_dates = list(reversed(OINKM.getDatesBetween((start_date-datetime.timedelta(days=span)), start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=span)))
+        l_span = 300
+        r_span = 15
+        self.process_dates = list(reversed(OINKM.getDatesBetween((start_date-datetime.timedelta(days=l_span)), start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=r_span)))
 
         self.queue = []
         self.force_update_dates = []
         #Preload the category_tree.
         self.result_dictionary = {}
+
         if category_tree is not None:
             self.category_tree = category_tree
         else:
@@ -103,7 +108,6 @@ class Porker(QtCore.QThread):
                 status = self.result_dictionary[processing_date].get("Status")
                 relaxation = self.result_dictionary[processing_date].get("Relaxation")
                 approval = self.result_dictionary[processing_date].get("Approval")
-                stats = self.result_dictionary[processing_date].get("Stats")
                 
             if efficiency is None:
                 efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, processing_date, category_tree=self.category_tree)
@@ -113,9 +117,6 @@ class Porker(QtCore.QThread):
             
             if (status is None) or (relaxation is None) or (approval is None):
                 status, relaxation, approval = MOSES.checkWorkStatus(self.user_id, self.password, processing_date)
-
-            if stats is None:
-                stats = self.getWriterStatsForDate(processing_date)
 
             processing_dict_entry = {
                                     processing_date:
@@ -127,11 +128,11 @@ class Porker(QtCore.QThread):
                                                     "CFM": cfm,
                                                     "GSEO": gseo,
                                                     "Fatals": fatals,
-                                                    "Stats": stats
                                                 }
                                     }
             self.result_dictionary.update(processing_dict_entry)
             self.sendResultDictionary.emit(self.result_dictionary)
+            self.sendStatsAfterUpdatingIfNecessary()
 
         #Flush the force_update list and the process_list.
         for each_date in self.getProcessedDates():
@@ -141,10 +142,28 @@ class Porker(QtCore.QThread):
                 self.process_dates.remove(each_date)
 
         self.process_dates.extend(list(reversed(sorted(set(self.queue)))))
-        
+
         if len(self.process_dates)>0: 
             print self.process_dates
         self.queue = []
+
+    def sendStatsAfterUpdatingIfNecessary(self):
+        stats = self.stats_data.get(self.stats_date)
+        if stats is None:
+            self.updateStats()
+            stats = self.stats_data[self.stats_date]
+        #else:
+        #    row_count = len(stats.index)
+        #    if (row_count in [1,2,3,4]):
+        #        self.updateStats()
+        #        stats = self.stats_data[self.stats_date]     
+        self.sendStats.emit(stats)
+
+    def updateStats(self):
+        self.stats_data.update({self.stats_date: self.getWriterStatsForDate(self.stats_date)})
+
+    def getStatsFor(self, query_date):
+        self.stats_date = query_date
 
     def updateForDate(self, queried_date):
         if queried_date not in self.process_dates: self.queue.append(queried_date)
@@ -173,8 +192,8 @@ class Porker(QtCore.QThread):
         elif extension_date > last_date:
             dates_list = (list(reversed(OINKM.getDatesBetween(last_date, extension_date))))
             success = True
-        else:
-            print extension_date," failed for some reason."
+        #else:
+            #print extension_date," failed for some reason."
         if success:
             for date_ in dates_list:
                 self.updateForDate(date_)
@@ -194,26 +213,54 @@ class Porker(QtCore.QThread):
         
         
         if lwd_efficiency is None:
-            lwd_efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, lwd, category_tree=self.category_tree)
-            updated_dict = {"Efficiency": lwd_efficiency}
-            if previous_dictionary is not None:
-                previous_dictionary.update(updated_dict)
-            else:
-                self.result_dictionary[lwd] = updated_dict
+            self.updateEfficiencyForDate(lwd)
+            previous_dictionary = self.result_dictionary.get(lwd)
+            lwd_efficiency = previous_dictionary.get("Efficiency")
+
         
         if lwd_cfm is None or lwd_gseo is None or lwd_fatals is None:
-            lwd_cfm, lwd_gseo, lwd_fatals = MOSES.getCFMGSEOFor(self.user_id, self.password, lwd)
-            updated_dict = {"CFM": lwd_cfm, "GSEO": lwd_gseo, "Fatals": lwd_fatals}
-            if previous_dictionary is not None:
-                previous_dictionary.update(updated_dict)
-            else:
-                self.result_dictionary[lwd] = updated_dict
-        
+            self.updateQualityForDate(lwd)
+            previous_dictionary = self.result_dictionary.get(lwd)
+            lwd_cfm = previous_dictionary.get("CFM")
+            lwd_gseo = previous_dictionary.get("GSEO")
+            lwd_fatals = previous_dictionary.get("Fatals")
+
         stats_keys = ["Time Frame", "Efficiency", "CFM", "GSEO"]
-        stats = [[
-                    lwd,
-                    lwd_efficiency,
-                    lwd_cfm,
-                    lwd_gseo
-        ]]
+        lwd_stats = [lwd, lwd_efficiency, lwd_cfm, lwd_gseo]
+
+        first_date_of_week = MOSES.getFirstDayOfWeek(lwd)
+        if first_date_of_week == lwd:
+            cw_stats = lwd_stats
+        else:
+            cw_efficiency = MOSES.getEfficiencyForWeek(self.user_id, self.password, lwd, category_tree=self.category_tree)
+            cw_cfm, cw_gseo, cw_fatals = MOSES.getCFMGSEOForWeek(self.user_id, self.password, lwd)
+
+        cw_stats = ["Week #%d"%lwd.isocalendar()[1], cw_efficiency, cw_cfm, cw_gseo]
+
+        cm_efficiency = MOSES.getEfficiencyForMonth(self.user_id, self.password, lwd, category_tree=self.category_tree)
+        cm_cfm, cm_gseo, cm_fatals = MOSES.getCFMGSEOForMonth(self.user_id, self.password, lwd)
+        
+        cm_stats = ["Month: %s"%lwd.strftime("%b"), cm_efficiency, cm_cfm, cm_gseo]
+        stats = [lwd_stats, cw_stats, cm_stats]
         return pd.DataFrame(stats, columns=stats_keys)
+    
+    def updateEfficiencyForDate(self, query_date):
+        previous_dictionary = self.result_dictionary.get(query_date)
+        efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, query_date, category_tree=self.category_tree)
+        updated_dict = {"Efficiency": efficiency}
+        if previous_dictionary is not None:
+            previous_dictionary.update(updated_dict)
+        else:
+            self.result_dictionary[query_date] = updated_dict
+
+    def updateQualityForDate(self, query_date):
+        previous_dictionary = self.result_dictionary.get(query_date)
+        cfm, gseo, fatals = MOSES.getCFMGSEOFor(self.user_id, self.password, query_date)
+        updated_dict = {"CFM": cfm, "GSEO": gseo, "Fatals": fatals}
+        if previous_dictionary is not None:
+            previous_dictionary.update(updated_dict)
+        else:
+            self.result_dictionary[query_date] = updated_dict
+
+    def getEfficiencyForDateRange(start_date, end_date):
+        pass

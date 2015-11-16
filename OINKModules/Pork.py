@@ -43,21 +43,16 @@ class Pork(QtGui.QMainWindow):
         MOSES.createLoginStamp(self.userID, self.password)
         self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
         self.last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
-        print "Got lwd."
         self.clip = QtGui.QApplication.clipboard()
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
-        print "here."
         #Create the widgets and arrange them as needed.
         self.mainWidget = QtGui.QWidget()
         self.setCentralWidget(self.mainWidget)
         self.createUI()
-        print "here.0"
         self.mapThreads()
-        print "here.1"
         self.quote_thread = AnimalFarm()
         self.quote_thread.quoteSent.connect(self.updateStatusBar)
         self.widgetLayout()
-        print "here2."
         #Create all visual and usability aspects of the program.
         self.mapToolTips()
         self.setEvents()
@@ -181,18 +176,7 @@ class Pork(QtGui.QMainWindow):
         #self.status_bar.setMaximumWidth()
         self.status_bar.showMessage("Welcome to P.O.R.K. Big Brother is watching you.")
         self.menu = self.menuBar()
-        self.stats_table = CopiableQTableWidget(0, 0, self)
-        self.stats_table.setColumnCount(len(self.stats_table_headers))
-        self.stats_table.setHorizontalHeaderLabels(self.stats_table_headers)
-        self.stats_table.setStyleSheet("gridline-color: rgb(0, 0, 0); font: Georgia 18 pt;")
-        self.stats_table.resizeColumnsToContents()
-        self.stats_table.resizeRowsToContents()
-        self.stats_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.stats_table.horizontalHeader().setStretchLastSection(True)
-
-        self.stats_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.stats_table.verticalHeader().setStretchLastSection(True)
-        self.stats_table.verticalHeader().setVisible(False)
+        self.stats_table = CopiableQTableWidget(0, 0)
 
         self.stats_table.setToolTip("This report displays your statistics for the last working date.\nIf you've selected a Monday, this will show you\nyour data for last Friday, provided you weren't on leave on that day.\nIf you were, it'll search for the date\non which you last worked and show you that.")
         self.stats_table.setFixedSize(300,160)
@@ -723,6 +707,7 @@ class Pork(QtGui.QMainWindow):
         self.piggybanker_thread.setDate(new_date)
         self.piggybanker_thread.getPiggyBank()
 
+        self.porker_thread.getStatsFor(new_date)
         self.displayEfficiencyThreaded(self.porker_thread.getEfficiencyFor(new_date))
         self.mapToolTips()
         self.FSNEditFinishTriggers()
@@ -1261,20 +1246,24 @@ the existing data in the form with the data in the cell and modify that cell?"""
         #Main thread that supplies daily data based on PORK activities, such as calendar action and entering FSNs.
         self.porker_thread = Porker(self.userID, self.password, init_date, category_tree=self.category_tree)
         self.porker_thread.sendResultDictionary.connect(self.useResultDictionary)
+        self.porker_thread.sendStats.connect(self.useStatsData)
+
 
     def useResultDictionary(self, result_dictionary):
         current_dict = result_dictionary.get(self.getActiveDate())
         if current_dict is not None:
             self.displayEfficiencyThreaded(current_dict["Efficiency"])
-            self.stats_table.showDataFrame(current_dict["Stats"])
         self.workCalendar.setDatesData(result_dictionary)
+
+    def useStatsData(self, stats):
+        self.stats_table.showDataFrame(stats)
 
     def calendarPageChanged(self, year, month):
         """When the calendar page is changed, this triggers the porker method which
         fetches the efficiency values for the entire month."""
         success = self.porker_thread.extendDates(datetime.date(year, month, 1))
-        if not success:
-            self.alertMessage("Failure!","Unable to extend the thread's dates for some reason.")
+        #if not success:
+        #    self.alertMessage("Failure!","Unable to extend the thread's dates for some reason.")
         #efficiency = self.porker_thread.getEfficiencyFor(self.getActiveDate())
         #self.porker_thread.sentDatesData = False
 
