@@ -1,6 +1,10 @@
-from PyQt4 import QtCore
-import random, time, os
+import random
+import time
+import os
+import textwrap
 
+
+from PyQt4 import QtCore
 class AnimalFarm(QtCore.QThread):
     quoteSent = QtCore.pyqtSignal(str)
 
@@ -18,7 +22,7 @@ class AnimalFarm(QtCore.QThread):
        # print "Starting Animal Farm thread."
         self.quotes_size = len(self.quotes)
         if width is None:
-            self.width = 200
+            self.width = 80
         else:
             self.width = width
 
@@ -44,13 +48,7 @@ class AnimalFarm(QtCore.QThread):
                     quote_part = quote[:characters]
                     quote_len = len(quote_part)
                     delay = 0.03
-                    if quote_len > self.width:
-                        cut_position = quote_part[:self.width].rfind(" ")
-                        shorten = quote_part[:cut_position] +"\n" + quote_part[cut_position+1:]
-                        # quote_part[(quote_len - self.width):]
-                    else:
-                        shorten = quote_part
-                    self.quoteSent.emit(shorten)
+                    self.quoteSent.emit(quote_part)
                     time.sleep(delay)
                 time.sleep(5)
         self.mutex.lock()

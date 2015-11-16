@@ -142,8 +142,10 @@ class Pork(QtGui.QMainWindow):
         self.workCalendar.setMaximumHeight(350)
 
         self.stats = QtGui.QGroupBox("My Performance and Tools")
-        self.status_bar = QtGui.QLabel()
+        self.status_bar = QtGui.QTextEdit()
+        self.status_bar.setReadOnly(True)
         self.status_bar.setText("Welcome to P.O.R.K. Big Brother is watching you.")
+        self.status_bar.setMaximumHeight(50)
         self.menu = self.menuBar()
         self.stats_table = CopiableQTableWidget(0, 0)
 
@@ -309,18 +311,16 @@ class Pork(QtGui.QMainWindow):
         top_row.addWidget(self.stats,0, QtCore.Qt.AlignHCenter)
         top_row.addWidget(self.form,1, QtCore.Qt.AlignLeft)
 
-        self.piggy_bank_calendar_and_report_layout = QtGui.QGridLayout()
-        self.piggy_bank_calendar_and_report_layout.addLayout(top_row,0,0,2,6, QtCore.Qt.AlignLeft)
-        self.piggy_bank_calendar_and_report_layout.addWidget(self.piggybank,2,0,2,6)
-        self.piggy_bank_calendar_and_report_layout.setColumnStretch(0,0)
-        self.piggy_bank_calendar_and_report_layout.setRowStretch(0,0)
-        self.piggy_bank_calendar_and_report_layout.setColumnStretch(0,0)
+        self.piggy_bank_calendar_and_report_layout = QtGui.QVBoxLayout()
+        self.piggy_bank_calendar_and_report_layout.addLayout(top_row,0)
+        self.piggy_bank_calendar_and_report_layout.addWidget(self.piggybank,2)
+
         #create the final layout.
-        self.finalLayout = QtGui.QGridLayout()
-        self.finalLayout.addWidget(self.menu,0,0,1,5)
-        self.finalLayout.addLayout(self.piggy_bank_calendar_and_report_layout,2,0,5,5)
-        self.finalLayout.addWidget(self.efficiency_progress_bar,7,0,1,5)
-        self.finalLayout.addWidget(self.status_bar,8,0,2,5, QtCore.Qt.AlignTop)
+        self.finalLayout = QtGui.QVBoxLayout()
+        self.finalLayout.addWidget(self.menu,0)
+        self.finalLayout.addLayout(self.piggy_bank_calendar_and_report_layout,2)
+        self.finalLayout.addWidget(self.efficiency_progress_bar,0)
+        self.finalLayout.addWidget(self.status_bar,1)
 
         #self.finalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
 
@@ -1015,7 +1015,11 @@ the existing data in the form with the data in the cell and modify that cell?"""
 
     def updateStatusBar(self, message):
         #print "Received ", message
+        import textwrap
+        formatted_message = "\n".join(textwrap.wrap(str(message), width=int(self.status_bar.width())))
         self.status_bar.setText(message)
+        self.status_bar.moveCursor(QtGui.QTextCursor.End)
+        self.status_bar.setTooltip(message)
 
     def useResultDictionary(self, result_dictionary):
         current_dict = result_dictionary.get(self.getActiveDate())
