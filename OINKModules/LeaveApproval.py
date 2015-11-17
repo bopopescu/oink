@@ -23,7 +23,7 @@ class LeaveApproval(QtGui.QWidget):
 		self.end_date = FormattedDateEdit()
 
 		self.employees_label = QtGui.QLabel("Employees:")
-		self.employees_selection_box = CheckableComboBox()
+		self.employees_selection_box = CheckableComboBox("Employees")
 
 		self.refresh_table_button = QtGui.QPushButton("Refresh Table")
 		self.approve_selected_button = QtGui.QPushButton("Approve Selected")
@@ -55,6 +55,7 @@ class LeaveApproval(QtGui.QWidget):
 
 		self.setLayout(layout)
 		self.setWindowTitle("Leaves Manager")
+		self.show()
 
 	def mapEvents(self):
 		pass
