@@ -29,6 +29,7 @@ from TNAViewer import TNAViewer
 from UserManager import UserManager
 from OverrideTool import OverrideTool
 from RawDataManager import RawDataManager
+from LeaveApproval import LeaveApproval
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -209,7 +210,8 @@ class Vindaloo(QtGui.QMainWindow):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
     
     def openLeaveManager(self):
-        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+        self.leave_manager = LeaveApproval(self.user_id, self.password)
+        
     
     def openUserManagement(self):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")

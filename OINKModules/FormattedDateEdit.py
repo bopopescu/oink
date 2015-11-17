@@ -6,3 +6,4 @@ class FormattedDateEdit(QDateEdit):
 		super(FormattedDateEdit, self).__init__(*args, **kwargs)
 		self.setDisplayFormat("ddd, dd-MMM-yyyy")
 		self.setCalendarPopup(True)
+		self.setMinimumDate(datetime.date(2015,1,1))
