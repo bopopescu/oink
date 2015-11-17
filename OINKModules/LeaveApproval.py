@@ -70,7 +70,7 @@ class LeaveApproval(QtGui.QWidget):
 		self.applyFilters()
 
 	def applyFilters(self):
-		selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x])[0] for x in self.employees_selection_box.getCheckedItems()]
+		selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x]["Employee ID"])[0] for x in self.employees_selection_box.getCheckedItems()]
 		filter_dict = {
 						"Dates": [self.start_date.date().toPyDate(), self.end_date.date().toPyDate()],
 						"Employee IDs": selected_employee_ids
