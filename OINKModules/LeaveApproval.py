@@ -58,7 +58,28 @@ class LeaveApproval(QtGui.QWidget):
 		self.show()
 
 	def mapEvents(self):
-		pass
+		self.start_date.dateChanged.connect(self.startDateChanged)
+		self.refresh_table_button.clicked.connect(self.applyFilters)
 
 	def initiate(self):
-		pass
+		self.start_date.setDate(datetime.date.today())
+		self.employees_list = MOSES.getEmployeesList(self.user_id, self.password, self.end_date.date().toPyDate())
+		self.employees_selection_box.clear()
+		self.employees_selection_box.addItems(sorted(list(self.employees_list["Name"])))
+		self.employees_selection_box.selectAll()
+		self.applyFilters()
+
+
+	def applyFilters(self):
+		selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x])[0] for x in self.employees_selection_box.getCheckedItems()]
+		filter_dict = {
+						"Dates": [self.start_date.date().toPyDate(), self.end_date.date().toPyDate()],
+						"Employees": selected_employee_ids
+					}
+		self.work_calendar = MOSES.getWorkCalendarFor(self.user_id, self.password, filter_dict)
+		self.leave_table.showDataFrame(self.work_calendar)
+
+
+	def startDateChanged(self):
+		self.end_date.setDate(self.start_date.date())
+		self.end_date.setMinimumDate(self.start_date.date())

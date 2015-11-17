@@ -4072,5 +4072,26 @@ def addToRawData(user_id, password, process_dict):
     connectdb.close()
     return status
 
+def getWorkCalendarFor(user_id, password, filter_dict):
+    import pandas as pd
+    conn = getOINKConnector(user_id, password, 1)
+    cursor = conn.cursor()
+    sqlcmdstring = """SELECT * FROM `workcalendar` WHERE `Date` BETWEEN "%s" AND "%s";"""%(filter_dict["Dates"][0],filter_dict["Dates"][1])
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    conn.commit()
+    description = cursor.description
+    conn.close()
+    column_names = [x[0] for x in description]
+    if len(data) >0:
+            ordered_data = []
+            data_as_list = [list(row) for row in data]
+            ordered_data.extend(data_as_list)
+            return_this = pd.DataFrame(ordered_data, columns=column_names)
+    else:
+        empty_rows = [["" for x in column_names]]
+        return_this = pd.DataFrame(empty_rows, columns = column_names)
+    return return_this
+
 if __name__ == "__main__":
     print "Never call Moses mainly."
