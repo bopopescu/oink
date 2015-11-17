@@ -69,16 +69,14 @@ class LeaveApproval(QtGui.QWidget):
 		self.employees_selection_box.selectAll()
 		self.applyFilters()
 
-
 	def applyFilters(self):
 		selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x])[0] for x in self.employees_selection_box.getCheckedItems()]
 		filter_dict = {
 						"Dates": [self.start_date.date().toPyDate(), self.end_date.date().toPyDate()],
-						"Employees": selected_employee_ids
+						"Employee IDs": selected_employee_ids
 					}
 		self.work_calendar = MOSES.getWorkCalendarFor(self.user_id, self.password, filter_dict)
 		self.leave_table.showDataFrame(self.work_calendar)
-
 
 	def startDateChanged(self):
 		self.end_date.setDate(self.start_date.date())

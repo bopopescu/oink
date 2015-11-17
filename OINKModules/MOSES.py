@@ -4074,9 +4074,11 @@ def addToRawData(user_id, password, process_dict):
 
 def getWorkCalendarFor(user_id, password, filter_dict):
     import pandas as pd
+    ids = ", ".join(['"%s"'%x for x in filter_dict["Employee IDs"]])
+    sqlcmdstring = """SELECT * FROM `workcalendar` WHERE `Date` BETWEEN "%s" AND "%s" and `Employee ID` in (%s);"""%(filter_dict["Dates"][0],filter_dict["Dates"][1], ids)
+    print sqlcmdstring
     conn = getOINKConnector(user_id, password, 1)
     cursor = conn.cursor()
-    sqlcmdstring = """SELECT * FROM `workcalendar` WHERE `Date` BETWEEN "%s" AND "%s";"""%(filter_dict["Dates"][0],filter_dict["Dates"][1])
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
     conn.commit()
