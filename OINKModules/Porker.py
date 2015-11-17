@@ -171,6 +171,27 @@ class Porker(QtCore.QThread):
 
 
     def updateForDate(self, queried_date):
+        efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, queried_date, category_tree=self.category_tree)
+        
+        cfm, gseo, fatals = MOSES.getCFMGSEOFor(self.user_id, self.password, queried_date)
+        
+        status, relaxation, approval = MOSES.checkWorkStatus(self.user_id, self.password, queried_date)
+
+        processing_dict_entry = {
+                                queried_date:
+                                            {
+                                                "Efficiency": efficiency,
+                                                "Status":status,
+                                                "Relaxation": relaxation,
+                                                "Approval": approval,
+                                                "CFM": cfm,
+                                                "GSEO": gseo,
+                                                "Fatals": fatals,
+                                            }
+                                }
+        self.result_dictionary.update(processing_dict_entry)
+        self.sendResultDictionary.emit(self.result_dictionary)
+        
         if queried_date not in self.process_dates: self.queue.append(queried_date)
         self.force_update_dates.append(queried_date)
 

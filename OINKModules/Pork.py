@@ -688,6 +688,7 @@ class Pork(QtGui.QMainWindow):
                 self.resetForm()
                 self.piggybanker_thread.getPiggyBank()
                 self.porker_thread.updateForDate(selected_date)
+                print "Asked to update for %s."%selected_date
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
