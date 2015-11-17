@@ -90,7 +90,7 @@ class Vindaloo(QtGui.QMainWindow):
                                     )
         self.leaves_button = self.makeButton(
                                         "leave",
-                                        "Click to open the leave approval system.", 
+                                        "Click to open the leave and relaxation approval system.", 
                                         self.openLeaveManager
                                     )
         self.tna_button = self.makeButton(
@@ -136,16 +136,15 @@ class Vindaloo(QtGui.QMainWindow):
         layout.addWidget(self.tna_button, 0, 2)
         layout.addWidget(self.calc_button, 0, 3)
         layout.addWidget(self.leaves_button, 0, 4)
-        layout.addWidget(self.relaxation_button, 1,0)
-        layout.addWidget(self.escalation_button, 1,1)
-        layout.addWidget(self.user_management_button,1,2)
-        layout.addWidget(self.category_tree_button,1,3)
-        layout.addWidget(self.farmhand_button, 1, 4)
-        layout.addWidget(self.head_count_button, 2, 0)
-        layout.addWidget(self.seeker_button, 2, 1)
-        layout.addWidget(self.sty_cleaner_button, 2, 2)
-        layout.addWidget(self.upload_raw_data_button, 2, 3)
-        layout.addWidget(self.override_button, 3, 0)
+        layout.addWidget(self.escalation_button, 1,0)
+        layout.addWidget(self.user_management_button,1,1)
+        layout.addWidget(self.category_tree_button,1,2)
+        layout.addWidget(self.farmhand_button, 1, 3)
+        #layout.addWidget(self.head_count_button, 2, 0)
+        layout.addWidget(self.seeker_button, 2, 0)
+        layout.addWidget(self.sty_cleaner_button, 2, 1)
+        layout.addWidget(self.upload_raw_data_button, 2, 2)
+        layout.addWidget(self.override_button, 3, 3)
 
         self.main_widget.setLayout(layout)
 
@@ -211,7 +210,7 @@ class Vindaloo(QtGui.QMainWindow):
     
     def openLeaveManager(self):
         self.leave_manager = LeaveApproval(self.user_id, self.password)
-        
+
     
     def openUserManagement(self):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
