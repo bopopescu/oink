@@ -231,7 +231,7 @@ class Porker(QtCore.QThread):
 
         first_date_of_week = MOSES.getFirstDayOfWeek(lwd)
         if first_date_of_week == lwd:
-            cw_stats = lwd_stats
+            cw_stats = ["Week#%d"%lwd.isocalendar()[1]] + lwd_stats[1:]
         else:
             cw_efficiency = MOSES.getEfficiencyForWeek(self.user_id, self.password, lwd, category_tree=self.category_tree)
             cw_cfm, cw_gseo, cw_fatals = MOSES.getCFMGSEOForWeek(self.user_id, self.password, lwd)

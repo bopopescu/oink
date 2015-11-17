@@ -35,6 +35,12 @@ class LeaveApproval(QtGui.QWidget):
 
 		self.leave_table = CopiableQTableWidget(0, 0)
 
+		self.status_label = QtGui.QLabel("Status")
+		self.status_combobox = QtGui.QComboBox()
+		self.comment_label = QtGui.QLabel("Comment")
+		self.comment_lineedit = QtGui.QLineEdit()
+		self.save_selected_button = QtGui.QPushButton("Save")
+
 		row_1 = QtGui.QHBoxLayout()
 		row_1.addWidget(self.date_label,0)
 		row_1.addWidget(self.start_date,0)
@@ -44,15 +50,24 @@ class LeaveApproval(QtGui.QWidget):
 		row_1.addWidget(self.clear_button,0)
 
 		row_2 = QtGui.QHBoxLayout()
-		row_2.addWidget(self.comment_label,0)
-		row_2.addWidget(self.comment_box,0)
-		row_2.addWidget(self.approve_selected_button,0)
-		row_2.addWidget(self.reject_selected_button,0)
-		row_2.addWidget(self.refresh_table_button,0)
+		row_2.addWidget(self.status_label, 0)
+		row_2.addWidget(self.status_combobox, 0)
+		row_2.addWidget(self.comment_label, 0)
+		row_2.addWidget(self.comment_lineedit, 0)
+
+		row_3 = QtGui.QHBoxLayout()
+		row_3.addWidget(self.comment_label,0)
+		row_3.addWidget(self.comment_box,0)
+		row_3.addWidget(self.save_selected_button,0)
+		row_3.addWidget(self.approve_selected_button,0)
+		row_3.addWidget(self.reject_selected_button,0)
+		row_3.addWidget(self.refresh_table_button,0)
+
 
 		layout = QtGui.QVBoxLayout()
 		layout.addLayout(row_1)
 		layout.addLayout(row_2)
+		layout.addLayout(row_3)
 		layout.addWidget(self.leave_table)
 
 		self.setLayout(layout)
