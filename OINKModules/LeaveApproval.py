@@ -12,7 +12,7 @@ import MOSES
 
 class LeaveApproval(QtGui.QWidget):
 	def __init__(self, user_id, password, *args, **kwargs):
-		super(LeaveApproval, self).__init__(, *args, **kwargs)
+		super(LeaveApproval, self).__init__(*args, **kwargs)
 		self.user_id, self.password = user_id, password
 		self.createUI()
 		self.mapEvents()
