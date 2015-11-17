@@ -144,7 +144,7 @@ class Vindaloo(QtGui.QMainWindow):
         layout.addWidget(self.seeker_button, 2, 0)
         layout.addWidget(self.sty_cleaner_button, 2, 1)
         layout.addWidget(self.upload_raw_data_button, 2, 2)
-        layout.addWidget(self.override_button, 3, 3)
+        layout.addWidget(self.override_button, 2, 3)
 
         self.main_widget.setLayout(layout)
 
