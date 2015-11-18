@@ -29,6 +29,7 @@ class ImageButton(QtGui.QPushButton):
             self.mouseover_image_path = image_path
         else:
             self.mouseover_image_path = mouseover_image_path
+            self.setFlat(True)
 
         self.showImage(self.image_path)
 

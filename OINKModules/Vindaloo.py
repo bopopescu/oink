@@ -30,6 +30,7 @@ from UserManager import UserManager
 from OverrideTool import OverrideTool
 from RawDataManager import RawDataManager
 from LeaveApproval import LeaveApproval
+from Taunter import Taunter
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
@@ -106,7 +107,7 @@ class Vindaloo(QtGui.QMainWindow):
                                         self.openLeaveManager
                                     )
         self.tna_button = self.makeButton(
-                                        "quality",
+                                        "tna",
                                         "Click to open the training needs analysis tool.",
                                         self.openTNAViewer
                                     )
@@ -157,6 +158,7 @@ class Vindaloo(QtGui.QMainWindow):
         layout.addWidget(self.sty_cleaner_button, 2, 1)
         layout.addWidget(self.upload_raw_data_button, 2, 2)
         layout.addWidget(self.override_button, 2, 3)
+        layout.addWidget(Taunter(),3,0,1,5, QtCore.Qt.AlignTop)
 
         self.main_widget.setLayout(layout)
 
@@ -269,8 +271,4 @@ class Vindaloo(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
-    import sys, MOSES
-    app = QtGui.QApplication([])
-    u, p = MOSES.getbbc()
-    vin = Vindaloo(u,p)
-    sys.exit(app.exec_())
+    print "Not allowed."

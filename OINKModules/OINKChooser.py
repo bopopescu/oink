@@ -55,6 +55,8 @@ class OINKChooser(QtGui.QWidget):
 
         self.setLayout(layout)
         self.setWindowTitle("OINK Widget Chooser")
+        icon_file_name_path = os.path.join(MOSES.getPathToImages(),'PORK_Icon.png')
+        self.setWindowIcon(QtGui.QIcon(icon_file_name_path))
         self.show()
 
     def mapEvents(self):
@@ -63,11 +65,11 @@ class OINKChooser(QtGui.QWidget):
     def launchChosenWidget(self):
         chosen_widget = str(self.combo_box_widgets.currentText())
         if chosen_widget.upper() == "PORK":
-            self.pork_window = Pork(self.user_id, self.password, self.category_tree, self.brands_list)
+            self.pork_window = Pork(self.user_id, self.password, self.category_tree, self.employees_list, self.brands_list)
         elif chosen_widget.upper() == "VINDALOO":
             self.vindaloo_window = Vindaloo(self.user_id, self.password, self.category_tree, self.employees_list, self.brands_list)
         elif chosen_widget.upper() == "BACON":
-            self.bacon_window = Bacon(self.user_id, self.password, self.category_tree)
+            self.bacon_window = Bacon(self.user_id, self.password, self.category_tree, self.employees_list, self.brands_list)
         else:
             self.alertMessage("Error","%s is not a valid option."%chosen_widget)
 

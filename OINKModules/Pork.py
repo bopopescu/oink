@@ -29,9 +29,10 @@ from ProgressBar import ProgressBar
 from SharinganButton import SharinganButton
 from CopiableQTableWidget import CopiableQTableWidget
 from FormattedDateEdit import FormattedDateEdit
+from Taunter import Taunter
 
 class Pork(QtGui.QMainWindow):
-    def __init__(self, user_id, password, category_tree=None, brand_list=None):
+    def __init__(self, user_id, password, category_tree=None, employees_list=None, brand_list=None):
         super(QtGui.QMainWindow, self).__init__()
         self.x_pos, self.right_pos = "center","middle"
         self.flip = random.randint(0, 1)
@@ -54,8 +55,6 @@ class Pork(QtGui.QMainWindow):
         self.setCentralWidget(self.mainWidget)
         self.createUI()
         self.mapThreads()
-        self.quote_thread = AnimalFarm()
-        self.quote_thread.quoteSent.connect(self.updateStatusBar)
         self.createLayouts()
         #Create all visual and usability aspects of the program.
         self.mapToolTips()
@@ -118,7 +117,7 @@ class Pork(QtGui.QMainWindow):
         self.calculator_button = ImageButton(os.path.join("Images","calculator.png"),height, width, os.path.join("Images","calculator_mouseover.png"))
         self.calculator_button.setToolTip("Open the Efficiency calculator tool.")
         self.calculator_button.setFlat(True)
-        self.tna_button = ImageButton(os.path.join("Images","quality.png"),height, width, os.path.join("Images","quality_mouseover.png"))
+        self.tna_button = ImageButton(os.path.join("Images","tna.png"),height, width, os.path.join("Images","tna_mouseover.png"))
         self.tna_button.setToolTip("Open the training needs assessment window")
         self.tna_button.setFlat(True)
         self.find_button = ImageButton(os.path.join("Images","find.png"),height, width,os.path.join("Images","find_mouseover.png"))
@@ -150,8 +149,7 @@ class Pork(QtGui.QMainWindow):
         self.workCalendar.setMaximumHeight(350)
 
         self.stats = QtGui.QGroupBox("My Performance and Tools")
-        self.status_bar = QtGui.QTextEdit()
-        self.status_bar.setReadOnly(True)
+        self.status_bar = Taunter()
         self.status_bar.setText("Welcome to P.O.R.K. Big Brother is watching you.")
         self.status_bar.setMaximumHeight(50)
         self.menu = self.menuBar()
@@ -1022,14 +1020,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
         import codecs
         ticket_decrypted = "%d%d%d%s%s" %(given_date.year, given_date.month, given_date.day, given_id, given_fsn)
         return str(codecs.encode(ticket_decrypted,"rot_13"))
-
-    def updateStatusBar(self, message):
-        #print "Received ", message
-        import textwrap
-        formatted_message = "\n".join(textwrap.wrap(str(message), width=int(self.status_bar.width())))
-        self.status_bar.setText(message)
-        self.status_bar.moveCursor(QtGui.QTextCursor.End)
-        self.status_bar.setToolTip(message)
 
     def useResultDictionary(self, result_dictionary):
         current_dict = result_dictionary.get(self.getActiveDate())

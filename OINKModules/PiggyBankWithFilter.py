@@ -21,6 +21,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         else:
             self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         if brands is None:
+            print "Pulling Brand list in PiggyBankWithFilter"
             self.brands = MOSES.getBrandValues(self.user_id, self.password)
         else:
             self.brands = brands
@@ -30,6 +31,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.changePage()
         self.populateBrand()
         self.populateWriters()
+        self.show()
 
 
     def createUI(self):

@@ -15,6 +15,7 @@ class FarmHand(QtGui.QWidget):
         self.createUI()
         self.mapEvents()
         self.clip = QtGui.QApplication.clipboard()
+        self.show()
         
     
     def createUI(self):

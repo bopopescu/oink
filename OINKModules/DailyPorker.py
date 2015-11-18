@@ -38,7 +38,7 @@ class DailyPorker(QtGui.QWidget):
         self.createUI()
         self.mapEvents()
         self.initiate()
-
+        self.show()
     def initiate(self):
         self.center()
         self.populateWritersComboBox()

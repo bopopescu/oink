@@ -15,6 +15,7 @@ from IncredibleBulk import IncredibleBulk
 from ImageLabel import ImageLabel
 from SharinganButton import SharinganButton
 from OINKChooser import OINKChooser
+from Taunter import Taunter
 import MOSES
 
 class OINKLoader(QtGui.QWidget):
@@ -39,6 +40,7 @@ class OINKLoader(QtGui.QWidget):
         layout.addWidget(self.image)
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.message)
+        layout.addWidget(Taunter())
         self.setLayout(layout)
         self.setWindowTitle("Bulk Buster: The OINK Preloader Screen")
         icon_file_name_path = os.path.join(MOSES.getPathToImages(),'PORK_Icon.png')
@@ -51,7 +53,6 @@ class OINKLoader(QtGui.QWidget):
         self.incredible_bulk.sendCategoryTree.connect(self.useCategoryTree)
         self.incredible_bulk.sendBrandList.connect(self.useBrandList)
         self.incredible_bulk.sendEmployeesList.connect(self.useEmployeesList)
-
 
     def showProgress(self, progress, message):
         self.progress_bar.setValue(progress)
