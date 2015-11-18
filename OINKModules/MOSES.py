@@ -3838,12 +3838,10 @@ def getDBR(user_id, password, query_date, category_tree):
         string_formatted_efficiency = "%7.4f%%"%(efficiency*100)
     else:
         string_formatted_efficiency = "-"
-
-    if type(quality) != str and not(math.isnan(quality)):
-        string_formatted_quality = "%7.4f%%"%(quality*100)
-    else:
-        string_formatted_quality = "-"
-
+    string_formatted_quality = "-"
+    if quality is not None:
+        if type(quality) != str and not(math.isnan(quality)):
+            string_formatted_quality = "%7.4f%%"%(quality*100)
     sku_count = rpd_count + pd_count + seo_count
     sku_planned_count = int(math.floor(sku_count/efficiency))
 

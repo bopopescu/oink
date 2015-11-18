@@ -33,7 +33,7 @@ from LeaveApproval import LeaveApproval
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
-    def __init__(self, user_id, password, category_tree=None):
+    def __init__(self, user_id, password, category_tree=None, employees_list=None, brand_list=None):
         super(QtGui.QMainWindow,self).__init__()
         self.user_id = user_id
         self.password = password
@@ -41,6 +41,14 @@ class Vindaloo(QtGui.QMainWindow):
             self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         else:
             self.category_tree = category_tree
+        if employees_list is None:
+            self.employees_list = MOSES.getEmployeesList(self.user_id, self.password)
+        else:
+            self.employees_list = employees_list
+        if brand_list is None:
+            self.brand_list = MOSES.getBrandValues(self.user_id, self.password)
+        else:
+            self.brand_list = brand_list 
 
         MOSES.createLoginStamp(self.user_id, self.password)
         self.createUI()
@@ -222,7 +230,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.user_manager.show()
 
     def openPiggyBank(self):
-        self.piggy_bank = PiggyBankWithFilter(self.user_id, self.password, self.category_tree)
+        self.piggy_bank = PiggyBankWithFilter(self.user_id, self.password, self.category_tree, self.brand_list)
         self.piggy_bank.show()
     
     def openDailyPorker(self):

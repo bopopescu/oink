@@ -13,14 +13,17 @@ from PiggyBankSummarizer import PiggyBankSummarizer
 from CopiableQTableWidget import CopiableQTableWidget
 from DescriptionTypeSelector import DescriptionTypeSelector
 class PiggyBankWithFilter(QtGui.QWidget):
-    def __init__(self, user_id, password, category_tree=None):
+    def __init__(self, user_id, password, category_tree=None, brands=None):
         super(PiggyBankWithFilter, self).__init__()
         self.user_id, self.password = user_id, password
         if category_tree is not None:
             self.category_tree = category_tree
         else:
             self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
-        self.brands = MOSES.getBrandValues(self.user_id, self.password)
+        if brands is None:
+            self.brands = MOSES.getBrandValues(self.user_id, self.password)
+        else:
+            self.brands = brands
         self.createUI()
         self.piggybank_data = []
         self.mapEvents()

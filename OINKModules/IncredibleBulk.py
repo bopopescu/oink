@@ -11,6 +11,8 @@ class IncredibleBulk(QtCore.QThread):
     sendCategoryTree = QtCore.pyqtSignal(pd.DataFrame)
     sendActivity = QtCore.pyqtSignal(int, str)
     sendEmployeesList = QtCore.pyqtSignal(pd.DataFrame)
+    sendBrandList = QtCore.pyqtSignal(list)
+
     def __init__(self, user_id, password, *args, **kwargs):
         super(IncredibleBulk, self).__init__(*args, **kwargs)
         self.mutex = QtCore.QMutex()
@@ -33,7 +35,11 @@ class IncredibleBulk(QtCore.QThread):
             if self.allow_run:
                 self.sendActivity.emit(0, "Started fetching category tree at %s."%(datetime.datetime.now()))
                 self.sendCategoryTree.emit(MOSES.getCategoryTree(self.user_id, self.password))
-                self.sendActivity.emit(100, "Finished fetching category tree at %s."%(datetime.datetime.now()))
+                self.sendActivity.emit(50, "Started fetching employees' data at %s."%(datetime.datetime.now()))
+                self.sendEmployeesList.emit(MOSES.getEmployeesList(self.user_id, self.password, datetime.date.today()))
+                self.sendActivity.emit(60, "Started fetching brand' list at %s."%(datetime.datetime.now()))
+                self.sendBrandList.emit(MOSES.getBrandValues(self.user_id, self.password))
+                self.sendActivity.emit(100, "Finished fetching data at %s."%(datetime.datetime.now()))
                 self.allow_run = False
             self.mutex.lock()
 

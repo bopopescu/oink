@@ -31,21 +31,22 @@ from CopiableQTableWidget import CopiableQTableWidget
 from FormattedDateEdit import FormattedDateEdit
 
 class Pork(QtGui.QMainWindow):
-    def __init__(self, userID, password, category_tree = None):
+    def __init__(self, user_id, password, category_tree=None, brand_list=None):
         super(QtGui.QMainWindow, self).__init__()
         self.x_pos, self.right_pos = "center","middle"
         self.flip = random.randint(0, 1)
         
         #store the variables so they are accessible elsewhere in this class.
-        self.userID = userID
+        self.user_id = user_id
         self.password = password
+        self.brand_list = brand_list
         self.player = Player()
-        MOSES.createLoginStamp(self.userID, self.password)
+        MOSES.createLoginStamp(self.user_id, self.password)
         if category_tree is None:
-            self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
+            self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         else:
             self.category_tree = category_tree
-        self.last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
+        self.last_working_date = MOSES.getLastWorkingDate(self.user_id, self.password)
         self.clip = QtGui.QApplication.clipboard()
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]
         #Create the widgets and arrange them as needed.
@@ -72,17 +73,21 @@ class Pork(QtGui.QMainWindow):
         self.currentFSNDataList = []
         #Ignorance is bliss.
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
+        if self.brand_list is not None:
+            brand_completer = QtGui.QCompleter(self.brand_list)
+            self.lineEditBrand.setCompleter(brand_completer)
+
 
     def mapThreads(self):
         init_date = datetime.date.today()
-        if self.userID == "62487":
+        if self.user_id == "62487":
             init_date = datetime.date(2015,6,10)
             self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
             self.alertMessage("Heil Vinay!", "Changing the date to %s so that you have data to look at."%init_date)
-        self.piggybanker_thread = PiggyBanker(self.userID, self.password, init_date, category_tree=self.category_tree)
+        self.piggybanker_thread = PiggyBanker(self.user_id, self.password, init_date, category_tree=self.category_tree)
         self.piggybanker_thread.piggybankChanged.connect(self.populateTable)
         #Main thread that supplies daily data based on PORK activities, such as calendar action and entering FSNs.
-        self.porker_thread = Porker(self.userID, self.password, init_date, category_tree=self.category_tree)
+        self.porker_thread = Porker(self.user_id, self.password, init_date, category_tree=self.category_tree)
         self.porker_thread.sendResultDictionary.connect(self.useResultDictionary)
         self.porker_thread.sendStats.connect(self.useStatsData)
 
@@ -139,7 +144,7 @@ class Pork(QtGui.QMainWindow):
 
         self.piggybank = PiggyBank()
         #initialize Calendar
-        self.workCalendar = WeekCalendar(self.userID, self.password)
+        self.workCalendar = WeekCalendar(self.user_id, self.password)
 
         self.workCalendar.setMinimumSize(350,350)
         self.workCalendar.setMaximumHeight(350)
@@ -237,6 +242,7 @@ class Pork(QtGui.QMainWindow):
         self.labelBrand = QtGui.QLabel("Brand:")
         self.lineEditBrand = QtGui.QLineEdit(self)
         self.lineEditBrand.setMaximumWidth(150)
+
         self.labelVertical = QtGui.QLabel("Vertical:")
         self.comboBoxVertical = QtGui.QComboBox(self)
         self.comboBoxVertical.setMaximumWidth(150)
@@ -390,7 +396,7 @@ class Pork(QtGui.QMainWindow):
     def setVisuals(self):
         """PORK Window: Sets all the visual aspects of the PORK Main Window."""
         self.setWindowIcon(QtGui.QIcon(os.path.join(MOSES.getPathToImages(),"PORK_Icon.png")))
-        self.setWindowTitle("P.O.R.K. v%s - Server : %s, User: %s (%s)" % (MOSES.version(), MOSES.getHostID(), self.userID, MOSES.getEmpName(self.userID)))
+        self.setWindowTitle("P.O.R.K. v%s - Server : %s, User: %s (%s)" % (MOSES.version(), MOSES.getHostID(), self.user_id, MOSES.getEmpName(self.user_id)))
         self.center()
         self.move(0,0)
         self.show()
@@ -449,7 +455,7 @@ class Pork(QtGui.QMainWindow):
         self.alertMessage("Used row", "Successfully copied the fields into the Piggy Bank form.")
 
     def openSeeker(self):
-        self.seeker = Seeker(self.userID, self.password)
+        self.seeker = Seeker(self.user_id, self.password)
         self.seeker.show()
 
     def openLeaveManagementTool(self):
@@ -462,7 +468,7 @@ class Pork(QtGui.QMainWindow):
         self.alertMessage("Feature unavailable","The Relaxation tool is still under development")
 
     def openTNA(self):
-        self.tna_viewer = TNAViewer(self.userID, self.password, self.category_tree)
+        self.tna_viewer = TNAViewer(self.user_id, self.password, self.category_tree)
 
     def notify(self,title,message):
         """PORK Window: Method to show a tray notification"""
@@ -471,7 +477,7 @@ class Pork(QtGui.QMainWindow):
     def applyForLeave(self):
         """PORK Window: Method to call the leave planner dialog."""
         #print "Applying for a leave!" #debug
-        leaveapp = LeavePlanner(self.userID,self.password)
+        leaveapp = LeavePlanner(self.user_id,self.password)
         if leaveapp.exec_():
             #print "Success!" #debug
             self.alertMessage('Success', "Successfully submitted the request.")
@@ -479,13 +485,13 @@ class Pork(QtGui.QMainWindow):
 
     def reset_password(self):
         """Opens a password reset method and allows the user to reset his/her password."""
-        self.password = passwordResetter(self.userID, self.password)
+        self.password = passwordResetter(self.user_id, self.password)
 
     def viewEscalations(self):
         self.featureUnavailable()
 
     def showEfficiencyCalc(self):
-        self.calculator = EfficiencyCalculator(self.userID, self.password, self.category_tree)
+        self.calculator = EfficiencyCalculator(self.user_id, self.password, self.category_tree)
         self.calculator.show()
 
     def changedDate(self):
@@ -541,7 +547,7 @@ class Pork(QtGui.QMainWindow):
         """Method to send the FSN data to SQL."""
         data = self.getFSNDataDict()
         if data != []:
-            MOSES.addToPiggyBank(data, self.userID, self.password)
+            MOSES.addToPiggyBank(data, self.user_id, self.password)
 
     def populateBU(self):
         self.comboBoxBU.clear()
@@ -586,7 +592,7 @@ class Pork(QtGui.QMainWindow):
     def closeEvent(self,event):
         self.askToClose = QtGui.QMessageBox.question(self, 'Close P.O.R.K?', "Are you sure you'd like to quit?\nPlease keep this application open when you're working since it guides you through the process and helps you interact with your process suppliers and customers.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
         if self.askToClose == QtGui.QMessageBox.Yes:
-            MOSES.createLogoutStamp(self.userID, self.password)
+            MOSES.createLogoutStamp(self.user_id, self.password)
             super(Pork, self).closeEvent(event)
         else:
             event.ignore()
@@ -600,7 +606,7 @@ class Pork(QtGui.QMainWindow):
         if OINKM.checkIfFSN(fsnString):
             #print "I got an FSN. I'm going to check!"
             isDuplicate = MOSES.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
-            override_status, override_count = MOSES.checkForOverride(fsnString, self.getActiveDate(), self.userID, self.password)
+            override_status, override_count = MOSES.checkForOverride(fsnString, self.getActiveDate(), self.user_id, self.password)
             if isDuplicate == "Local":
                 #set background to red. If possible, highlight the FSN in the table displayed.
                 self.notify("Duplicate FSN", "You've just reported that FSN!")
@@ -658,25 +664,25 @@ class Pork(QtGui.QMainWindow):
                 fsntype = fsnData["Description Type"]
                 if self.isValidType(fsn, fsntype):
                     isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
-                    override_status, override_count = MOSES.checkForOverride(fsn, selected_date, self.userID, self.password)
+                    override_status, override_count = MOSES.checkForOverride(fsn, selected_date, self.user_id, self.password)
                     if isDuplicate == "Local":
                         self.alertMessage("Repeated FSN","You just reported that FSN today!")
                     elif (isDuplicate == "Global") and not override_status:
                         self.alertMessage("Repeated FSN","That FSN was already reported before by a writer. If your TL has instructed you to overwrite the contents, please request an overide request.")
                     elif (isDuplicate == "Global") and override_count:
                         fsnData["Rewrite Ticket"] = override_count
-                        MOSES.addToPiggyBank(fsnData, self.userID, self.password)
+                        MOSES.addToPiggyBank(fsnData, self.user_id, self.password)
                         self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
                         self.populateTable()
                         completion = True
                     else:
-                        MOSES.addToPiggyBank(fsnData, self.userID, self.password)
+                        MOSES.addToPiggyBank(fsnData, self.user_id, self.password)
                         self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
                         completion = True
             elif mode == "Modification":
                 fsnData = self.getFSNDataDict()
                 #print "Trying to modify an entry."
-                success = MOSES.updatePiggyBankEntry(fsnData, self.userID, self.password)
+                success = MOSES.updatePiggyBankEntry(fsnData, self.user_id, self.password)
                 if success:
                     self.alertMessage("Success", "Successfully modified an entry in the Piggy Bank.")
                     completion = True
@@ -974,12 +980,12 @@ the existing data in the form with the data in the cell and modify that cell?"""
             return []
         #Success!
         if self.valid:
-            writer_name = MOSES.getEmpName(self.userID)
-            writer_email = MOSES.getEmpEmailID(self.userID)
+            writer_name = MOSES.getEmpName(self.user_id)
+            writer_email = MOSES.getEmpEmailID(self.user_id)
             active_date = self.getActiveDate()
             self.fsnDataList = {
                 "Article Date": active_date,
-                "WriterID": self.userID,
+                "WriterID": self.user_id,
                 "Writer Name": writer_name,
                 "Writer Email ID": writer_email,
                 "FSN": self.fsn,
@@ -997,7 +1003,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
                 "Rewrite Ticket": 0,
                 "End Time": datetime.datetime.now(),
                 "PC User Name": getpass.getuser(),
-                "Job Ticket": self.getJobTicket(active_date, self.userID, self.fsn)
+                "Job Ticket": self.getJobTicket(active_date, self.user_id, self.fsn)
             }
             query_dict = {
                 "Source":self.source,
@@ -1008,7 +1014,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
                 "Sub-Category": self.subcategory,
                 "Vertical": self.vertical
             }
-            target = MOSES.getTargetFor(self.userID, self.password, query_dict, self.getActiveDate(), self.category_tree)
+            target = MOSES.getTargetFor(self.user_id, self.password, query_dict, self.getActiveDate(), self.category_tree)
             self.fsnDataList.update({"Target": target})
         return self.fsnDataList
 

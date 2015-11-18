@@ -16,10 +16,12 @@ from IncredibleBulk import IncredibleBulk
 import MOSES
 
 class OINKChooser(QtGui.QWidget):
-    def __init__(self, user_id, password, oink_widget_list):
+    def __init__(self, user_id, password, oink_widget_list, category_tree, employees_list, brands_list):
         super(OINKChooser, self).__init__()
         self.user_id, self.password = user_id, password
-        self.category_tree = None
+        self.category_tree = category_tree
+        self.employees_list = employees_list
+        self.brands_list = brands_list
         self.createUI(oink_widget_list)
         self.mapEvents()
 
@@ -45,8 +47,9 @@ class OINKChooser(QtGui.QWidget):
         loading_page.setLayout(loading_layout)
 
         self.stacked_widget = QtGui.QStackedWidget()
-        self.stacked_widget.addWidget(loading_page)
         self.stacked_widget.addWidget(final_page)
+        self.stacked_widget.addWidget(loading_page)
+
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.stacked_widget)
 
@@ -56,16 +59,13 @@ class OINKChooser(QtGui.QWidget):
 
     def mapEvents(self):
         self.button.clicked.connect(self.launchChosenWidget)
-        self.incredible_bulk = IncredibleBulk(self.user_id, self.password)
-        self.incredible_bulk.sendActivity.connect(self.showProgress)
-        self.incredible_bulk.sendCategoryTree.connect(self.turnPage)
 
     def launchChosenWidget(self):
         chosen_widget = str(self.combo_box_widgets.currentText())
         if chosen_widget.upper() == "PORK":
-            self.pork_window = Pork(self.user_id, self.password, self.category_tree)
+            self.pork_window = Pork(self.user_id, self.password, self.category_tree, self.brands_list)
         elif chosen_widget.upper() == "VINDALOO":
-            self.vindaloo_window = Vindaloo(self.user_id, self.password, self.category_tree)
+            self.vindaloo_window = Vindaloo(self.user_id, self.password, self.category_tree, self.employees_list, self.brands_list)
         elif chosen_widget.upper() == "BACON":
             self.bacon_window = Bacon(self.user_id, self.password, self.category_tree)
         else:
