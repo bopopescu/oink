@@ -31,7 +31,7 @@ from CopiableQTableWidget import CopiableQTableWidget
 from FormattedDateEdit import FormattedDateEdit
 
 class Pork(QtGui.QMainWindow):
-    def __init__(self, userID, password):
+    def __init__(self, userID, password, category_tree = None):
         super(QtGui.QMainWindow, self).__init__()
         self.x_pos, self.right_pos = "center","middle"
         self.flip = random.randint(0, 1)
@@ -41,7 +41,10 @@ class Pork(QtGui.QMainWindow):
         self.password = password
         self.player = Player()
         MOSES.createLoginStamp(self.userID, self.password)
-        self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
+        if category_tree is None:
+            self.category_tree = MOSES.getCategoryTree(self.userID, self.password)
+        else:
+            self.category_tree = category_tree
         self.last_working_date = MOSES.getLastWorkingDate(self.userID, self.password)
         self.clip = QtGui.QApplication.clipboard()
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]

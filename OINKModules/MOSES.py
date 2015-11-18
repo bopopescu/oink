@@ -1260,7 +1260,7 @@ def getCurrentEmployeesList(user_id, password, query_date):
     conn.close()
     return data
     
-def getEmployeeIDsList(user_id,password):
+def getEmployeeIDsList(user_id, password):
     """Returns a list of all the employees IDs currently in the table.
     Returns a list of dictionaries of IDs and the roles."""
     employeesdb = getOINKConnector(user_id, password)

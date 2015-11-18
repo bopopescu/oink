@@ -33,11 +33,15 @@ from LeaveApproval import LeaveApproval
 import MOSES
 
 class Vindaloo(QtGui.QMainWindow):
-    def __init__(self, user_id, password):
+    def __init__(self, user_id, password, category_tree=None):
         super(QtGui.QMainWindow,self).__init__()
         self.user_id = user_id
         self.password = password
-        self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
+        if category_tree is None:
+            self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
+        else:
+            self.category_tree = category_tree
+
         MOSES.createLoginStamp(self.user_id, self.password)
         self.createUI()
 
