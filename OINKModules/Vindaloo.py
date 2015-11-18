@@ -7,6 +7,7 @@ import os
 
 import numpy
 import matplotlib
+import pandas as pd
 
 from PyQt4 import QtGui, QtCore
 from PassResetDialog import PassResetDialog
