@@ -201,7 +201,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.move(frameGm.topLeft())
     
     def openCategoryTreeManager(self):
-        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+        self.alertMessage("Category Manager.","This feature is Unavailable.")
 
     def openRawDataUploader(self):
         self.raw_data_manager = RawDataManager(self.user_id, self.password)
@@ -211,6 +211,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.overrider = OverrideTool(self.user_id, self.password)
 
     def openTNAViewer(self):
+        self.alertMessage("TNA Viewer.","This feature is still in development, some features may not work as expected.")
         self.tna_viewer = TNAViewer(self.user_id, self.password, self.category_tree)
 
     def openCalculator(self):
@@ -223,11 +224,12 @@ class Vindaloo(QtGui.QMainWindow):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
     
     def openLeaveManager(self):
+        self.alertMessage("Leave Manager.","This feature is still in development, some features may not work as expected.")
         self.leave_manager = LeaveApproval(self.user_id, self.password)
 
     
     def openUserManagement(self):
-        self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
+        self.alertMessage("User Manager.","This feature is still in development, some features may not work as expected.")
         self.user_manager = UserManager(self.user_id, self.password)
         self.user_manager.show()
 
@@ -244,7 +246,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.farm_hand.show()
     
     def openStyCleaner(self):
-        self.alertMessage("StyCleaner", "Sty Cleaner has been disabled. Contact admin, or use the Source")
+        self.alertMessage("StyCleaner", "Sty Cleaner has been disabled. Contact admin, or use the stycleaner.py file in the OINKMethods folder in the source to run it.")
         #self.sty_cleaner = ()
         #self.sty_cleaner.show()
     
