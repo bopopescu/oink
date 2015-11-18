@@ -24,6 +24,14 @@ class OINKChooser(QtGui.QWidget):
         self.brands_list = brands_list
         self.createUI(oink_widget_list)
         self.mapEvents()
+        self.center()
+
+    def center(self):
+        frameGm = self.frameGeometry()
+        screen = QtGui.QApplication.desktop().screenNumber(QtGui.QApplication.desktop().cursor().pos())
+        centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())
 
     def createUI(self, oink_widget_list):
         self.label = QtGui.QLabel("Choose A Widget:")

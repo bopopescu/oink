@@ -800,7 +800,8 @@ def checkIfFSN(querystring):
     return isFSN
 
 def version():
-    return "1.1"
+    import MOSES
+    return MOSES.version()
 
 def getMonday(query_date):
     day = query_date.isocalendar()[2]

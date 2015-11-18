@@ -27,7 +27,14 @@ class OINKLoader(QtGui.QWidget):
         self.employees_list = None
         self.createUI()
         self.mapEvents()
-        self.move(300,10)
+        self.center()
+
+    def center(self):
+        frameGm = self.frameGeometry()
+        screen = QtGui.QApplication.desktop().screenNumber(QtGui.QApplication.desktop().cursor().pos())
+        centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())
 
     def createUI(self):
         path_to_image = os.path.join(MOSES.getPathToImages(), "OINK.png")

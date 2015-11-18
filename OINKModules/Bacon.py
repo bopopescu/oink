@@ -37,6 +37,12 @@ class Bacon(QtGui.QMainWindow):
         self.current_processing_date = MOSES.getLastWorkingDate(self.user_id, self.password,datetime.date.today(),"All")
         self.createUI()
         self.mapEvents()
+    def center(self):
+        frameGm = self.frameGeometry()
+        screen = QtGui.QApplication.desktop().screenNumber(QtGui.QApplication.desktop().cursor().pos())
+        centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())
 
     def createUI(self):
         """"""
