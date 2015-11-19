@@ -26,6 +26,7 @@ from FarmHand import FarmHand
 from PiggyBankWithFilter import PiggyBankWithFilter
 from SwineHerd import SwineHerd
 from ImageButton import ImageButton
+from IconButton import IconButton
 from TNAViewer import TNAViewer
 from UserManager import UserManager
 from OverrideTool import OverrideTool
@@ -55,9 +56,15 @@ class Vindaloo(QtGui.QMainWindow):
         MOSES.createLoginStamp(self.user_id, self.password)
         self.createUI()
 
-    def makeButton(self, button_image_base_name, tooltip, connected_function):
-        width, height = 64, 64
-        button = ImageButton(os.path.join("Images","%s.png"%button_image_base_name),width, height,os.path.join("Images","%s_mouseover.png"%button_image_base_name))
+    def makeButton(self, label, button_image_base_name, tooltip, connected_function):
+        width, height = 40, 40
+        button = IconButton(
+                            label, 
+                            os.path.join("Images","%s.png"%button_image_base_name),
+                            width, 
+                            height,
+                            os.path.join("Images","%s_mouseover.png"%button_image_base_name)
+                        )
         button.setToolTip(tooltip)
         button.setFlat(True)
         button.clicked.connect(connected_function)
@@ -68,76 +75,73 @@ class Vindaloo(QtGui.QMainWindow):
         self.setCentralWidget(self.main_widget)
 
         self.daily_porker_button = self.makeButton(
+                                                "Reports",
                                                 "newspaper",
                                                 "Click here to pull reports.", 
                                                 self.openDailyPorker
                                             )
         self.seeker_button = self.makeButton(
+                                        "Find FSNs",
                                         "find",
                                         "Click here to search for an FSN or ItemID in the PiggyBank and FSN Dump.", 
                                         self.openSeeker
                                        )
         self.sty_cleaner_button = self.makeButton(
+                                            "Clarifications",
                                             "stycleaner",
                                             "Click here to summarize the clarifications sheet.", 
                                             self.openStyCleaner
                                         )
         self.farmhand_button = self.makeButton(
+                                            "Helpfulness",
                                             "farmhand",
                                             "Click here to view feedback report(s).", 
                                             self.openFarmHand
                                         )
         self.piggy_bank_button = self.makeButton(
+                                            "Piggy Bank",
                                             "piggybank",
                                             "Click here to pull Piggy Bank data.", 
                                             self.openPiggyBank
                                         )
-        self.head_count_button = self.makeButton(
-                                            "headcount",
-                                            "Click here to view the Head Count Report.", 
-                                            self.openHeadCountReport
-                                        )
         self.calc_button = self.makeButton(
+                                        "Efficiency Calculator",
                                         "calculator",
                                         "Click to open the Efficiency Calculator.", 
                                         self.openCalculator
                                     )
         self.leaves_button = self.makeButton(
+                                        "Leave and Relaxations",
                                         "leave",
                                         "Click to open the leave and relaxation approval system.", 
                                         self.openLeaveManager
                                     )
         self.tna_button = self.makeButton(
+                                        "Training Needs Analysis",
                                         "tna",
                                         "Click to open the training needs analysis tool.",
                                         self.openTNAViewer
                                     )
-        self.relaxation_button = self.makeButton(
-                                            "relaxation",
-                                            "Click to open the relaxation approval system.", 
-                                            self.openRelaxationTracker
-                                        )
-        self.escalation_button = self.makeButton(
-                                            "alert",
-                                            "Click to open the escalation tracker.",
-                                            self.openEscalationTracker
-                                        )
         self.user_management_button = self.makeButton(
+                                                    "User Management",
                                                     "users",
                                                     "Click to open the user management tool.",
                                                     self.openUserManagement
                                                 )
         self.category_tree_button = self.makeButton(
+                                                "Targets and Category Tree",
                                                 "category_tree",
                                                 "Click to open the category tree manager.",
                                                 self.openCategoryTreeManager
                                             )
         self.override_button = self.makeButton(
+                                            "Approve FSN Override",
                                             "override",
-                                            "Click to open the FSN override tool.", 
+                                            "Click to open the FSN override tool and allow writers to report FSNs that have already been worked on", 
                                             self.openOverrideTool
                                         )
         self.upload_raw_data_button = self.makeButton(
+                                                "Upload Raw Data",
                                                 "upload_raw_data",
                                                 "Click to upload Raw Data.", 
                                                 self.openRawDataUploader)
@@ -145,20 +149,19 @@ class Vindaloo(QtGui.QMainWindow):
         buttons_layout = QtGui.QHBoxLayout()
 
         layout = QtGui.QGridLayout()
-        layout.addWidget(self.daily_porker_button, 0, 0)
-        layout.addWidget(self.piggy_bank_button, 0, 1)
-        layout.addWidget(self.tna_button, 0, 2)
-        layout.addWidget(self.calc_button, 0, 3)
-        layout.addWidget(self.leaves_button, 0, 4)
-        layout.addWidget(self.escalation_button, 1,0)
-        layout.addWidget(self.user_management_button,1,1)
-        layout.addWidget(self.category_tree_button,1,2)
-        layout.addWidget(self.farmhand_button, 1, 3)
+        layout.addWidget(self.daily_porker_button, 0, 0, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.piggy_bank_button, 0, 1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.tna_button, 0, 2, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.calc_button, 0, 3, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.leaves_button, 0, 4, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.override_button, 1, 0, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.user_management_button,1,1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.category_tree_button,1,2, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.farmhand_button, 1, 3, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
         #layout.addWidget(self.head_count_button, 2, 0)
-        layout.addWidget(self.seeker_button, 2, 0)
-        layout.addWidget(self.sty_cleaner_button, 2, 1)
-        layout.addWidget(self.upload_raw_data_button, 2, 2)
-        layout.addWidget(self.override_button, 2, 3)
+        layout.addWidget(self.seeker_button, 1, 4, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.sty_cleaner_button, 2, 1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.upload_raw_data_button, 2, 2, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
         layout.addWidget(Taunter(),3,0,1,5, QtCore.Qt.AlignTop)
 
         self.main_widget.setLayout(layout)
@@ -225,9 +228,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.alertMessage("Feature Unavailable.","This feature is Unavailable.")
     
     def openLeaveManager(self):
-        self.alertMessage("Leave Manager.","This feature is still in development, some features may not work as expected.")
         self.leave_manager = LeaveApproval(self.user_id, self.password)
-
     
     def openUserManagement(self):
         self.alertMessage("User Manager.","This feature is still in development, some features may not work as expected.")
@@ -250,10 +251,7 @@ class Vindaloo(QtGui.QMainWindow):
         self.alertMessage("StyCleaner", "Sty Cleaner has been disabled. Contact admin, or use the stycleaner.py file in the OINKMethods folder in the source to run it.")
         #self.sty_cleaner = ()
         #self.sty_cleaner.show()
-    
-    def openHeadCountReport(self):
-        self.alertMessage("Head Count Report", "The headcount report hasn't been developed yet.")
-    
+        
     def openSeeker(self):
         self.seeker = Seeker(self.user_id, self.password)
         self.seeker.show()

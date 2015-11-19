@@ -87,7 +87,7 @@ class DailyPorker(QtGui.QWidget):
         self.sorting_filter_combobox = QtGui.QComboBox()
         self.sorting_filter_combobox.setToolTip("Select the parameter you want to sort the generated reports by.")
 
-        self.build_button = QtGui.QPushButton("Build")
+        self.build_button = QtGui.QPushButton("Build Daily Team Performance Report")
         self.build_button.setToolTip("Click this button to start building the report")
 
         self.plot_button = QtGui.QPushButton("Plot")
@@ -114,9 +114,9 @@ class DailyPorker(QtGui.QWidget):
 
         self.reports_tab = QtGui.QTabWidget()
         self.reports_tab.addTab(self.report,"Writers' Report")
-        self.reports_tab.addTab(self.graphs, "Writers' Graphs")
-        self.reports_tab.addTab(self.t_report,"Team Report")
-        self.reports_tab.addTab(self.t_graphs, "Team Graphs")
+        #self.reports_tab.addTab(self.graphs, "Writers' Graphs")
+        #self.reports_tab.addTab(self.t_report,"Team Report")
+        #self.reports_tab.addTab(self.t_graphs, "Team Graphs")
         self.reports_tab.addTab(self.dbr_report, "DBR Report")
         self.reports_tab.addTab(self.wbr_report, "WBR Report")
 
@@ -137,7 +137,7 @@ class DailyPorker(QtGui.QWidget):
         options_layout_row_2.addWidget(self.sorting_filter_label,0)
         options_layout_row_2.addWidget(self.sorting_filter_combobox,1)
         options_layout_row_2.addWidget(self.build_button,0)
-        options_layout_row_2.addWidget(self.plot_button,0)
+        #options_layout_row_2.addWidget(self.plot_button,0)
         options_layout_row_2.addWidget(self.build_dbr_button,0)
         options_layout_row_2.addWidget(self.build_wbr_button,0)
         options_layout_row_2.addStretch(2)
