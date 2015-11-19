@@ -1,14 +1,18 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
-
+from __future__ import division
 from PyQt4 import QtGui, QtCore
 import OINKMethods as OINKM
+import datetime
+import math
+from FormattedDateEdit import FormattedDateEdit
+from CopiableQTableWidget import CopiableQTableWidget
 import MOSES
 
-class LeavePlanner(QtGui.QDialog):
+class LeavePlanner(QtGui.QWidget):
     def __init__(self,userid, password):
         """Leave Planner."""
-        super(QtGui.QDialog, self).__init__()
+        super(LeavePlanner, self).__init__()
         self.userID = userid
         self.password = password
         self.createWidgets()
@@ -16,30 +20,31 @@ class LeavePlanner(QtGui.QDialog):
         self.createEvents()
         self.createLayouts()
         self.setVisuals()
+        self.dateLineEdit1.setDate(datetime.date.today())
  
     def createWidgets(self):
         """Leave Planner: Method to create all the necessary widgets for the leave planner class."""
         self.mainLabel = QtGui.QLabel("Apply for Leaves or Relaxation in Work")
         self.dateLabel1 = QtGui.QLabel("Start Date:")
-        self.dateLineEdit1 = QtGui.QDateTimeEdit()
-        self.dateLineEdit1.setDisplayFormat("MMMM dd, yyyy")
+        self.dateLineEdit1 = FormattedDateEdit()
         self.dateLineEdit1.setMinimumDate(QtCore.QDate(2015,1,1))
         self.dateLineEdit1.setCalendarPopup(True)
         self.dateLabel2 = QtGui.QLabel("End Date:")
-        self.dateLineEdit2 = QtGui.QDateTimeEdit()
-        self.dateLineEdit2.setDisplayFormat("MMMM dd, yyyy")
+        self.dateLineEdit2 = FormattedDateEdit()
         self.dateLineEdit2.setMinimumDate(QtCore.QDate(2015,1,1))
         self.dateLineEdit2.setCalendarPopup(True)
         self.statusLabel = QtGui.QLabel("Working Status:")
         self.statusComboBox = QtGui.QComboBox()
-        self.statusComboBox.addItems(["Working","Leave","Holiday"])
+        self.statusComboBox.addItems(["Working","Leave"])
         self.relaxationLabel = QtGui.QLabel("Work Relaxation:")
         self.relaxationSpinBox = QtGui.QSpinBox()
         self.relaxationSpinBox.setRange(0,100)
+        self.relaxationSpinBox.setSuffix("%")
         self.commentLabel = QtGui.QLabel("Comments:")
         self.commentLineEdit = QtGui.QLineEdit()
         self.buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok|
                                             QtGui.QDialogButtonBox.Cancel)
+        self.work_calendar = CopiableQTableWidget(0,0)
 
     def createLayouts(self):
         """Leave Planner: Method to create layouts."""
@@ -66,6 +71,7 @@ class LeavePlanner(QtGui.QDialog):
         self.finalLayout.addLayout(self.statusRelaxLayout)
         self.finalLayout.addLayout(self.commentsLayout)
         self.finalLayout.addWidget(self.buttons)
+        self.finalLayout.addWidget(self.work_calendar)
     
         self.setLayout(self.finalLayout)
 
@@ -89,6 +95,7 @@ class LeavePlanner(QtGui.QDialog):
         self.center()
         self.setWindowIcon(QtGui.QIcon('Images\PORK_Icon.png'))
         self.setWindowTitle("Leave and Work Relaxation")
+        self.show()
 
     def center(self):
         """Leave Planner."""
@@ -112,11 +119,23 @@ class LeavePlanner(QtGui.QDialog):
         comment = str(self.commentLineEdit.text())
 
         datesList = OINKM.getDatesBetween(startDate,endDate)
-        for oneDate in datesList:
-            MOSES.modWorkingStatus(self.userID,self.password,oneDate,status,relaxation,comment)
-        super(LeavePlanner,self).accept()
+        successes = []
+        for each_date in datesList:
+            successes.append(MOSES.modWorkingStatus(self.userID, self.password, each_date, status, relaxation, comment))
+
+        if successes.count(False) == 0:
+            self.alertMessage("Success", "Your request has been submitted to the server. Ask your TL to approve the request.")
+        elif successes.count(True) == 0:
+            self.alertMessage("Failed", "Your request could not be submitted. Ask your TL to manually mark your leaves in the server.")
+        else:
+            self.alertMessage("Partial Success","The server modified the entries for %d dates. It failed for %d dates. Ask your TL to check the Work Calendar on the server."%(successes.count(True),successes.count(False)))
+
+
+            
+    def alertMessage(self, title, message):
+        QtGui.QMessageBox.about(self, title, message)
 
     def reject(self):
         """Leave Planner: Method to close the dialog box."""
-        super(LeavePlanner, self).reject()
+        self.close()
 

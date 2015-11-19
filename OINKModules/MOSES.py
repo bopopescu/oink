@@ -2448,16 +2448,16 @@ def checkDuplicacy(FSN, articleType, articleDate):
     connectdb.close()   
     return wasWrittenBefore
 
-def modWorkingStatus(user_id, password, querydate, status, relaxation, comment, approval = "\\N",rejectionComment = "\\N", targetuser = None):
+def modWorkingStatus(user_id, password, query_date, status, relaxation, comment, approval =None,rejectionComment=None, targetuser = None):
     """Method to modify the working status/relaxation of an employee.
     If no record exists, then the method creates an entry for it."""
     if targetuser is None:
         targetuser = user_id
-    
+    success = False
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
     sqlcmdstring = "SELECT 1 FROM `workcalendar` WHERE `Employee ID` = '%s' AND  `Date` = '%s';" \
-    % (targetuser, convertToMySQLDate(querydate))
+    % (targetuser, convertToMySQLDate(query_date))
     #print sqlcmdstring #debug
     dbcursor.execute(sqlcmdstring)
     data = dbcursor.fetchall()
@@ -2465,21 +2465,21 @@ def modWorkingStatus(user_id, password, querydate, status, relaxation, comment, 
     if len(data) == 0:
         #print "No data available."
         if getUserRole(user_id) == "Content Writer":
-            sqlcmdstring = "INSERT INTO `workcalendar` (`Employee ID`, `Date`, `Status`, `Relaxation`, `Comment`, `Entered By`) VALUES ('%s','%s','%s','%s','%s', '%s')" %(targetuser, convertToMySQLDate(querydate), status, relaxation, comment, getUserRole(targetuser))
+            sqlcmdstring = "INSERT INTO `workcalendar` (`Employee ID`, `Date`, `Status`, `Relaxation`, `Comment`, `Entered By`) VALUES ('%s','%s','%s','%s','%s', '%s')" %(targetuser, convertToMySQLDate(query_date), status, relaxation, comment, getUserRole(targetuser))
         elif getUserRole(user_id) == "Team Lead":
             #print "Team Lead!"
-            sqlcmdstring = "INSERT INTO `workcalendar` (`Employee ID`, `Date`, `Status`, `Relaxation`, `Entered By`, `Comment`, `Approval`,`Rejection Comment`) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s')" %(targetuser, convertToMySQLDate(querydate), status, relaxation, getUserRole(targetuser), comment, approval, rejectionComment)
+            sqlcmdstring = "INSERT INTO `workcalendar` (`Employee ID`, `Date`, `Status`, `Relaxation`, `Entered By`, `Comment`, `Approval`,`Rejection Comment`) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s')" %(targetuser, convertToMySQLDate(query_date), status, relaxation, getUserRole(targetuser), comment, approval, rejectionComment)
     else:
         #print "Data available. Updating entry."
         if getUserRole(user_id) == "Content Writer":
             sqlcmdstring = "UPDATE `workcalendar` SET `Status` = '%s', `Relaxation` = '%s', `Entered By` = '%s', `Comment` = '%s' WHERE `Employee ID` = '%s' AND `Date` = '%s';" \
-            %(status, relaxation, getUserRole(targetuser), comment, targetuser, convertToMySQLDate(querydate))
+            %(status, relaxation, getUserRole(targetuser), comment, targetuser, convertToMySQLDate(query_date))
         elif getUserRole(user_id) == "Team Lead":
             print "Team Lead!"
             sqlcmdstring = "UPDATE `workcalendar` SET `Status` = '%s', `Relaxation` = '%s', `Entered By` = '%s', `comment` = '%s', `Approval` = '%s', `Rejection Comment` = '%s' WHERE `Employee ID` = '%s' AND `Date` = '%s';" \
-            %(status, relaxation, getUserRole(targetuser), comment, approval, rejectionComment, targetuser, convertToMySQLDate(querydate))
+            %(status, relaxation, getUserRole(targetuser), comment, approval, rejectionComment, targetuser, convertToMySQLDate(query_date))
     #print sqlcmdstring #dbcursor
-    debug.execute(sqlcmdstring)
+    dbcursor.execute(sqlcmdstring)
     connectdb.commit()
     connectdb.close()
 

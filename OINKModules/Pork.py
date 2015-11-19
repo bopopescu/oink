@@ -29,6 +29,7 @@ from ProgressBar import ProgressBar
 from SharinganButton import SharinganButton
 from CopiableQTableWidget import CopiableQTableWidget
 from FormattedDateEdit import FormattedDateEdit
+from IconButton import IconButton
 from Taunter import Taunter
 
 class Pork(QtGui.QMainWindow):
@@ -114,32 +115,32 @@ class Pork(QtGui.QMainWindow):
         self.logos_layout.addStretch(10)
 
         height, width = 32, 32
-        self.calculator_button = ImageButton(os.path.join("Images","calculator.png"),height, width, os.path.join("Images","calculator_mouseover.png"))
+        self.calculator_button = IconButton("Efficiency Calculator",os.path.join("Images","calculator.png"),height, width, os.path.join("Images","calculator_mouseover.png"))
         self.calculator_button.setToolTip("Open the Efficiency calculator tool.")
         self.calculator_button.setFlat(True)
-        self.tna_button = ImageButton(os.path.join("Images","tna.png"),height, width, os.path.join("Images","tna_mouseover.png"))
+        self.tna_button = IconButton("TNA", os.path.join("Images","tna.png"),height, width, os.path.join("Images","tna_mouseover.png"))
         self.tna_button.setToolTip("Open the training needs assessment window")
         self.tna_button.setFlat(True)
-        self.find_button = ImageButton(os.path.join("Images","find.png"),height, width,os.path.join("Images","find_mouseover.png"))
+        self.find_button = IconButton("Find FSNs", os.path.join("Images","find.png"),height, width,os.path.join("Images","find_mouseover.png"))
         self.find_button.setToolTip("Open Seeker to find who wrote an FSN.")
         self.find_button.setFlat(True)
-        self.leave_button = ImageButton(os.path.join("Images","leave.png"),height, width,os.path.join("Images","leave_mouseover.png"))
+        self.leave_button = IconButton("Leaves and Relaxation",os.path.join("Images","leave.png"),height, width,os.path.join("Images","leave_mouseover.png"))
         self.leave_button.setToolTip("Apply for leaves on the OINK server")
         self.leave_button.setFlat(True)
-        self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),height, width,os.path.join("Images","relaxation_mouseover.png"))
-        self.relaxation_button.setToolTip("Apply for relaxation")
-        self.relaxation_button.setFlat(True)
-        self.project_button = ImageButton(os.path.join("Images","projects.png"),height, width, os.path.join("Images","projects_mouseover.png"))
-        self.project_button.setToolTip("Open Project Log")
-        self.project_button.setFlat(True)
+        #self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),height, width,os.path.join("Images","relaxation_mouseover.png"))
+        #self.relaxation_button.setToolTip("Apply for relaxation")
+        #self.relaxation_button.setFlat(True)
+        #self.project_button = ImageButton(os.path.join("Images","projects.png"),height, width, os.path.join("Images","projects_mouseover.png"))
+        #self.project_button.setToolTip("Open Project Log")
+        #self.project_button.setFlat(True)
 
         self.icon_panel = QtGui.QHBoxLayout()
         self.icon_panel.addWidget(self.calculator_button,0)
         self.icon_panel.addWidget(self.tna_button,0)
         self.icon_panel.addWidget(self.find_button,0)
         self.icon_panel.addWidget(self.leave_button,0)
-        self.icon_panel.addWidget(self.relaxation_button,0)
-        self.icon_panel.addWidget(self.project_button,0)
+        #self.icon_panel.addWidget(self.relaxation_button,0)
+        #self.icon_panel.addWidget(self.project_button,0)
 
         self.piggybank = PiggyBank()
         #initialize Calendar
@@ -434,9 +435,9 @@ class Pork(QtGui.QMainWindow):
         self.calculator_button.clicked.connect(self.showEfficiencyCalc)
         self.tna_button.clicked.connect(self.openTNA)
         self.find_button.clicked.connect(self.openSeeker)
-        self.leave_button.clicked.connect(self.openLeaveManagementTool)
-        self.relaxation_button.clicked.connect(self.openRelaxationTool)
-        self.project_button.clicked.connect(self.openProjectManager)
+        self.leave_button.clicked.connect(self.applyForLeave)
+        #self.relaxation_button.clicked.connect(self.openRelaxationTool)
+        #self.project_button.clicked.connect(self.openProjectManager)
         self.category_finder.pickRow.connect(self.setFormValues)
         self.v_icon.clicked.connect(self.showAbout)
         self.bigbrother_icon.clicked.connect(self.playTMNT)
