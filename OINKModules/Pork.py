@@ -586,7 +586,6 @@ class Pork(QtGui.QMainWindow):
         verticals.sort()
         self.comboBoxVertical.addItems(verticals)
 
-
     def closeEvent(self,event):
         self.askToClose = QtGui.QMessageBox.question(self, 'Close P.O.R.K?', "Are you sure you'd like to quit?\nPlease keep this application open when you're working since it guides you through the process and helps you interact with your process suppliers and customers.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
         if self.askToClose == QtGui.QMessageBox.Yes:

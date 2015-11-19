@@ -1375,6 +1375,32 @@ def getBigbrotherCredentials():
     #print password #debug
     return user_id, password
 
+def updateWorkCalendarFor(user_id, password, status, relaxation, comment, approval, rejection_comment, dates, selected_employee_ids):
+    success = False
+    user_name = getEmployeeName(user_id) if user_id != "bigbrother" else "Big Brother"
+    conn = getOINKConnector(user_id, password, 1)
+    cursor = conn.cursor()
+    sqlcmdstring = """UPDATE `workcalendar` SET `Status`="%s", 
+            `Relaxation`="%f", `Comment`="%s", `Approval`="%s", `Rejection Comment`="%s" WHERE 
+            (`Date` BETWEEN "%s" AND "%s") AND `Employee id` in (%s);"""%(status, relaxation, comment, approval, rejection_comment, dates[0], dates[1], ", ".join(['"%s"'%x for x in selected_employee_ids]))
+    try:
+        cursor.execute(sqlcmdstring)
+        conn.commit()
+        success = True
+        print success, sqlcmdstring
+    except Exception, e:
+        print "updateWorkCalendarFor"
+        print success, sqlcmdstring
+        print repr(e)
+        pass
+    conn.close()
+    return success
+
+
+
+def getEmployeeName(employee_id):
+    return getEmpName(employee_id)
+
 def getEmpName(employeeID):
     user_id, password = getBigbrotherCredentials()
     if employeeID == user_id:
@@ -1384,10 +1410,13 @@ def getEmpName(employeeID):
         dbcursor = connectdb.cursor()
         sqlcmdstring = "SELECT `Name` FROM `employees` WHERE `Employee ID` = '%s'" %employeeID
         dbcursor.execute(sqlcmdstring)
-        nameTuple = dbcursor.fetchall()
+        data = dbcursor.fetchall()
         connectdb.commit()
         connectdb.close()
-    name = nameTuple[0]["Name"]
+    if len(data) > 0 :
+        name = data[0]["Name"]
+    else:
+        name = "No Entry for %s in Employee Database"%employeeID
     return name
 
 def getEmpEmailID(employeeID):

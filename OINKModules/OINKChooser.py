@@ -12,7 +12,7 @@ from Pork import Pork
 from Vindaloo import Vindaloo
 from Bacon import Bacon
 from IncredibleBulk import IncredibleBulk
-
+from Taunter import Taunter
 import MOSES
 
 class OINKChooser(QtGui.QWidget):
@@ -39,6 +39,7 @@ class OINKChooser(QtGui.QWidget):
         self.combo_box_widgets.addItems(oink_widget_list)
         self.button = QtGui.QPushButton("Launch")
 
+
         final_layout = QtGui.QHBoxLayout()
         final_layout.addWidget(self.label)
         final_layout.addWidget(self.combo_box_widgets)
@@ -58,8 +59,9 @@ class OINKChooser(QtGui.QWidget):
         self.stacked_widget.addWidget(final_page)
         self.stacked_widget.addWidget(loading_page)
 
-        layout = QtGui.QHBoxLayout()
+        layout = QtGui.QVBoxLayout()
         layout.addWidget(self.stacked_widget)
+        layout.addWidget(Taunter())
 
         self.setLayout(layout)
         self.setWindowTitle("OINK Widget Chooser")
