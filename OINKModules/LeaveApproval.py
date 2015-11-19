@@ -138,7 +138,7 @@ class LeaveApproval(QtGui.QWidget):
             ask = QtGui.QMessageBox.question(self, 'Multiple Dates Selected!', "You appear to have chosen an entire date range. Are you sure that you want to apply the settings for the selected employee all these dates? I'd recommend changing the status of one employee for one date at a time. Click yes if you'd like to continue modifying the work calendar for all their names for those dates. If not, click no and select only one date.", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
             if ask == QtGui.QMessageBox.Yes:
                 allow_continue = True
-        elif (len(selected_employee_ids) <=- 0):
+        elif (len(selected_employee_ids) <= 0):
             self.alertMessage('No Employees Selected!', "Please select an employee in order to process the work status and relaxation.")
         else:
             allow_continue = True
@@ -155,10 +155,10 @@ class LeaveApproval(QtGui.QWidget):
                 approval = "Pending"
             approval_comment = str(self.rejection_comment_lineedit.text())
             self.alertMessage("Please Wait","This could take a while. Click OK and hold on to your horses.")
-            try_updating = MOSES.updateWorkCalendarFor(self.user_id, self.password, status, relaxation, comment, approval, approval_comment, dates, selected_employee_ids)
-            if try_updating:
-                self.applyFilters()
+            update = MOSES.updateWorkCalendarFor(self.user_id, self.password, status, relaxation, comment, approval, approval_comment, dates, selected_employee_ids)
+            if update:
                 self.alertMessage("Success","Successfully updated the Work Calendar")
+                self.applyFilters()
             else:
                 self.alertMessage("Failure","Failed in updating the Work Calendar")
 
@@ -176,16 +176,24 @@ class LeaveApproval(QtGui.QWidget):
         self.employees_selection_box.selectAll()
 
     def applyFilters(self):
+        self.leave_table.showDataFrame(None)
         selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x]["Employee ID"])[0] for x in self.employees_selection_box.getCheckedItems()]
         if len(selected_employee_ids)<=0:
             self.alertMessage("No Employees Selected","Select at least one employee!")
-            self.leave_table.showDataFrame(None)
         else:
             filter_dict = {
                             "Dates": [self.start_date.date().toPyDate(), self.end_date.date().toPyDate()],
                             "Employee IDs": selected_employee_ids
                         }
+            time_diff = (filter_dict["Dates"][1] - filter_dict["Dates"][0])
+            if datetime.timedelta(days=5) < time_diff < datetime.timedelta(days=30):
+                self.alertMessage("Please Wait","The work calendar is being refreshed. This may take a while since you've selected over a week's worth of data.")
+            elif time_diff >= datetime.timedelta(days=30):
+                self.alertMessage("Please Wait","The work calendar is being refreshed. This will take quite some time longer than usual since you've selected a date range wider than or equal to 30 days.")
+
+            
             self.work_calendar = MOSES.getWorkCalendarFor(self.user_id, self.password, filter_dict)
+            self.alertMessage("Success","Retrieved the Work Calendar")
             yellow = QtGui.QColor(200,200,0)
             green = QtGui.QColor(0,153,0)
             red = QtGui.QColor(170,0,0)
