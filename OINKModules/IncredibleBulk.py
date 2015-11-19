@@ -39,6 +39,8 @@ class IncredibleBulk(QtCore.QThread):
                 self.sendEmployeesList.emit(MOSES.getEmployeesList(self.user_id, self.password, datetime.date.today()))
                 self.sendActivity.emit(60, "Started fetching brand' list at %s."%(datetime.datetime.now()))
                 self.sendBrandList.emit(MOSES.getBrandValues(self.user_id, self.password))
+                self.sendActivity.emit(80, "Started updating work calendar at %s."%(datetime.datetime.now()))
+                MOSES.checkAndInitWorkCalendar(self.user_id, self.password, datetime.date.today())
                 self.sendActivity.emit(100, "Finished fetching data at %s."%(datetime.datetime.now()))
                 self.allow_run = False
             self.mutex.lock()

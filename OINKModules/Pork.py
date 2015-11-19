@@ -115,18 +115,27 @@ class Pork(QtGui.QMainWindow):
         self.logos_layout.addStretch(10)
 
         height, width = 32, 32
-        self.calculator_button = IconButton("Efficiency Calculator",os.path.join("Images","calculator.png"),height, width, os.path.join("Images","calculator_mouseover.png"))
+
+        self.calculator_button = IconButton("Efficiency\nCalculator",os.path.join("Images","calculator.png"),height, width, os.path.join("Images","calculator_mouseover.png"))
         self.calculator_button.setToolTip("Open the Efficiency calculator tool.")
         self.calculator_button.setFlat(True)
+
         self.tna_button = IconButton("TNA", os.path.join("Images","tna.png"),height, width, os.path.join("Images","tna_mouseover.png"))
         self.tna_button.setToolTip("Open the training needs assessment window")
         self.tna_button.setFlat(True)
-        self.find_button = IconButton("Find FSNs", os.path.join("Images","find.png"),height, width,os.path.join("Images","find_mouseover.png"))
+
+        self.find_button = IconButton("Find\nFSNs", os.path.join("Images","find.png"),height, width,os.path.join("Images","find_mouseover.png"))
         self.find_button.setToolTip("Open Seeker to find who wrote an FSN.")
         self.find_button.setFlat(True)
-        self.leave_button = IconButton("Leaves and Relaxation",os.path.join("Images","leave.png"),height, width,os.path.join("Images","leave_mouseover.png"))
+
+        self.leave_button = IconButton("Leaves and\nRelaxation",os.path.join("Images","leave.png"),height, width,os.path.join("Images","leave_mouseover.png"))
         self.leave_button.setToolTip("Apply for leaves on the OINK server")
         self.leave_button.setFlat(True)
+
+        self.refresh_stats_button = IconButton("Refresh",os.path.join("Images","refresh.png"),24,24, os.path.join("Images","refresh_mouseover.png"))
+        self.refresh_stats_button.setFlat(True)
+
+
         #self.relaxation_button = ImageButton(os.path.join("Images","relaxation.png"),height, width,os.path.join("Images","relaxation_mouseover.png"))
         #self.relaxation_button.setToolTip("Apply for relaxation")
         #self.relaxation_button.setFlat(True)
@@ -134,11 +143,19 @@ class Pork(QtGui.QMainWindow):
         #self.project_button.setToolTip("Open Project Log")
         #self.project_button.setFlat(True)
 
-        self.icon_panel = QtGui.QHBoxLayout()
-        self.icon_panel.addWidget(self.calculator_button,0)
-        self.icon_panel.addWidget(self.tna_button,0)
-        self.icon_panel.addWidget(self.find_button,0)
-        self.icon_panel.addWidget(self.leave_button,0)
+        self.icon_panel_1 = QtGui.QHBoxLayout()
+
+        self.icon_panel_1.addStretch(1)
+        self.icon_panel_1.addWidget(self.calculator_button,0)
+        self.icon_panel_1.addWidget(self.tna_button,0)
+        self.icon_panel_1.addWidget(self.find_button,0)
+        self.icon_panel_1.addStretch(1)
+        
+        self.icon_panel_2 = QtGui.QHBoxLayout()
+        self.icon_panel_2.addStretch(2)
+        self.icon_panel_2.addWidget(self.leave_button,0)
+        self.icon_panel_2.addWidget(self.refresh_stats_button,0)
+        self.icon_panel_2.addStretch(2)
         #self.icon_panel.addWidget(self.relaxation_button,0)
         #self.icon_panel.addWidget(self.project_button,0)
 
@@ -157,25 +174,24 @@ class Pork(QtGui.QMainWindow):
         self.stats_table = CopiableQTableWidget(0, 0)
 
         self.stats_table.setToolTip("This report displays your statistics for the last working date.\nIf you've selected a Monday, this will show you\nyour data for last Friday, provided you weren't on leave on that day.\nIf you were, it'll search for the date\non which you last worked and show you that.")
-        self.stats_table.setFixedSize(300,160)
-        self.refresh_stats_button = ImageButton(os.path.join("Images","refresh.png"),24,24, os.path.join("Images","refresh_mouseover.png"))
-        self.refresh_stats_button.setFlat(True)
+        self.stats_table.setFixedSize(300,120)
 
-        self.stats_progress_bar = ProgressBar()
-        self.stats_progress_message = QtGui.QLabel("Awaiting signals.")
-        self.stats_progress_message.setStyleSheet("QLabel { font-size: 8px }")
-        self.stats_progress = QtGui.QWidget()
-        self.stats_progress_layout = QtGui.QGridLayout()
-        self.stats_progress_layout.addWidget(self.refresh_stats_button,0,0,1,1)
-        self.stats_progress_layout.addWidget(self.stats_progress_bar,0,1,1,3)
-        self.stats_progress_layout.addWidget(self.stats_progress_message,0,1,1,3)
-        self.stats_progress_layout.setColumnStretch(0,0)
-        self.stats_progress.setLayout(self.stats_progress_layout)
-        self.stats_progress_bar.setRange(0,1)
+        #self.stats_progress_bar = ProgressBar()
+        #self.stats_progress_bar.setRange(0,1)
+        #self.stats_progress_message = QtGui.QLabel("Awaiting signals.")
+        #self.stats_progress_message.setStyleSheet("QLabel { font-size: 8px }")
+        #self.stats_progress = QtGui.QWidget()
+        #self.stats_progress_layout = QtGui.QGridLayout()
+        #self.stats_progress_layout.addWidget(self.refresh_stats_button,0,0,1,1)
+        #self.stats_progress_layout.addWidget(self.stats_progress_bar,0,1,1,3)
+        #self.stats_progress_layout.addWidget(self.stats_progress_message,0,1,1,3)
+        #self.stats_progress_layout.setColumnStretch(0,0)
+        #self.stats_progress.setLayout(self.stats_progress_layout)
         self.stats_layout = QtGui.QVBoxLayout()
-        self.stats_layout.addLayout(self.icon_panel,0)
-        self.stats_layout.addWidget(self.stats_table)
-        self.stats_layout.addWidget(self.stats_progress)
+        self.stats_layout.addLayout(self.icon_panel_1,0)
+        self.stats_layout.addLayout(self.icon_panel_2,0)
+        self.stats_layout.addWidget(self.stats_table, 0, QtCore.Qt.AlignHCenter)
+        #self.stats_layout.addWidget(self.stats_progress)
         self.stats_layout.addStretch(3)
         self.stats.setLayout(self.stats_layout)
 
@@ -356,18 +372,6 @@ class Pork(QtGui.QMainWindow):
         if (e.modifiers() & QtCore.Qt.ControlModifier):
             if e.key() == QtCore.Qt.Key_S:
                 self.say = QtGui.QMessageBox.question(self,"All Animals are created equal.","But some animals are <b>more</b> equal than others.", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-
-    def displayPorkerProgress(self, activity, eta, completed):
-        if completed:
-            #print "Completed one porker cycle."
-            self.stats_progress_bar.setRange(0,1)
-            self.stats_progress_message.setText(" Last Updated at %s" % datetime.datetime.strftime(datetime.datetime.now(),"%H:%M:%S"))
-        else:
-            #print "Porker at work. Message : ", activity
-            self.stats_progress_bar.setRange(0,0)
-            time_as_string = datetime.datetime.strftime(eta,"%H:%M:%S")
-            time_diff = (eta-datetime.datetime.now()).seconds if eta>datetime.datetime.now() else -1
-            self.stats_progress_message.setText(" %s\n ETA: %s (%d sec)" %(activity, time_as_string, time_diff))
             
     def setTabOrders(self):
         self.setTabOrder(self.workCalendar, self.buttonAddFSN)
@@ -457,9 +461,6 @@ class Pork(QtGui.QMainWindow):
         self.seeker = Seeker(self.user_id, self.password)
         self.seeker.show()
 
-    def openLeaveManagementTool(self):
-        self.alertMessage("Feature unavailable","The Leave Management Tool is still under development")
-
     def openRelaxationTool(self):
         self.alertMessage("Feature unavailable","The Relaxation tool is still under development")
 
@@ -476,11 +477,8 @@ class Pork(QtGui.QMainWindow):
     def applyForLeave(self):
         """PORK Window: Method to call the leave planner dialog."""
         #print "Applying for a leave!" #debug
-        leaveapp = LeavePlanner(self.user_id,self.password)
-        if leaveapp.exec_():
-            #print "Success!" #debug
-            self.alertMessage('Success', "Successfully submitted the request.")
-        return True
+        self.leaveapp = LeavePlanner(self.user_id,self.password)
+        self.leaveapp.show()
 
     def reset_password(self):
         """Opens a password reset method and allows the user to reset his/her password."""

@@ -122,6 +122,7 @@ class LeaveApproval(QtGui.QWidget):
     def saveAll(self):
         self.saveThese(self.employees_selection_box.getCheckedItems())
 
+
     def saveThese(self, selected_names):
         selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x]["Employee ID"])[0] for x in selected_names]
         dates = [self.start_date.date().toPyDate(), self.end_date.date().toPyDate()]

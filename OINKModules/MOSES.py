@@ -693,6 +693,11 @@ def getClarifications(user_id, password):
     clarList = [clar["Code"] for clar in clarTuple]
     return clarList
 
+def checkAndInitWorkCalendar(user_id, password, query_date=None):
+    if query_date is None:
+        query_date = datetime.date.today()
+    pass
+
 def initWorkCalendar(user_id, password, start_date=None, end_date=None):
     """Initializes the work calendar."""
     import datetime
@@ -1464,36 +1469,6 @@ def getUserPiggyBankData(queryDate, user_id, password, queryUser = None):
     return getPiggyBankDataBetweenDates(queryDate, \
                 queryDate ,queryDict ,user_id ,password)[0]
 
-
-#DONT USE THIS!
-def getWorkingStatus(user_id, password, querydate, lookupuser=None):#DONT USE THIS!
-    #DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!
-    """Method to fetch the status for a writer on any particular date.
-    Returns "Working" if the employee is delivering 100%.
-    Returns "Leave" if the employee is on leave.
-    Returns n/10 if the employee is granted a relaxation of n%
-    Returns "Holiday" if the company has granted a holiday on a particular date.
-    If lookupuser isn't specified, it'll just pull the status for the current user.
-    """
-
-    #DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!
-    #DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!#DONT USE THIS!
-    status = "Working"
-    connectdb = getOINKConnector(user_id, password)
-    dbcursor = connectdb.cursor()
-    if lookupuser is None:
-        lookupuser = user_id
-    sqlcmdstring = "SELECT `Status`, `Relaxation` FROM `workcalendar` WHERE `Date` = '%s' AND `Employee ID` = '%s';" % (convertToMySQLDate(querydate),lookupuser)
-    #print sqlcmdstring #debug
-    dbcursor.execute(sqlcmdstring)
-    data = dbcursor.fetchall()
-    #print data
-    if len(data) != 0:
-        status = data[0]["Status"]
-        relaxation = data[0]["Relaxation"]
-        return status, relaxation
-    else:
-        return "Working", 0
 
 def checkWorkStatus(user_id, password,queryDate, targetUser = None):
     """This method checks the work calendar in the database and checks whether the employee is 
@@ -2447,6 +2422,25 @@ def checkDuplicacy(FSN, articleType, articleDate):
     connectdb.commit()
     connectdb.close()   
     return wasWrittenBefore
+
+def askForModWorkCalendar(user_id, password, dates_list, status, relaxation, comment, name=None):
+    success = False
+    if name is None:
+        name = getEmpName(user_id)
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+
+    try:
+        sqlcmdstring = """UPDATE workcalendar SET `status`="%s", `Relaxation`="%s", `Comment`="%s", `Approval`="Pending",`Entered By`="%s" WHERE `Date` BETWEEN "%s" AND "%s" AND `Employee ID`="%s" AND `status`="Working" AND `Approval`="Pending";"""%(status, relaxation, comment, name, dates_list[0],dates_list[1], user_id)
+        cursor.execute(sqlcmdstring)
+        conn.commit()
+        success = True
+    except Exception, e:
+        success = False
+        print sqlcmdstring
+        print "askForModWorkCalendar: " ,repr(e)
+    conn.close()
+    return success
 
 def modWorkingStatus(user_id, password, query_date, status, relaxation, comment, approval =None,rejectionComment=None, targetuser = None):
     """Method to modify the working status/relaxation of an employee.
