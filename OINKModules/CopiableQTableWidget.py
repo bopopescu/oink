@@ -27,15 +27,48 @@ class CopiableQTableWidget(QtGui.QTableWidget):
             super(CopiableQTableWidget, self).keyPressEvent(e)
             
 
-    def showDataFrame(self, dataframe):
+    def showDataFrame(self, dataframe, highlight_rules=None):
         if dataframe is not None:
             row_count = dataframe.shape[0]
             column_count = dataframe.shape[1]
             self.setRowCount(row_count)
             self.setColumnCount(column_count)
             for row_index in range(row_count):
+                match = False
+                color = QtGui.QColor(255, 255, 255)
+                if highlight_rules is not None:
+                    for highlight_rule in highlight_rules:
+                        matches = []
+                        counter =0
+                        for column in highlight_rule["Columns"]:
+                            deciding_value = highlight_rule["Values"][counter]
+                            value_in_dataframe = dataframe[column][row_index]
+                            if type(deciding_value) == list:
+                                if deciding_value[0] <= value_in_dataframe < deciding_value[1]:
+                                    matches.append(True)
+                                else:
+                                    matches.append(False)
+                            elif type(deciding_value) == str:
+                                if value_in_dataframe == deciding_value:
+                                    matches.append(True)
+                                else:
+                                    matches.append(False)
+                            else:
+                                matches.append(False)
+                            counter +=1
+                        if len(matches)>0 and False not in matches:
+                            match = True
+                        else:
+                            match = False
+                        if match:
+                            # print ["%s=%s"%(x, y) for x,y in zip(highlight_rule["Columns"], highlight_rule["Values"])], " matched for row %d."%row_index
+                            color = highlight_rule["Color"]
                 for col_index in range(column_count):
-                    self.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iat[row_index, col_index])))
+                    widget_item = QtGui.QTableWidgetItem(str(dataframe.iat[row_index, col_index]))
+                    widget_item.setBackgroundColor(color)
+                    self.setItem(row_index, col_index, widget_item)
+                    
+
             self.setHorizontalHeaderLabels(list(dataframe.columns))
             #self.setVerticalHeaderLabels(list(dataframe.index))
             self.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)

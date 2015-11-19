@@ -1387,7 +1387,7 @@ def updateWorkCalendarFor(user_id, password, status, relaxation, comment, approv
         cursor.execute(sqlcmdstring)
         conn.commit()
         success = True
-        print success, sqlcmdstring
+        #print success, sqlcmdstring
     except Exception, e:
         print "updateWorkCalendarFor"
         print success, sqlcmdstring

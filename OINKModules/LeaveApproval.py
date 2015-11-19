@@ -15,6 +15,7 @@ class LeaveApproval(QtGui.QWidget):
         super(LeaveApproval, self).__init__(*args, **kwargs)
         self.user_id, self.password = user_id, password
         self.work_calendar = None
+        self.selected_name = False
         self.createUI()
         self.initiate()
         self.mapEvents()
@@ -56,6 +57,8 @@ class LeaveApproval(QtGui.QWidget):
         self.comment_label = QtGui.QLabel("Comment")
         self.comment_lineedit = QtGui.QLineEdit()
         self.save_selected_button = QtGui.QPushButton("Save")
+        self.save_selected_button.setEnabled(False)
+        self.save_all_button = QtGui.QPushButton("Save All")
 
         row_1 = QtGui.QHBoxLayout()
         row_1.addWidget(self.date_label,0)
@@ -85,6 +88,7 @@ class LeaveApproval(QtGui.QWidget):
         row_3.addWidget(self.reject_selected_button,0)
         row_3.addWidget(self.pending_selected_button,0)
         row_3.addWidget(self.save_selected_button,0)
+        row_3.addWidget(self.save_all_button,0)
         row_3.addWidget(self.refresh_table_button,0)
 
         layout = QtGui.QVBoxLayout()
@@ -106,9 +110,20 @@ class LeaveApproval(QtGui.QWidget):
         self.leave_table.currentCellChanged.connect(self.populateForm)
         self.employees_selection_box.changedSelection.connect(self.applyFilters)
         self.save_selected_button.clicked.connect(self.saveSelected)
+        self.save_all_button.clicked.connect(self.saveAll)
 
     def saveSelected(self):
-        selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x]["Employee ID"])[0] for x in self.employees_selection_box.getCheckedItems()]
+        if self.selected_name:
+            self.saveThese([self.selected_name])
+        else:
+            self.alertMessage("Select a row","Select a row in the work calendar and then try again.")
+            self.save_selected_button.setEnabled(False)
+
+    def saveAll(self):
+        self.saveThese(self.employees_selection_box.getCheckedItems())
+
+    def saveThese(self, selected_names):
+        selected_employee_ids = [list(self.employees_list[self.employees_list["Name"] == x]["Employee ID"])[0] for x in selected_names]
         dates = [self.start_date.date().toPyDate(), self.end_date.date().toPyDate()]
         allow_continue = False
         if (len(selected_employee_ids)>1) and (dates[0] == dates[1]):
@@ -127,6 +142,7 @@ class LeaveApproval(QtGui.QWidget):
             self.alertMessage('No Employees Selected!', "Please select an employee in order to process the work status and relaxation.")
         else:
             allow_continue = True
+
         if allow_continue:
             status = str(self.status_combobox.currentText())
             relaxation = self.relaxation_spinbox.value()/100
@@ -138,7 +154,7 @@ class LeaveApproval(QtGui.QWidget):
             else:
                 approval = "Pending"
             approval_comment = str(self.rejection_comment_lineedit.text())
-
+            self.alertMessage("Please Wait","This could take a while. Click OK and hold on to your horses.")
             try_updating = MOSES.updateWorkCalendarFor(self.user_id, self.password, status, relaxation, comment, approval, approval_comment, dates, selected_employee_ids)
             if try_updating:
                 self.applyFilters()
@@ -170,7 +186,43 @@ class LeaveApproval(QtGui.QWidget):
                             "Employee IDs": selected_employee_ids
                         }
             self.work_calendar = MOSES.getWorkCalendarFor(self.user_id, self.password, filter_dict)
-            self.leave_table.showDataFrame(self.work_calendar)
+            yellow = QtGui.QColor(200,200,0)
+            green = QtGui.QColor(0,153,0)
+            red = QtGui.QColor(170,0,0)
+
+            highlight_rules = [
+                                {
+                                    "Columns": ["Status","Approval"],
+                                    "Values": ["Leave","Approved"],
+                                    "Color":green
+                                },
+                                {
+                                    "Columns": ["Status","Approval"],
+                                    "Values": ["Leave","Pending"],
+                                    "Color":  yellow
+                                },
+                                {
+                                    "Columns": ["Status","Approval"],
+                                    "Values": ["Leave","Rejected"],
+                                    "Color": red
+                                },
+                                {
+                                    "Columns": ["Relaxation","Approval"],
+                                    "Values": [[0.01,1.00],"Approved"],
+                                    "Color": green
+                                },
+                                {
+                                    "Columns": ["Relaxation","Approval"],
+                                    "Values": [[0.01,1.00],"Pending"],
+                                    "Color":  yellow
+                                },
+                                {
+                                    "Columns": ["Relaxation","Approval"],
+                                    "Values": [[0.01,1.00],"Rejected"],
+                                    "Color": red
+                                }
+                                ]
+            self.leave_table.showDataFrame(self.work_calendar,highlight_rules)
             self.leave_table.setSortingEnabled(False)
 
     def startDateChanged(self):
@@ -183,14 +235,19 @@ class LeaveApproval(QtGui.QWidget):
             #rows = sorted(set(index.row() for index in self.leave_table.selectedIndexes()))
             try:
                 selected_row = self.work_calendar.loc[row]
-                name = selected_row["Employee Name"]
+                self.selected_name = selected_row["Employee Name"]
                 status = selected_row["Status"]
                 relaxation = selected_row["Relaxation"]
                 comment = selected_row["Comment"]
                 approval = selected_row["Approval"]
                 rejection_comment = selected_row["Rejection Comment"]
                 date_ = selected_row["Date"]
+                self.save_selected_button.setText("Save %s's entry"%self.selected_name)
+                self.save_selected_button.setEnabled(True)
             except:
+                self.selected_name = None
+                self.save_selected_button.setText("Save Selected")
+                self.save_selected_button.setEnabled(False)
                 comment = ""
                 relaxation = 0.0
                 rejection_comment = ""
@@ -205,9 +262,11 @@ class LeaveApproval(QtGui.QWidget):
                 if approval == "Approved":
                     self.approve_selected_button.setChecked(True)
                 elif approval == "Rejected":
-                    self.reject_selected_button.setChecked(False)
+                    self.reject_selected_button.setChecked(True)
                 else:
                     self.pending_selected_button.setChecked(True)
+            else:
+                print "Approval is None!"
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
