@@ -2622,10 +2622,10 @@ def getLastWorkingDate(user_id, password, queryDate = None, queryUser = None):
             if not isWorkingDay(user_id, password, previousDate):
                 previousDate -= datetime.timedelta(1)
             else:
-                status = getWorkingStatus(user_id, password, previousDate)[0]
+                status, relaxation, approval = checkWorkStatus(user_id, password, previousDate)
                 if status == "Working":
                     stopthis = True
-                elif status in ["Leave", "Holiday", "Special Holiday"]:
+                elif status in ["Leave", "Holiday"]:
                     #print "Not working on ", previousDate
                     previousDate -= datetime.timedelta(1)
                 else:
@@ -3026,16 +3026,14 @@ def rebuildLoginRecord(user_id, password):
     connectdb.close()
 
 
+
 def createLoginStamp(user_id, password, login_date=None, login_time=None):
     """Makes a login entry in the loginrecord table."""
     if login_time is None:
         login_time = datetime.datetime.now()
     if login_date is None:
         login_date = datetime.date.today()
-    status, relaxation = getWorkingStatus(user_id, password, login_date)
-    if status == False:
-        updateWorkCalendar(user_id, password, login_date, status="Working")
-
+    status, relaxation, approval = checkWorkStatus(user_id, password, login_date)
     connectdb = getOINKConnector(user_id, password)
     dbcursor = connectdb.cursor()
     sqlcmdstring = """INSERT INTO `loginrecord` (`Date`, `Employee ID`, `Login Time`) VALUES ("%s", "%s", "%s");"""%(convertToMySQLDate(login_date), user_id, login_time)
