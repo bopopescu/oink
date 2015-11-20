@@ -609,9 +609,9 @@ class Pork(QtGui.QMainWindow):
         written = seek_data_frame.shape[0] > 0
         #Search for matching types.
         if written:
+            previous_types = list(seek_data_frame["Description Type"])
             type_filtered_data_frame = seek_data_frame[seek_data_frame["Description Type"] == description_type]
             today_filtered_df = seek_data_frame[seek_data_frame["Article Date"] == query_date]
-
             type_written_before = (type_filtered_data_frame.shape[0]>0)
             written_today = today_filtered_df.shape[0]>0
             if type_written_before:
@@ -631,60 +631,16 @@ class Pork(QtGui.QMainWindow):
                     if override:
                         allow = True
                         if type_filtered_data_frame.shape[0]==1:
-                            reason = "A(n) %s article was written on %s for %s by %s. But this has been approved for an override."%(description_type, dates_string, fsn, names_string)
+                            reason = "A(n) %s was reported on %s for %s by %s. But this has been approved for an override."%(description_type, dates_string, fsn, names_string)
                         else:
-                            reason = "%s article(s) were written on %s for %s by %s. But this has been approved for an override."%(description_type, dates_string, fsn, names_string)
+                            reason = "%s article(swere reported on %s for %s by %s. But this has been approved for an override."%(description_type, dates_string, fsn, names_string)
                     else:
                         allow = False
                         if type_filtered_data_frame.shape[0]==1:
-                            reason = "A(n) %s article was written on %s for %s by %s. No override request has been scheduled."%(description_type, dates_string, fsn, names_string)
+                            reason = "A(n) %s was reported on %s for %s by %s. No override request has been scheduled."%(description_type, dates_string, fsn, names_string)
                         else:
-                            reason = "%s article(s) were written on %s for %s by %s. No override request has been scheduled."%(description_type, dates_string, fsn, names_string)
-            elif written_today: #The type has definitely not been written, today or before.
-                todays_types = list(today_filtered_df["Description Types"])
-                has_rpd_been_written_before = False
-                for each_type in todays_types:
-                    if "RPD" in each_type or "Rich Product Description" in each_type:
-                        has_rpd_been_written_before = True
-                        break
-                if description_type == "Regular Description":
-                    if has_rpd_been_written_before:
-                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
-                        if override:
-                            allow = True
-                            reason = "%s has RPD written for it today, but I'm allowing you to report the FSN since your TL has commissioned an override. Though, writing a regular description after an RPD has been written shouldn't happen."
-                        else:
-                            allow = False
-                            reason = "%s has RPD written for it today. Writing a regular description after an RPD has been written shouldn't happen. If your TL chooses, he or she can create an override request to allow you to report the FSN."
-                    else:
-                        #If the type is SEO, USP or something else.
-                        allow = True
-                        reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
-                        override = False
-                        override_ticket = None
-                elif ("Rich Product Description" in description_type) or ("RPD") in description_type:
-                    if has_rpd_been_written_before:
-                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
-                        if override:
-                            allow = True
-                            reason = "%s has RPD featuring, but an override request has been scheduled for it. So I'm allowing this FSN to be featured."%fsn
-                        else:
-                            allow = False
-                            reason = "%s has RPD featuring on the website. If you're updating it, or uploading a variant with the same FSN, ask your TL to add an override request."
-                    else:
-                        allow = True
-                        reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
-                        override = False
-                        override_ticket = None
-                else:
-                    allow = True
-                    reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
-                    override = False
-                    override_ticket = None
+                            reason = "%s were reported on %s for %s by %s. No override request has been scheduled."%(description_type, dates_string, fsn, names_string)
             else:
-                #Other types have been written previously.
-                allow = True
-                previous_types = list(seek_data_frame["Description Type"])
                 has_rpd_been_written_before = False
                 for each_type in previous_types:
                     if "RPD" in each_type or "Rich Product Description" in each_type:
@@ -695,14 +651,14 @@ class Pork(QtGui.QMainWindow):
                         override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                         if override:
                             allow = True
-                            reason = "%s has RPD written for it today, but I'm allowing you to report the FSN since your TL has commissioned an override. Though, writing a regular description after an RPD has been written shouldn't happen."
+                            reason = "%s has RPD written for it, but I'm allowing you to report the FSN since your TL has commissioned an override. Though, writing a regular description after an RPD has been written shouldn't happen."%fsn
                         else:
                             allow = False
-                            reason = "%s has RPD written for it today. Writing a regular description after an RPD has been written shouldn't happen. If your TL chooses, he or she can create an override request to allow you to report the FSN."
+                            reason = "%s has RPD written for it. Writing a regular description after an RPD has been written shouldn't happen. If your TL chooses, he or she can create an override request to allow you to report the FSN."%fsn
                     else:
                         #If the type is SEO, USP or something else.
                         allow = True
-                        reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
+                        reason = "%s doesn't seem to have been reported before for %s, so it can be reported."%(description_type, fsn)
                         override = False
                         override_ticket = None
                 elif ("Rich Product Description" in description_type) or ("RPD") in description_type:
@@ -790,8 +746,7 @@ class Pork(QtGui.QMainWindow):
                 fsn = fsnData["FSN"]
                 fsn_type = fsnData["Description Type"]
                 if self.isValidType(fsn, fsn_type):
-                    #isDuplicate = MOSES.checkDuplicacy(fsn, fsn_type, self.getActiveDate())
-                    written, allow, override_ticket, reason = self.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
+                    written, allow, override_ticket, reason = self.checkDuplicacy(fsn, fsn_type, self.getActiveDate())
                     if written and not allow:
                         self.alertMessage("Not Allowed","This FSN cannot be entered. %s"%reason)
                         completion = False
