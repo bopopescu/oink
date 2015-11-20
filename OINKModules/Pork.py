@@ -214,7 +214,6 @@ class Pork(QtGui.QMainWindow):
         self.buttonCopyFields.setMinimumHeight(30)
         self.buttonCopyFields.setMaximumHeight(30)
 
-
         self.formModifierButtons = QtGui.QButtonGroup()
         self.formModifierButtons.addButton(self.buttonAddFSN)
         self.formModifierButtons.addButton(self.buttonModifyFSN)
@@ -222,14 +221,11 @@ class Pork(QtGui.QMainWindow):
         self.category_tree_headers = ["BU","Super-Category","Category","Sub-Category","Vertical"]
         self.category_finder = CategoryFinder(self.category_tree, self.category_tree_headers)
 
-
-
         self.efficiency_progress_bar = ProgressBar()
         self.efficiency_progress_bar.setRange(0,100)
         self.efficiency_progress_bar.setMinimumWidth(200)
-
-
         self.efficiency_progress_bar.setTextVisible(True)
+
         #Create all the widgets associated with the form.
         self.labelFSN = QtGui.QLabel("FSN:")
         self.lineEditFSN = QtGui.QLineEdit(self)
@@ -285,11 +281,9 @@ class Pork(QtGui.QMainWindow):
         self.buttonBox.setMaximumWidth(300)
         self.buttonBox.setMaximumHeight(40)
 
-
     def createLayouts(self):
         #Begin the form's layout.
         form_fields_layout = QtGui.QGridLayout()
-        
         form_fields_layout.addWidget(self.labelFSN,0,0)
         form_fields_layout.addWidget(self.lineEditFSN,0,1,1,3)
         form_fields_layout.addLayout(self.category_finder, 1, 0, 1, 4, QtCore.Qt.AlignLeft)
@@ -629,7 +623,7 @@ class Pork(QtGui.QMainWindow):
                     writer_name = list(today_and_type_filtered_df["Writer Name"])[0]
                     reason = "A(n) %s article was written today for %s by %s."%(description_type, fsn, writer_name)
                 else:
-                    override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                    override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                     written_dates = list(type_filtered_data_frame["Article Date"])
                     writer_names = list(type_filtered_data_frame["Writer Name"])
                     dates_string = written_dates[0] if len(written_dates)== 1 else ", ".join(written_dates)
@@ -655,7 +649,7 @@ class Pork(QtGui.QMainWindow):
                         break
                 if description_type == "Regular Description":
                     if has_rpd_been_written_before:
-                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                         if override:
                             allow = True
                             reason = "%s has RPD written for it today, but I'm allowing you to report the FSN since your TL has commissioned an override. Though, writing a regular description after an RPD has been written shouldn't happen."
@@ -670,7 +664,7 @@ class Pork(QtGui.QMainWindow):
                         override_ticket = None
                 elif ("Rich Product Description" in description_type) or ("RPD") in description_type:
                     if has_rpd_been_written_before:
-                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                         if override:
                             allow = True
                             reason = "%s has RPD featuring, but an override request has been scheduled for it. So I'm allowing this FSN to be featured."%fsn
@@ -698,7 +692,7 @@ class Pork(QtGui.QMainWindow):
                         break
                 if description_type == "Regular Description":
                     if has_rpd_been_written_before:
-                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                         if override:
                             allow = True
                             reason = "%s has RPD written for it today, but I'm allowing you to report the FSN since your TL has commissioned an override. Though, writing a regular description after an RPD has been written shouldn't happen."
@@ -713,7 +707,7 @@ class Pork(QtGui.QMainWindow):
                         override_ticket = None
                 elif ("Rich Product Description" in description_type) or ("RPD") in description_type:
                     if has_rpd_been_written_before:
-                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                         if override:
                             allow = True
                             reason = "%s has RPD featuring, but an override request has been scheduled for it. So I'm allowing this FSN to be featured."%fsn
@@ -730,7 +724,6 @@ class Pork(QtGui.QMainWindow):
                     reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
                     override = False
                     override_ticket = None
-
         else:
             #Has never been written before in any description type.
             allow = True
@@ -795,19 +788,19 @@ class Pork(QtGui.QMainWindow):
             fsnData = self.getFSNDataDict()
             if mode == "Addition":
                 fsn = fsnData["FSN"]
-                fsntype = fsnData["Description Type"]
-                if self.isValidType(fsn, fsntype):
-                    #isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
-                    is_duplicate, rewrite_ticket = self.checkDuplicacy(fsn, fsntype, selected_date)
-                    if is_duplicate:
-                        fsnData["Rewrite Ticket"] = rewrite_ticket
-                        MOSES.addToPiggyBank(fsnData, self.user_id, self.password)
-                        self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
-                        self.populateTable()
+                fsn_type = fsnData["Description Type"]
+                if self.isValidType(fsn, fsn_type):
+                    #isDuplicate = MOSES.checkDuplicacy(fsn, fsn_type, self.getActiveDate())
+                    written, allow, override_ticket, reason = self.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
+                    if written and not allow:
+                        self.alertMessage("Not Allowed","This FSN cannot be entered. %s"%reason)
+                        completion = False
+                    elif written and allow:
+                        self.alertMessage("Allowed","This FSN can be entered. %s. Override Ticket: %s"%(reason,override_ticket))
                         completion = True
                     else:
-                        self.alertMessage("Failed","Cannot add that FSN to the Piggy Bank.")
-                        completion = False
+                        self.alertMessage("Allowed","This FSN can be entered. %s"%reason)
+                        completion = True
             elif mode == "Modification":
                 #print "Trying to modify an entry."
                 success = MOSES.updatePiggyBankEntry(fsnData, self.user_id, self.password)
@@ -1184,7 +1177,6 @@ the existing data in the form with the data in the cell and modify that cell?"""
         title = "About OINK"
         message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2014, by Vinay Keerthi. The <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding development."
         QtGui.QMessageBox.about(self, title, message)
-
 
     def eventFilter(self, source, event):
         if event.type() == QtCore.QEvent.MouseMove:
