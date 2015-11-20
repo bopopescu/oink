@@ -4000,13 +4000,15 @@ def getWBR(user_id, password, query_date, category_tree):
         actual_audit_count = expected_audit_count
         scored_audit_count = expected_audit_count
         quality, fatals = getOverallQualityBetweenDates(user_id, password, each_date, each_date, use_all=True)
-        if type(quality) != str and not(math.isnan(quality)):
+        if quality is None:
+            quality = "-"
+        elif type(quality) != str and not(math.isnan(quality)):
             quality = "%7.4f%%"%(quality*100)
         else:
             quality = "-"
 
-        wbr.append([each_date, each_date.strftime("%A"), article_count, uploaded_article_count, expected_audit_count, actual_audit_count, scored_audit_count, quality, fatals])
-    return pd.DataFrame(wbr, columns=["Date","Day","Written","Uploaded","Expected Audits","Actual Audits","Scored","Quality","Fatal Error"])
+        wbr.append([each_date, each_date.strftime("%A"), article_count, uploaded_article_count, expected_audit_count, actual_audit_count, scored_audit_count, quality, fatals, usp_image_count])
+    return pd.DataFrame(wbr, columns=["Date","Day","Written","Uploaded","Expected Audits","Actual Audits","Scored","Quality","Fatal Error", "USP Images"])
 
 def getFirstDayOfWeek(query_date):
     import datetime
