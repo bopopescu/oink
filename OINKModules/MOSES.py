@@ -1983,7 +1983,13 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
                 relaxation_factor = 1.0000/relaxation
                 corrected_targets.append(relaxation_factor)
     utilizations = [target**-1 for target in corrected_targets if target > 0]
-    efficiency = numpy.sum(utilizations)/len(working_dates)
+    if len(working_dates)>0:
+        efficiency = numpy.sum(utilizations)/len(working_dates)
+    else:
+        #print "Got that zero error!"
+        #print user_id, password, start_date, end_date
+        #print utilizations, working_dates
+        efficiency = 0
     return efficiency
 
 def getEfficiencyFor(user_id, password, query_date, query_user=None, category_tree=None):
@@ -2417,42 +2423,6 @@ def getCategoryTree(user_id, password):
     #print brandTuple #debug
     return data_frame
 
-def findFSN(user_id, password, fsn):
-    """New method to find an FSN and get details for the search."""
-    #Makes a list of [writing_date, description_type, writer_name] for each valid search result.
-    import pandas as pd
-    conn = getOINKConnector(user_id, password)
-    cursor = conn.cursor()
-    #First, check if the FSN was written on this date.
-    sqlcmdstring = """SELECT * FROM `piggybank` WHERE `FSN` = '%s';""" % (fsn)
-    cursor.execute(sqlcmdstring)
-    data = cursor.fetchall()
-    was_written_before = True if len(data)>0 else False
-    if was_written_before:
-        if len(data) == 1:
-            writing_details = [data[0]["Article Date"], data[0]["Description Type"], data[0]["Writer Name"]]
-        else:
-            writing_details = [[row["Article Date"], row["Description Type"], row["Writer Name"]] for row in data]
-    else:
-        sqlcmdstring = """SELECT * FROM `fsndump` WHERE `FSN` = '%s';""" % (fsn)
-        cursor.execute(sqlcmdstring)
-        data = cursor.fetchall()
-        was_written_before = True if len(data)>0 else False
-        if was_written_before:
-            no_record = "No Record (Pulled from FSN Dump)"
-            if len(data) == 1:
-                writing_details = [no_record, data[0]["Description Type"], no_record]
-            else:
-                writing_details = [[no_record, row["Description Type"], no_record] for row in data]
-    if not(was_written_before):
-        writing_details = []
-    conn.close()
-    column_names = ["Writer Name","Description Type","Article Date"]
-    if len(writing_details) <=0:
-        return pd.DataFrame(index=None, columns=column_names)
-    else:
-        return pd.DataFrame(writing_details, columns=column_names)
-
 #DEPRECATE
 #DEPRECATE
 #DEPRECATE
@@ -2671,7 +2641,7 @@ def addOverride(FSN, override_date, user_id, password, comment=None):
     connectdb.close()
     return success
 
-def checkForOverride(FSN, query_date, user_id, password):
+def checkForOverride(user_id, password, FSN, query_date):
     """Checks if an override has been scheduled for a specific FSN and date by the TL.
     It returns True if there's an override for a particular date, and it returns the number of overrides for this FSN so far."""
     connectdb = getOINKConnector(user_id, password)

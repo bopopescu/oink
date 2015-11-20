@@ -39,8 +39,6 @@ class Registron(QtCore.QThread):
                       ])
             if getpass.getuser() != "vinay.keerthi":
                 gate.sendmail(essential_data[0],essential_data[2],msg)
-            else:
-                print "Skipping for Vinay's PC."
             gate.quit()
         except Exception, e:
             print "Failed."

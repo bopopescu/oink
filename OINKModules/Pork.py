@@ -233,6 +233,7 @@ class Pork(QtGui.QMainWindow):
         #Create all the widgets associated with the form.
         self.labelFSN = QtGui.QLabel("FSN:")
         self.lineEditFSN = QtGui.QLineEdit(self)
+        self.lineEditFSN.setMaxLength(100)
         self.labelType = QtGui.QLabel("Description Type:")
         self.comboBoxType = QtGui.QComboBox()
         self.comboBoxType.setMaximumWidth(150)
@@ -258,6 +259,7 @@ class Pork(QtGui.QMainWindow):
         self.labelBrand = QtGui.QLabel("Brand:")
         self.lineEditBrand = QtGui.QLineEdit(self)
         self.lineEditBrand.setMaximumWidth(150)
+        self.lineEditBrand.setMaxLength(100)
 
         self.labelVertical = QtGui.QLabel("Vertical:")
         self.comboBoxVertical = QtGui.QComboBox(self)
@@ -271,9 +273,13 @@ class Pork(QtGui.QMainWindow):
         self.labelUploadLink = QtGui.QLabel("Upload Link:")
         self.lineEditUploadLink = QtGui.QLineEdit(self)
         self.lineEditUploadLink.setMaximumWidth(150)
+        self.lineEditUploadLink.setMaxLength(200)
+
         self.labelRefLinks = QtGui.QLabel("Reference Links:")
         self.lineEditRefLink = QtGui.QLineEdit(self)
         self.lineEditRefLink.setMaximumWidth(150)
+        self.lineEditRefLink.setMaximumWidth(200)
+
         self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
                                             QtGui.QDialogButtonBox.Cancel)
         self.buttonBox.setMaximumWidth(300)
@@ -437,9 +443,9 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxCategory.currentIndexChanged['QString'].connect(self.populateSubCategory)
         self.comboBoxSubCategory.currentIndexChanged['QString'].connect(self.populateBrandVertical)
         #self.comboBoxVertical.currentIndexChanged['QString'].connect(self.getVerticalGuidelines)
-        self.lineEditFSN.editingFinished.connect(self.FSNEditFinishTriggers)
-        self.lineEditFSN.textChanged.connect(self.FSNEditFinishTriggers)
-        self.comboBoxType.currentIndexChanged['QString'].connect(self.FSNEditFinishTriggers)
+        self.lineEditFSN.editingFinished.connect(self.finishedEnteringFSN)
+        self.lineEditFSN.textChanged.connect(self.finishedEnteringFSN)
+        self.comboBoxType.currentIndexChanged['QString'].connect(self.finishedEnteringFSN)
         self.buttonBox.rejected.connect(self.clearAll)
         #self.buttonAddClarification.clicked.connect(self.addClarification)
         self.buttonCopyFields.clicked.connect(self.copyCommonFields)
@@ -506,7 +512,7 @@ class Pork(QtGui.QMainWindow):
         self.refreshStatsTable()
         self.displayEfficiencyThreaded(self.porker_thread.getEfficiencyFor(new_date))
         self.mapToolTips()
-        self.FSNEditFinishTriggers()
+        self.finishedEnteringFSN()
 
     def refreshStatsTable(self):
         active_date = self.getActiveDate()
@@ -601,43 +607,163 @@ class Pork(QtGui.QMainWindow):
         else:
             event.ignore()
 
-    def checkDuplicacy(fsn, fsn_type, query_date):
-        return True, 0
+    def checkDuplicacy(self, fsn, description_type, query_date):
+        """This method searches for an FSN, and checks the override ticket.
+        Returns: written, allow, override, override_ticket, reason"""
+        #Search for the FSN
+        seek_data_frame = pd.DataFrame.from_records(MOSES.seekFSN(self.user_id, self.password, fsn))
+        written = seek_data_frame.shape[0] > 0
+        #Search for matching types.
+        if written:
+            type_filtered_data_frame = seek_data_frame[seek_data_frame["Description Type"] == description_type]
+            today_filtered_df = seek_data_frame[seek_data_frame["Article Date"] == query_date]
+
+            type_written_before = (type_filtered_data_frame.shape[0]>0)
+            written_today = today_filtered_df.shape[0]>0
+            if type_written_before:
+                today_and_type_filtered_df = type_filtered_data_frame[type_filtered_data_frame["Article Date"] == query_date]
+                type_written_today = today_and_type_filtered_df.shape[0]>0
+                if type_written_today:
+                    allow = False
+                    override, override_ticket = False, None
+                    writer_name = list(today_and_type_filtered_df["Writer Name"])[0]
+                    reason = "A(n) %s article was written today for %s by %s."%(description_type, fsn, writer_name)
+                else:
+                    override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                    written_dates = list(type_filtered_data_frame["Article Date"])
+                    writer_names = list(type_filtered_data_frame["Writer Name"])
+                    dates_string = written_dates[0] if len(written_dates)== 1 else ", ".join(written_dates)
+                    names_string = writer_names[0] if len(writer_names)==1 else ", ".join(writer_names)
+                    if override:
+                        allow = True
+                        if type_filtered_data_frame.shape[0]==1:
+                            reason = "A(n) %s article was written on %s for %s by %s. But this has been approved for an override."%(description_type, dates_string, fsn, names_string)
+                        else:
+                            reason = "%s article(s) were written on %s for %s by %s. But this has been approved for an override."%(description_type, dates_string, fsn, names_string)
+                    else:
+                        allow = False
+                        if type_filtered_data_frame.shape[0]==1:
+                            reason = "A(n) %s article was written on %s for %s by %s. No override request has been scheduled."%(description_type, dates_string, fsn, names_string)
+                        else:
+                            reason = "%s article(s) were written on %s for %s by %s. No override request has been scheduled."%(description_type, dates_string, fsn, names_string)
+            elif written_today: #The type has definitely not been written, today or before.
+                todays_types = list(today_filtered_df["Description Types"])
+                has_rpd_been_written_before = False
+                for each_type in todays_types:
+                    if "RPD" in each_type or "Rich Product Description" in each_type:
+                        has_rpd_been_written_before = True
+                        break
+                if description_type == "Regular Description":
+                    if has_rpd_been_written_before:
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        if override:
+                            allow = True
+                            reason = "%s has RPD written for it today, but I'm allowing you to report the FSN since your TL has commissioned an override. Though, writing a regular description after an RPD has been written shouldn't happen."
+                        else:
+                            allow = False
+                            reason = "%s has RPD written for it today. Writing a regular description after an RPD has been written shouldn't happen. If your TL chooses, he or she can create an override request to allow you to report the FSN."
+                    else:
+                        #If the type is SEO, USP or something else.
+                        allow = True
+                        reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
+                        override = False
+                        override_ticket = None
+                elif ("Rich Product Description" in description_type) or ("RPD") in description_type:
+                    if has_rpd_been_written_before:
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        if override:
+                            allow = True
+                            reason = "%s has RPD featuring, but an override request has been scheduled for it. So I'm allowing this FSN to be featured."%fsn
+                        else:
+                            allow = False
+                            reason = "%s has RPD featuring on the website. If you're updating it, or uploading a variant with the same FSN, ask your TL to add an override request."
+                    else:
+                        allow = True
+                        reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
+                        override = False
+                        override_ticket = None
+                else:
+                    allow = True
+                    reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
+                    override = False
+                    override_ticket = None
+            else:
+                #Other types have been written previously.
+                allow = True
+                previous_types = list(seek_data_frame["Description Type"])
+                has_rpd_been_written_before = False
+                for each_type in previous_types:
+                    if "RPD" in each_type or "Rich Product Description" in each_type:
+                        has_rpd_been_written_before = True
+                        break
+                if description_type == "Regular Description":
+                    if has_rpd_been_written_before:
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        if override:
+                            allow = True
+                            reason = "%s has RPD written for it today, but I'm allowing you to report the FSN since your TL has commissioned an override. Though, writing a regular description after an RPD has been written shouldn't happen."
+                        else:
+                            allow = False
+                            reason = "%s has RPD written for it today. Writing a regular description after an RPD has been written shouldn't happen. If your TL chooses, he or she can create an override request to allow you to report the FSN."
+                    else:
+                        #If the type is SEO, USP or something else.
+                        allow = True
+                        reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
+                        override = False
+                        override_ticket = None
+                elif ("Rich Product Description" in description_type) or ("RPD") in description_type:
+                    if has_rpd_been_written_before:
+                        override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn)
+                        if override:
+                            allow = True
+                            reason = "%s has RPD featuring, but an override request has been scheduled for it. So I'm allowing this FSN to be featured."%fsn
+                        else:
+                            allow = False
+                            reason = "%s has RPD featuring on the website. If you're updating it, or uploading a variant with the same FSN, ask your TL to add an override request."
+                    else:
+                        allow = True
+                        reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
+                        override = False
+                        override_ticket = None
+                else:
+                    allow = True
+                    reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
+                    override = False
+                    override_ticket = None
+
+        else:
+            #Has never been written before in any description type.
+            allow = True
+            override = False
+            override_ticket = None
+            reason = "An article for %s has never been written before."%fsn
+        return written, allow, override_ticket, reason
 
 
-    def FSNEditFinishTriggers(self):
+    def finishedEnteringFSN(self):
         """This should run after the FSN is entered. But it needs type too."""
         self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: white;}")
         fsnString = str(self.lineEditFSN.text()).strip()
         fsn_type = str(self.comboBoxType.currentText()).replace(",",";").strip()
-        #print fsnString, fsn_type
         if OINKM.checkIfFSN(fsnString):
-            #print "I got an FSN. I'm going to check!"
-            isDuplicate, rewrite_ticket = MOSES.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
-            if isDuplicate == "Local":
-                #set background to red. If possible, highlight the FSN in the table displayed.
-                self.alertMessage("Duplicate FSN", "You've just reported that FSN!")
-                self.lineEditFSN.setStyleSheet(".QLineEdit {background-color:red;}")
-            elif (isDuplicate == "Global") and not override_status:
-                #set background to orange. Give a notification that this has been written before.
-                self.alertMessage("Duplicate FSN", "Someone has already reported that FSN. If you're instructed to change the article, then please ask your TL to raise an override request.")
-                #print "Setting bg to orange and triggering notification!"
-                self.lineEditFSN.setStyleSheet(".QLineEdit {background-color:orange;}")
-            elif (isDuplicate == "Global") and (override_status):
-                #reset background to white.
-                self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: yellow;}")
-                self.alertMessage("Approved Duplicate FSN", "Someone has already reported that FSN. But your TL has enabled override so you can submit it.")
-                self.generateUploadLink(fsnString)
-            elif not isDuplicate:
-                self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: white;}")
-                self.generateUploadLink(fsnString)
-    
-                
+            written, allow, override_ticket, reason = self.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
+            if written:
+                if allow:
+                    color = "white"
+                    title = "Written, no ticket required."
+                    if override_ticket is not None:
+                        color = "#7fbf7f" #green
+                        title = "Written, overridden"
+                else:
+                    color = "#ff0000" #red
+                    title = "Written, not allowed."
+            else:
+                title = "Not written before"
+                color = "white"
+            self.lineEditFSN.setStyleSheet(".QLineEdit {background-color:%s;}"%color)
+            self.generateUploadLink(fsnString)
 
     def generateUploadLink(self, fsnString):
-        """if (len(str(self.lineEditUploadLink.text())) == 0) and (str(self.lineEditUploadLink.text()).count(' ') <= 0):
-                                    fsnString = str(self.lineEditFSN.text()).strip()
-                                    if (len(fsnString) == 13) or (len(fsnString) == 16):"""
         self.lineEditUploadLink.setText("http://www.flipkart.com/search?q=" + fsnString)
 
     def validateForm(self):
@@ -672,8 +798,8 @@ class Pork(QtGui.QMainWindow):
                 fsntype = fsnData["Description Type"]
                 if self.isValidType(fsn, fsntype):
                     #isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
-                    allow_entry, rewrite_ticket = self.checkDuplicacy(fsn, fsntype, selected_date)
-                    if allow_entry:
+                    is_duplicate, rewrite_ticket = self.checkDuplicacy(fsn, fsntype, selected_date)
+                    if is_duplicate:
                         fsnData["Rewrite Ticket"] = rewrite_ticket
                         MOSES.addToPiggyBank(fsnData, self.user_id, self.password)
                         self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
