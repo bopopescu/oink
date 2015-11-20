@@ -218,6 +218,7 @@ class Pork(QtGui.QMainWindow):
         self.formModifierButtons = QtGui.QButtonGroup()
         self.formModifierButtons.addButton(self.buttonAddFSN)
         self.formModifierButtons.addButton(self.buttonModifyFSN)
+
         self.category_tree_headers = ["BU","Super-Category","Category","Sub-Category","Vertical"]
         self.category_finder = CategoryFinder(self.category_tree, self.category_tree_headers)
 
@@ -418,7 +419,14 @@ class Pork(QtGui.QMainWindow):
         self.comboBoxVertical.setCurrentIndex(-1)
         self.lineEditBrand.setText("")
 
+    def lockFSNField(self):
+        if self.buttonModifyFSN.isChecked():
+            self.lineEditFSN.setEnabled(False)
+        else:
+            self.lineEditFSN.setEnabled(True)
+
     def mapEvents(self):
+        self.buttonModifyFSN.clicked.connect(self.lockFSNField)
         self.workCalendar.clicked[QtCore.QDate].connect(self.changedDate)
         self.workCalendar.currentPageChanged.connect(self.calendarPageChanged)
         self.piggybank.cellClicked.connect(self.cellSelected)
@@ -593,6 +601,10 @@ class Pork(QtGui.QMainWindow):
         else:
             event.ignore()
 
+    def checkDuplicacy(fsn, fsn_type, query_date):
+        return True, 0
+
+
     def FSNEditFinishTriggers(self):
         """This should run after the FSN is entered. But it needs type too."""
         self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: white;}")
@@ -601,20 +613,20 @@ class Pork(QtGui.QMainWindow):
         #print fsnString, fsn_type
         if OINKM.checkIfFSN(fsnString):
             #print "I got an FSN. I'm going to check!"
-            isDuplicate = MOSES.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
-            override_status, override_count = MOSES.checkForOverride(fsnString, self.getActiveDate(), self.user_id, self.password)
+            isDuplicate, rewrite_ticket = MOSES.checkDuplicacy(fsnString, fsn_type, self.getActiveDate())
             if isDuplicate == "Local":
                 #set background to red. If possible, highlight the FSN in the table displayed.
-                self.notify("Duplicate FSN", "You've just reported that FSN!")
+                self.alertMessage("Duplicate FSN", "You've just reported that FSN!")
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color:red;}")
             elif (isDuplicate == "Global") and not override_status:
                 #set background to orange. Give a notification that this has been written before.
-                self.notify("Duplicate FSN", "Someone has already reported that FSN. If you're instructed to change the article, then please ask your TL to raise an override request.")
+                self.alertMessage("Duplicate FSN", "Someone has already reported that FSN. If you're instructed to change the article, then please ask your TL to raise an override request.")
                 #print "Setting bg to orange and triggering notification!"
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color:orange;}")
             elif (isDuplicate == "Global") and (override_status):
                 #reset background to white.
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: yellow;}")
+                self.alertMessage("Approved Duplicate FSN", "Someone has already reported that FSN. But your TL has enabled override so you can submit it.")
                 self.generateUploadLink(fsnString)
             elif not isDuplicate:
                 self.lineEditFSN.setStyleSheet(".QLineEdit {background-color: white;}")
@@ -654,29 +666,23 @@ class Pork(QtGui.QMainWindow):
         else:
             allowAction = True
         if allowAction:
+            fsnData = self.getFSNDataDict()
             if mode == "Addition":
-                fsnData = self.getFSNDataDict()
                 fsn = fsnData["FSN"]
                 fsntype = fsnData["Description Type"]
                 if self.isValidType(fsn, fsntype):
-                    isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
-                    override_status, override_count = MOSES.checkForOverride(fsn, selected_date, self.user_id, self.password)
-                    if isDuplicate == "Local":
-                        self.alertMessage("Repeated FSN","You just reported that FSN today!")
-                    elif (isDuplicate == "Global") and not override_status:
-                        self.alertMessage("Repeated FSN","That FSN was already reported before by a writer. If your TL has instructed you to overwrite the contents, please request an overide request.")
-                    elif (isDuplicate == "Global") and override_count:
-                        fsnData["Rewrite Ticket"] = override_count
+                    #isDuplicate = MOSES.checkDuplicacy(fsn, fsntype, self.getActiveDate())
+                    allow_entry, rewrite_ticket = self.checkDuplicacy(fsn, fsntype, selected_date)
+                    if allow_entry:
+                        fsnData["Rewrite Ticket"] = rewrite_ticket
                         MOSES.addToPiggyBank(fsnData, self.user_id, self.password)
                         self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
                         self.populateTable()
                         completion = True
                     else:
-                        MOSES.addToPiggyBank(fsnData, self.user_id, self.password)
-                        self.alertMessage("Success","Successfully added an FSN to the Piggy Bank.")
-                        completion = True
+                        self.alertMessage("Failed","Cannot add that FSN to the Piggy Bank.")
+                        completion = False
             elif mode == "Modification":
-                fsnData = self.getFSNDataDict()
                 #print "Trying to modify an entry."
                 success = MOSES.updatePiggyBankEntry(fsnData, self.user_id, self.password)
                 if success:

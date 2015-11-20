@@ -87,26 +87,36 @@ class OINKLoader(QtGui.QWidget):
         else:
             user_role = list(self.employees_list[self.employees_list["Employee ID"] == self.user_id]["Role"])[0]
             access_list = list(self.employees_list[self.employees_list["Employee ID"] == self.user_id]["OINK Access Level"])[0].split(",")
-        if len(access_list)>0:
-            userDict = {
-                "Copy Editor": Bacon, 
-                "Team Lead": Vindaloo,
-                "Big Brother": Vindaloo,
-                "Product Specialist": Bacon,
-                "Manager": Vindaloo, 
-                "Assistant Manager": Vindaloo,
-                "Admin": Pork,
-                "Content Writer": Pork
-                }
-            if user_role not in userDict.keys():
-                self.alertMessage("Unauthorized User","This version of OINK is not coded for use by a %s. If you encounter this message, you're probably trying to use the compiled version of OINK that doesn't need Python. That version was developed for use by writers because it's easier to set up. If you'd like to use the source version instead, follow the initial setup chapter in the documentation."%user_role)
-            else:
-                if len(access_list)>1:
-                    self.window = OINKChooser(self.user_id, self.password, access_list, self.category_tree, self.employees_list, self.brand_list)
+        userDict = {
+            "Copy Editor": Bacon, 
+            "Team Lead": Vindaloo,
+            "Big Brother": Vindaloo,
+            "Product Specialist": Bacon,
+            "Manager": Vindaloo, 
+            "Assistant Manager": Vindaloo,
+            "Admin": Pork,
+            "Content Writer": Pork
+            }
+        if user_role not in userDict.keys():
+            self.alertMessage("Unauthorized User","This version of OINK is not coded for use by a %s. If you encounter this message, you're probably trying to use the compiled version of OINK that doesn't need Python. That version was developed for use by writers because it's easier to set up. If you'd like to use the source version instead, follow the initial setup chapter in the documentation."%user_role)
+        else:
+            if len(access_list)>1:
+                self.window = OINKChooser(self.user_id, self.password, access_list, self.category_tree, self.employees_list, self.brand_list)
+                self.window.show()
+            elif len(access_list) == 1:
+                if access_list[0].upper() == "PORK":
+                    self.window = Pork(self.user_id, self.password, self.category_tree, self.employees_list, self.brand_list)
+                    self.window.show()
+                elif access_list[0].upper() == "VINDALOO":
+                    self.window = Vindaloo(self.user_id, self.password, self.category_tree, self.employees_list, self.brand_list)
+                    self.window.show()
+                elif access_list[0].upper() == "BACON":
+                    self.window = Bacon(self.user_id, self.password, self.category_tree, self.employees_list, self.brand_list)
                     self.window.show()
                 else:
-                    self.window = userDict[user_role](self.user_id, self.password, self.category_tree, self.employees_list, self.brand_list)
-                    self.window.show()
-        else:
-           self.alertMessage("No Access","You seem to have no access to the OINK Database. Contact your Reporting Manager and ask him or her to grant you access if necessary.")
+                    self.alertMessage("Error","%s is not a valid option."%chosen_widget)
+            else:
+                self.alertMessage("No Access","You seem to have no specific to the OINK Database. Contact your Reporting Manager and ask him or her to grant you access if necessary. I'm going to open the default application for your role now.")
+                self.window = userDict[user_role](self.user_id, self.password, self.category_tree, self.employees_list, self.brand_list)
+                self.window.show()
 

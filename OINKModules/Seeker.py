@@ -6,6 +6,7 @@ from Peeves import Peeves
 from ProgressBar import ProgressBar
 from CopiableQTableWidget import CopiableQTableWidget
 from ImageButton import ImageButton
+
 class Seeker(QtGui.QWidget):
     """Seeker class to find FSNs or Item_IDs 
     and filter out those which have not been written before.

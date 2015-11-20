@@ -66,7 +66,8 @@ def seekFSN(user_id, password, fsn):
     vertical = "NA"
     brand = "NA"
     item_id = "NA"
-
+    found = False
+    multiple_hits = False
     if len(data) == 0:
         sqlcmdstring = """SELECT * from `fsndump` WHERE fsn="%s";""" %fsn
         cursor.execute(sqlcmdstring)
@@ -74,41 +75,95 @@ def seekFSN(user_id, password, fsn):
         if len(data_fsn_dump) == 0:
             status = "Not Written Yet"
         else:
+            found = True
+            multiple_hits = False
             status = "Written"
             database_table = "FSN Dump"
             description_type = data_fsn_dump[0]["Description Type"]
+        return_this = [{
+            "FSN": fsn,
+            "Status": status,
+            "Description Type": description_type,
+            "Writer ID": writer_id,
+            "Writer Name": writer_name,
+            "Article Date": article_date,
+            "Database table": database_table,
+            "BU": bu,
+            "Super-Category": super_category,
+            "Category": category,
+            "Sub-Category": sub_category,
+            "Vertical": vertical,
+            "Brand": brand,
+            "Item ID": item_id
+            }]
     else:
         status = "Written"
         database_table = "Piggy Bank"
-        description_type = data[0]["Description Type"]
-        writer_id = data[0]["WriterID"]
-        writer_name = data[0]["Writer Name"]
-        article_date = data[0]["Article Date"]
-        bu = data[0]["BU"]
-        super_category = data[0]["Super-Category"]
-        category = data[0]["Category"]
-        sub_category = data[0]["Sub-Category"]
-        vertical = data[0]["Vertical"]
-        brand = data[0]["Brand"]
-        item_id = data[0]["Item ID"]
+        if len(data) == 1:
+            description_type = data[0]["Description Type"]
+            writer_id = data[0]["WriterID"]
+            writer_name = data[0]["Writer Name"]
+            article_date = data[0]["Article Date"]
+            bu = data[0]["BU"]
+            super_category = data[0]["Super-Category"]
+            category = data[0]["Category"]
+            sub_category = data[0]["Sub-Category"]
+            vertical = data[0]["Vertical"]
+            brand = data[0]["Brand"]
+            item_id = data[0]["Item ID"]
+            return_this = [
+            {
+                "FSN": fsn,
+                "Status": status,
+                "Description Type": description_type,
+                "Writer ID": writer_id,
+                "Writer Name": writer_name,
+                "Article Date": article_date,
+                "Database table": database_table,
+                "BU": bu,
+                "Super-Category": super_category,
+                "Category": category,
+                "Sub-Category": sub_category,
+                "Vertical": vertical,
+                "Brand": brand,
+                "Item ID": item_id
+                }
+            ]
+        else:
+            multiple_hits = True
+            return_this = []
+            for row in data:
+                description_type = row["Description Type"]
+                writer_id = row["WriterID"]
+                writer_name = row["Writer Name"]
+                article_date = row["Article Date"]
+                bu = row["BU"]
+                super_category = row["Super-Category"]
+                category = row["Category"]
+                sub_category = row["Sub-Category"]
+                vertical = row["Vertical"]
+                brand = row["Brand"]
+                item_id = row["Item ID"]
+                row_dict = {
+                    "FSN": fsn,
+                    "Status": status,
+                    "Description Type": description_type,
+                    "Writer ID": writer_id,
+                    "Writer Name": writer_name,
+                    "Article Date": article_date,
+                    "Database table": database_table,
+                    "BU": bu,
+                    "Super-Category": super_category,
+                    "Category": category,
+                    "Sub-Category": sub_category,
+                    "Vertical": vertical,
+                    "Brand": brand,
+                    "Item ID": item_id
+                    }
+                return_this.append(row_dict)
+            
     conn.close()
-    fsn_dict = {
-        "FSN": fsn,
-        "Status": status,
-        "Description Type": description_type,
-        "Writer ID": writer_id,
-        "Writer Name": writer_name,
-        "Article Date": article_date,
-        "Database table": database_table,
-        "BU": bu,
-        "Super-Category": super_category,
-        "Category": category,
-        "Sub-Category": sub_category,
-        "Vertical": vertical,
-        "Brand": brand,
-        "Item ID": item_id
-        }
-    return fsn_dict
+    return return_this
 
 
 def seekItemID(user_id, password, item_id):
@@ -1677,7 +1732,6 @@ def getAuditCountForMonth(user_id, password, query_date, query_user=None):
 
 def getAuditCountForQuarter(user_id, password, query_date, query_user=None):
     """"""
-    """"""
     if query_user is None:
         query_user = user_id
     query_month = query_date.month
@@ -1900,11 +1954,14 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     #print writer_dates_data
     for piggy_entry in piggy_bank_data:
         entry_date = piggy_entry["Article Date"]
-        if not use_category_tree:
-            target = piggy_entry["Target"]
+        if entry_date in working_dates:
+            if not use_category_tree:
+                target = piggy_entry["Target"]
+            else:
+                target = getTargetForPiggyBankRow(user_id, password, piggy_entry, category_tree)
+            writer_dates_data[entry_date]["Targets"].append(target)
         else:
-            target = getTargetForPiggyBankRow(user_id, password, piggy_entry, category_tree)
-        writer_dates_data[entry_date]["Targets"].append(target)
+            printMessage("Skipped %s because %s is a leave."%(piggy_entry["FSN"], entry_date))
     #print writer_dates_data
     corrected_targets = []
     for date_ in working_dates:
@@ -2360,7 +2417,53 @@ def getCategoryTree(user_id, password):
     #print brandTuple #debug
     return data_frame
 
+def findFSN(user_id, password, fsn):
+    """New method to find an FSN and get details for the search."""
+    #Makes a list of [writing_date, description_type, writer_name] for each valid search result.
+    import pandas as pd
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    #First, check if the FSN was written on this date.
+    sqlcmdstring = """SELECT * FROM `piggybank` WHERE `FSN` = '%s';""" % (fsn)
+    cursor.execute(sqlcmdstring)
+    data = cursor.fetchall()
+    was_written_before = True if len(data)>0 else False
+    if was_written_before:
+        if len(data) == 1:
+            writing_details = [data[0]["Article Date"], data[0]["Description Type"], data[0]["Writer Name"]]
+        else:
+            writing_details = [[row["Article Date"], row["Description Type"], row["Writer Name"]] for row in data]
+    else:
+        sqlcmdstring = """SELECT * FROM `fsndump` WHERE `FSN` = '%s';""" % (fsn)
+        cursor.execute(sqlcmdstring)
+        data = cursor.fetchall()
+        was_written_before = True if len(data)>0 else False
+        if was_written_before:
+            no_record = "No Record (Pulled from FSN Dump)"
+            if len(data) == 1:
+                writing_details = [no_record, data[0]["Description Type"], no_record]
+            else:
+                writing_details = [[no_record, row["Description Type"], no_record] for row in data]
+    if not(was_written_before):
+        writing_details = []
+    conn.close()
+    column_names = ["Writer Name","Description Type","Article Date"]
+    if len(writing_details) <=0:
+        return pd.DataFrame(index=None, columns=column_names)
+    else:
+        return pd.DataFrame(writing_details, columns=column_names)
+
+#DEPRECATE
+#DEPRECATE
+#DEPRECATE
+#DEPRECATE
+#DEPRECATE
 def checkDuplicacy(FSN, articleType, articleDate):
+#DEPRECATE
+#DEPRECATE
+#DEPRECATE
+#DEPRECATE
+#DEPRECATE
     """Working Principle:
     1. Check if the FSN has been entered in the piggybank on the same date. Return "Local" if found.
     2. Else, check if the FSN has been entered in the piggybank on some other date.
@@ -2370,6 +2473,7 @@ def checkDuplicacy(FSN, articleType, articleDate):
     3. Else, check the fsndump using the same logic as step #2.
     4. Return False if not found.
     """
+    print "MOSES.checkDuplicacy is deprecated. Don't use this."
     wasWrittenBefore = False
     user_id, password = getBigbrotherCredentials()
     connectdb = getOINKConnector(user_id, password)
@@ -2385,7 +2489,7 @@ def checkDuplicacy(FSN, articleType, articleDate):
         #For RPD, it should search for RPD, RPD Plan A and RPD Plan B.
         #Check the first 24 letters as the type could be Plan A or Plan B as well.
         isRPD = False
-        if articleType[:24] == "Rich Product Description":
+        if "Rich Product Description" in articleType:
             isRPD = True
             sqlcmdstring = """SELECT * FROM `piggybank` 
             WHERE `FSN` = '%s' AND (`Description Type`="Rich Product Description" OR 
