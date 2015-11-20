@@ -12,6 +12,7 @@ from CategorySelector import CategorySelector
 from PiggyBankSummarizer import PiggyBankSummarizer
 from CopiableQTableWidget import CopiableQTableWidget
 from DescriptionTypeSelector import DescriptionTypeSelector
+
 class PiggyBankWithFilter(QtGui.QWidget):
     def __init__(self, user_id, password, category_tree=None, brands=None):
         super(PiggyBankWithFilter, self).__init__()

@@ -3852,6 +3852,9 @@ def getDBR(user_id, password, query_date, category_tree):
     pd_filter = data_frame[data_frame["Description Type"].str.contains("Regular Description")]
     pd_count = len(list(pd_filter["FSN"]))
 
+    usp_filter = data_frame[data_frame["Description Type"].str.contains("USP")]
+    usp_count = len(list(usp_filter["FSN"]))
+
     efficiency = getEfficiencyForTeamFor(user_id, password, query_date,category_tree)
     quality, fatals = getOverallQualityBetweenDates(user_id, password, query_date, query_date, use_all=True)
 
@@ -3889,8 +3892,8 @@ def getDBR(user_id, password, query_date, category_tree):
         ["Buying Guides Planned","-"],
         ["Buying Guides Completed","-"],
         ["Buying Guides Pending","-"],
-        ["USP Images Planned","-"],
-        ["USP Images Completed","-"],
+        ["USP Images Planned",usp_count],
+        ["USP Images Completed",usp_count],
         ["USP Images Pending","-"],
         ["Overall Helpfulness - RPD","-"],
         ["Desktop Helpfulness","-"],
@@ -3986,7 +3989,9 @@ def getWBR(user_id, password, query_date, category_tree):
     for each_date in dates_list:
         filtered_piggy_bank = piggy_bank[piggy_bank["Article Date"] == each_date]
 
-        article_count = len(list(filtered_piggy_bank["FSN"]))
+        usp_image_count = len(list(filtered_piggy_bank[filtered_piggy_bank["Description Type"].str.contains("USP")]["FSN"]))
+        
+        article_count = len(list(filtered_piggy_bank["FSN"])) - usp_image_count
         non_uploaded_article_count = len(list(filtered_piggy_bank[filtered_piggy_bank["Description Type"].str.contains("SEO")]["FSN"]))
         uploaded_article_count = article_count - non_uploaded_article_count
 

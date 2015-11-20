@@ -80,10 +80,10 @@ class Pork(QtGui.QMainWindow):
 
     def mapThreads(self):
         init_date = datetime.date.today()
-        if self.user_id == "62487":
-            init_date = datetime.date(2015,6,10)
-            self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
-            self.alertMessage("Heil Vinay!", "Changing the date to %s so that you have data to look at."%init_date)
+        #if self.user_id == "62487":
+        #    init_date = datetime.date(2015,6,10)
+        #    self.workCalendar.setSelectedDate(QtCore.QDate(init_date))
+        #    self.alertMessage("Heil Vinay!", "Changing the date to %s so that you have data to look at."%init_date)
         self.piggybanker_thread = PiggyBanker(self.user_id, self.password, init_date, category_tree=self.category_tree)
         self.piggybanker_thread.piggybankChanged.connect(self.populateTable)
         #Main thread that supplies daily data based on PORK activities, such as calendar action and entering FSNs.

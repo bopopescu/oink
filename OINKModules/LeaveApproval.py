@@ -111,6 +111,7 @@ class LeaveApproval(QtGui.QWidget):
         self.employees_selection_box.changedSelection.connect(self.applyFilters)
         self.save_selected_button.clicked.connect(self.saveSelected)
         self.save_all_button.clicked.connect(self.saveAll)
+        self.all_button.clicked.connect(self.employees_selection_box.selectAll)
 
     def saveSelected(self):
         if self.selected_name:

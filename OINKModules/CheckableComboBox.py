@@ -65,7 +65,7 @@ class CheckableComboBox(QtGui.QComboBox):
                 item.setCheckState(QtCore.Qt.Unchecked)
         self.reset()
 
-    def select(self, query):
+    def select(self, query, mute=None):
         if type(query) == str:
             rows = self.model().rowCount()
             found_item = False
@@ -79,12 +79,28 @@ class CheckableComboBox(QtGui.QComboBox):
                             item.setCheckState(QtCore.Qt.Checked)
                 else:
                     break
-            if found_item:
+            if found_item and mute is not None:
                 self.reset()
                 self.changedSelection.emit(True)
         elif type(query) == list:
             for query_item in query:
-                self.select(query_item)
+                self.select(query_item, True)
+            self.reset()
+            self.changedSelection.emit(True)
+
+    def selectIfTextFound(self, query_string):
+        rows = self.model().rowCount()
+        found_item = False
+        for item_index in range(rows)[1:]:
+            item = self.model().item(item_index)
+            item_text = str(item.text())
+            if (query_string in item_text):
+                found_item = True
+                if (item.checkState() != QtCore.Qt.Checked):
+                    item.setCheckState(QtCore.Qt.Checked)
+        if found_item:
+            self.reset()
+            self.changedSelection.emit(True)
 
     def selectAll(self):
         rows = self.model().rowCount()
