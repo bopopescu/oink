@@ -648,9 +648,9 @@ class Pork(QtGui.QMainWindow):
                     writer_name = list(today_and_type_filtered_df["Writer Name"])[0]
                     reason = "A(n) %s article was written today for %s by %s."%(description_type, fsn, writer_name)
                 else:
-                    #If the same type was not written today:                        
+                    #If the same type was not written today:
                     override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
-                    written_dates = list(type_filtered_data_frame["Article Date"])
+                    written_dates = list([str(x) for x in type_filtered_data_frame["Article Date"]])
                     writer_names = list(type_filtered_data_frame["Writer Name"])
                     dates_string = written_dates[0] if len(written_dates)== 1 else ", ".join(written_dates)
                     names_string = writer_names[0] if len(writer_names)==1 else ", ".join(writer_names)
@@ -758,7 +758,7 @@ class Pork(QtGui.QMainWindow):
         selected_date = self.getActiveDate()
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), self.last_working_date]
 
-        if getpass.getuser() != "vinay.keerthi":
+        if getpass.getuser() not in MOSES.getAdminList(self.user_id, self.password):
             if selected_date not in dates_user_is_allowed_to_manipulate:
                 allowAction = False
                 self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")

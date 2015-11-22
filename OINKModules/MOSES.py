@@ -891,12 +891,23 @@ def getWorkingDatesLists(query_date, group_size=None, quantity=None):
             dates_list.append(processing_date)
             no_of_working_dates += 1
         processing_date -= datetime.timedelta(days=1)
-
     dates_lists = [[dates_list.pop() for y in range(group_size)] for x in range(quantity)]
     for dates_ in dates_list:
         dates_.sort()
     dates_list.sort()
     return dates_lists
+
+def getAdminList(user_id, password):
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = "SELECT * from admin_list;"
+    try:
+        cursor.execute(sqlcmdstring)
+        return_list = list(pd.DataFrame.from_records(cursor.fetchall())["user_name"])
+    except:
+        return_list = []
+    conn.close()
+    return return_this
 
 def updatePiggyBankEntry(entry_dict, user_id, password):
     """Method to update the values in an entry in the piggybank. This cross-checks the FSN with the date. 
@@ -909,7 +920,7 @@ def updatePiggyBankEntry(entry_dict, user_id, password):
             `Brand` = '%(Brand)s', `Word Count` = '%(Word Count)s', `Upload Link` = '%(Upload Link)s', 
             `Reference Link` = '%(Reference Link)s', `Rewrite Ticket` = '%(Rewrite Ticket)s'
             WHERE `FSN` = '%(FSN)s' AND `Article Date` = '%(Article Date)s' 
-            AND `WriterID` = '%(WriterID)s';""" % query_dict
+            AND `WriterID` = '%(WriterID)s';""" %query_dict
 
     success = False
     connectdb = getOINKConnector(user_id, password)
