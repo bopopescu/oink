@@ -28,7 +28,6 @@ def main():
     try:
         from OINKModules.Registron import Registron
         registron = Registron()
-        pass
     except Exception, e:
         print repr(e)
         pass

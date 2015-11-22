@@ -30,7 +30,7 @@ class CategoryFinder(QtGui.QHBoxLayout):
         self.search_string_line_edit = QtGui.QLineEdit()
         self.search_string_line_edit.setToolTip("Type what you'd like to find. One query at a time.")
         self.search_string_line_edit.setMinimumWidth(150)
-        suggestions = sorted(set(list(self.category_tree["Vertical"]) + list(self.category_tree["BU"]) + list(self.category_tree["Super-Category"])+ list(self.category_tree["Category"]) + list(self.category_tree["Sub-Category"]))
+        suggestions = sorted(set(list(self.category_tree["Vertical"]) + list(self.category_tree["BU"]) + list(self.category_tree["Super-Category"])+ list(self.category_tree["Category"]) + list(self.category_tree["Sub-Category"])))
         completer = QtGui.QCompleter(suggestions)
         self.search_string_line_edit.setCompleter(completer)
 

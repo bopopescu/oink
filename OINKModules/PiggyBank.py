@@ -43,7 +43,7 @@ class PiggyBank(CopiableQTableWidget):
                     text_color = QtGui.QColor(0, 0, 0)
                     
                     if self.targets_data[row_index] == 0:
-                        cell_color = QtGui.QColor(255, 0, 0, 50) #Transparent red.
+                        cell_color = QtGui.QColor(255, 0, 0, 250) #Transparent red.
                     elif self.targets_data[row_index] == -1:
                         cell_color = QtGui.QColor(0, 0, 0, 10)
                         text_color = QtGui.QColor(255, 0, 0)

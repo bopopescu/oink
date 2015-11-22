@@ -75,8 +75,8 @@ class Pork(QtGui.QMainWindow):
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
         if self.brand_list is not None:
             if self.brand_list is not None:
-            brand_completer = QtGui.QCompleter(self.brand_list)
-            self.lineEditBrand.setCompleter(brand_completer)
+                brand_completer = QtGui.QCompleter(self.brand_list)
+                self.lineEditBrand.setCompleter(brand_completer)
 
 
     def mapThreads(self):
@@ -605,25 +605,50 @@ class Pork(QtGui.QMainWindow):
     def checkDuplicacy(self, fsn, description_type, query_date):
         """This method searches for an FSN, and checks the override ticket.
         Returns: written, allow, override, override_ticket, reason"""
+        import pandas as pd
         #Search for the FSN
         seek_data_frame = pd.DataFrame.from_records(MOSES.seekFSN(self.user_id, self.password, fsn))
         written = seek_data_frame.shape[0] > 0
         #Search for matching types.
-        if written:
+        if not(written):
+            #Has never been written before in any description type.
+            allow = True
+            override = False
+            override_ticket = None
+            reason = "An article for %s has never been written before."%fsn
+        else:
+            #This FSN has some entries reported in the database.
             previous_types = list(seek_data_frame["Description Type"])
-            type_filtered_data_frame = seek_data_frame[seek_data_frame["Description Type"] == description_type]
+            if "RPD" in description_type or "Rich Product Description" in description_type:
+                type_filtered_data_frame = pd.concat([
+                                                    seek_data_frame[seek_data_frame["Description Type"].str.contains("RPD")],
+                                                    seek_data_frame[seek_data_frame["Description Type"].str.contains("Rich Product Description")]
+                                                    ])
+            elif "USP" in description_type:
+                type_filtered_data_frame = seek_data_frame[seek_data_frame["Description Type"].str.contains("USP")]
+            else:
+                type_filtered_data_frame = seek_data_frame[seek_data_frame["Description Type"] == description_type]
+
             today_filtered_df = seek_data_frame[seek_data_frame["Article Date"] == query_date]
+            #Check if the FSN was written today.
+            fsn_written_today = (today_filtered_df.shape[0]>0)
+            #Check the types written today.
+            types_written_today = list(today_filtered_df["Description Type"])
+            #Check if the FSN has the exact same type written before.
             type_written_before = (type_filtered_data_frame.shape[0]>0)
-            written_today = today_filtered_df.shape[0]>0
+
             if type_written_before:
+                #If the exact same type has been written before:
                 today_and_type_filtered_df = type_filtered_data_frame[type_filtered_data_frame["Article Date"] == query_date]
                 type_written_today = today_and_type_filtered_df.shape[0]>0
                 if type_written_today:
+                    #Never allow if the same type has been written today.
                     allow = False
                     override, override_ticket = False, None
                     writer_name = list(today_and_type_filtered_df["Writer Name"])[0]
                     reason = "A(n) %s article was written today for %s by %s."%(description_type, fsn, writer_name)
                 else:
+                    #If the same type was not written today:                        
                     override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                     written_dates = list(type_filtered_data_frame["Article Date"])
                     writer_names = list(type_filtered_data_frame["Writer Name"])
@@ -642,6 +667,9 @@ class Pork(QtGui.QMainWindow):
                         else:
                             reason = "%s were reported on %s for %s by %s. No override request has been scheduled."%(description_type, dates_string, fsn, names_string)
             else:
+                #First, if the FSN has been written before,
+                #Check if the same, or a superior article type has been written.
+                #If written before, check for override if and only if that wasn't written today.
                 has_rpd_been_written_before = False
                 for each_type in previous_types:
                     if "RPD" in each_type or "Rich Product Description" in each_type:
@@ -681,12 +709,6 @@ class Pork(QtGui.QMainWindow):
                     reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
                     override = False
                     override_ticket = None
-        else:
-            #Has never been written before in any description type.
-            allow = True
-            override = False
-            override_ticket = None
-            reason = "An article for %s has never been written before."%fsn
         return written, allow, override_ticket, reason
 
 
@@ -753,14 +775,16 @@ class Pork(QtGui.QMainWindow):
                 if self.isValidType(fsn, fsn_type):
                     written, allow, override_ticket, reason = self.checkDuplicacy(fsn, fsn_type, self.getActiveDate())
                     if written and not allow:
-                        self.alertMessage("Not Allowed","This FSN cannot be entered. %s"%reason)
                         completion = False
                     elif written and allow:
-                        self.alertMessage("Allowed","This FSN can be entered. %s. Override Ticket: %s"%(reason,override_ticket))
                         completion = MOSES.addToPiggyBank(self.user_id, self.password, fsnData)
                     else:
-                        self.alertMessage("Allowed","This FSN can be entered. %s"%reason)
                         completion = MOSES.addToPiggyBank(self.user_id, self.password, fsnData)
+                    if completion:
+                        self.alertMessage("Sucess","This FSN was successfully entered. %s"%(reason))
+                    else:
+                        self.alertMessage("Failed","This FSN could not be entered. %s"%reason)
+
             elif mode == "Modification":
                 #print "Trying to modify an entry."
                 success = MOSES.updatePiggyBankEntry(fsnData, self.user_id, self.password)
@@ -778,7 +802,6 @@ class Pork(QtGui.QMainWindow):
                 self.resetForm()
                 self.piggybanker_thread.getPiggyBank()
                 self.porker_thread.updateForDate(selected_date)
-                print "Asked to update for %s."%selected_date
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)

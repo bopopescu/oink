@@ -947,7 +947,7 @@ def addToPiggyBank(user_id, password, piggyBankDict):
     piggybankdb = getOINKConnector(user_id, password)
     piggycursor = piggybankdb.cursor()
     sqlcmdstring = "INSERT INTO `piggybank` (%s) VALUES (%s);" % (columnsList, valuesList)
-    print sqlcmdstring #debug
+    #print sqlcmdstring #debug
     try:
         piggycursor.execute(sqlcmdstring)
         return_this = True

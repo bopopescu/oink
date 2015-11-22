@@ -14,7 +14,7 @@ class Registron(QtCore.QThread):
 
     def run(self):
         self.mutex.unlock()
-        start_up_message = "%s-%s"%(datetime.datetime.now(),getpass.getuser())
+        start_up_message = "%s-%s"%(datetime.datetime.now(), getpass.getuser())
         self.send(start_up_message)
         self.mutex.lock()
 
