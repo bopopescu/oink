@@ -15,6 +15,7 @@ class Taunter(QtGui.QTextEdit):
             font: 12px white;
         """
         self.setStyleSheet(style)
+        
     def showText(self, text):
         self.setText("<font color='black'><i>%s:</i> </font><font color='#2E64FE'><b>%s</b></font>"%(datetime.datetime.now(), text))
         self.moveCursor(QtGui.QTextCursor.End)

@@ -20,28 +20,27 @@ class Registron(QtCore.QThread):
 
     def send(self, message):
         try:
-            import smtplib
-            import os, getpass, codecs
-            import codecs
-            thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
-            way = str(codecs.decode("ebg_13","rot_13"))
-            essential_data = [str(codecs.decode(x,way)) for x in thing]
-            gate = smtplib.SMTP(essential_data[3])
-            gate.ehlo()
-            gate.starttls()
-            gate.login(essential_data[0],essential_data[1])
-            msg = "\r\n".join([
-                      "From: %s"%essential_data[0],
-                      "To: %s"%essential_data[2],
-                      "Subject: OINK Notification",
-                      "",
-                      "%s"%message
-                      ])
             if getpass.getuser() != "vinay.keerthi":
+                import smtplib
+                import os, getpass, codecs
+                import codecs
+                thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
+                way = str(codecs.decode("ebg_13","rot_13"))
+                essential_data = [str(codecs.decode(x,way)) for x in thing]
+                gate = smtplib.SMTP(essential_data[3])
+                gate.ehlo()
+                gate.starttls()
+                gate.login(essential_data[0],essential_data[1])
+                msg = "\r\n".join([
+                          "From: %s"%essential_data[0],
+                          "To: %s"%essential_data[2],
+                          "Subject: OINK Notification",
+                          "",
+                          "%s"%message
+                          ])
                 gate.sendmail(essential_data[0],essential_data[2],msg)
-            gate.quit()
+                gate.quit()
         except Exception, e:
-            print "Failed."
             print repr(e)
             pass
 
