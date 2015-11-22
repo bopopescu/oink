@@ -15,6 +15,7 @@ from ProgressBar import ProgressBar
 from ImageLabel import ImageLabel
 from CheckableComboBox import CheckableComboBox
 from FilterForm import FilterForm
+from CopiableQTableWidget import CopiableQTableWidget
 
 class TNAViewer(QtGui.QWidget):
     def __init__(self, user_id, password, category_tree, viewer_level=None, *args, **kwargs):
@@ -115,8 +116,12 @@ class TNAViewer(QtGui.QWidget):
                         ]
         self.plot_type_combobox.addItems(self.plot_types)
         self.plot_separate_charts_for_each_parameter = QtGui.QCheckBox("Parameter Charts")
+        
         self.use_minimum_acceptable_scores = QtGui.QCheckBox("Consider an acceptable article to be the base")
         self.use_minimum_acceptable_scores.setToolTip("If checked, the tool will plot charts by considering an article with\n96% CFM and 95% GSEO article to be the base.\nOtherwise, it compares scores against a 100 article.")
+        
+        self.use_rejected_audits = QtGui.QCheckBox("Use Rejected Audits")
+        self.use_rejected_audits.setToolTip("If checked, the tool will also consider rejected audits for analysis.")
 
         self.load_data_button = QtGui.QPushButton("Load Data")
         self.plot_button = QtGui.QPushButton("Plot Charts")
@@ -141,8 +146,9 @@ class TNAViewer(QtGui.QWidget):
         plot_options_row_1.addWidget(self.plot_separate_charts_for_each_parameter,0)
         plot_options_layout.addLayout(plot_options_row_1)
 
-        plot_options_row_2 = QtGui.QHBoxLayout()
+        plot_options_row_2 = QtGui.QVBoxLayout()
         plot_options_row_2.addWidget(self.use_minimum_acceptable_scores,1)
+        plot_options_row_2.addWidget(self.use_rejected_audits,1)
         plot_options_layout.addLayout(plot_options_row_2)
         
         plot_options_row_3 = QtGui.QHBoxLayout()
@@ -162,7 +168,7 @@ class TNAViewer(QtGui.QWidget):
 
         self.plot_viewer_group = QtGui.QGroupBox("Charts and Data")
         self.plot_viewer = ImageLabel()
-        self.plot_data_table = QtGui.QTableWidget(0,0)
+        self.plot_data_table = CopiableQTableWidget(0,0)
 
         self.plot_tabs = QtGui.QTabWidget()
         self.plot_tabs.addTab(self.plot_data_table, "Data")
@@ -316,7 +322,7 @@ class TNAViewer(QtGui.QWidget):
             comparison_bar_graphs = ax.bar(x_positions+width, comparison_data_list, width, color='g')
             ax.legend((base_bar_graphs[0], comparison_bar_graphs[0]), (base_label, reference_label))
         
-        self.showDataFrames(summary_data_frame)
+        self.plot_data_table.showDataFrame(dataframe)
         plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.5)
         filename = os.path.join(os.getcwd(),"cache","Pareto_%s_vs_%s_%s.png"%(base_label.replace(" ","_"), reference_label.replace(" ","_"), time_stamp))
 
@@ -333,26 +339,6 @@ class TNAViewer(QtGui.QWidget):
         else:
             output_text = base_text
         return output_text
-
-    def showDataFrames(self, dataframe):
-        row_count = dataframe.shape[0]
-        column_count = dataframe.shape[1]
-        self.plot_data_table.setRowCount(row_count)
-        self.plot_data_table.setColumnCount(column_count)
-
-        for row_index in range(row_count):
-            for col_index in range(column_count):
-                self.plot_data_table.setItem(row_index, col_index, QtGui.QTableWidgetItem(str(dataframe.iat[row_index, col_index])))
-        self.plot_data_table.setHorizontalHeaderLabels(list(dataframe.columns))
-        self.plot_data_table.setVerticalHeaderLabels(list(dataframe.index))
-        self.plot_data_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.plot_data_table.verticalHeader().setStretchLastSection(False)
-        self.plot_data_table.verticalHeader().setVisible(True)
-
-        self.plot_data_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.plot_data_table.horizontalHeader().setStretchLastSection(True)
-        self.plot_data_table.horizontalHeader().setVisible(True)     
-
     
     def getMaximumScoreForParameter(self, parameter_name):
         matching_indices = self.audit_parameters_dataframe["Column Descriptions"]==parameter_name
@@ -362,6 +348,7 @@ class TNAViewer(QtGui.QWidget):
         else:
             maximum_score = "No" #No denotes that there's no fatal.
         return maximum_score
+        
     def getMinimumScoreForParameter(self, parameter_name):
         matching_indices = self.audit_parameters_dataframe["Column Descriptions"]==parameter_name
         rating_type = list(self.audit_parameters_dataframe[matching_indices]["Rating Type"])[0]
@@ -396,9 +383,18 @@ class TNAViewer(QtGui.QWidget):
         self.plot_button.setEnabled(False)
         base_filter = self.base_data_set_group.getFilters()
         comparison_filter = self.comparison_data_set_group.getFilters()
-
-        self.base_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, base_filter)
-        self.comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter)
+        if self.use_rejected_audits.isChecked():
+            self.base_data_set = pd.concat([
+                                        MOSES.getRawDataWithFilters(self.user_id, self.password, base_filter),
+                                        MOSES.getRawDataWithFilters(self.user_id, self.password, base_filter, rejected=True)
+                                        ])
+            self.comparison_data_set = pd.concat([
+                                        MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter),
+                                        MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter, rejected=True)
+                                        ])
+        else:
+            self.base_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, base_filter)
+            self.comparison_data_set = MOSES.getRawDataWithFilters(self.user_id, self.password, comparison_filter)
 
         if self.base_data_set is not None:
             base_count = self.base_data_set.shape[0]
