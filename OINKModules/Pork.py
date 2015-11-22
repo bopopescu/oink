@@ -476,7 +476,7 @@ class Pork(QtGui.QMainWindow):
         self.alertMessage("Feature unavailable","The Relaxation tool is still under development")
 
     def openTNA(self):
-        self.tna_viewer = TNAViewer(self.user_id, self.password, self.category_tree)
+        self.tna_viewer = TNAViewer(self.user_id, self.password, self.category_tree, lock_users=True)
 
     def notify(self,title,message):
         """PORK Window: Method to show a tray notification"""

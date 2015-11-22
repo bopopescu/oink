@@ -1896,7 +1896,7 @@ def getEfficiencyForDateRange(user_id, password, start_date, end_date, query_use
     5. For all dates on or after 11 May, add the relaxation efficiency.
     """
     def printMessage(msg):
-        debugging = True
+        debugging = False
         if debugging:
             print "MOSES.getEfficiencyForDateRange.msg: %s"%msg
     import numpy
@@ -4080,7 +4080,7 @@ def getWBR(user_id, password, query_date, category_tree):
         
         actual_audit_count = scored_audit_count + rejected_audit_count
         expected_audit_count = actual_audit_count
-        
+
         quality, fatals = getOverallQualityBetweenDates(user_id, password, each_date, each_date, use_all=True)
         
         if quality is None:

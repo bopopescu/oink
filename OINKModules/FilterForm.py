@@ -41,15 +41,14 @@ from CategorySelector import CategorySelector
 class FilterForm(QtGui.QGroupBox):
     changedStartDate = QtCore.pyqtSignal()
     changedFilter = QtCore.pyqtSignal()
-    def __init__(self, user_id, password, color, category_tree, viewer_level, *args, **kwargs):
+
+    def __init__(self, user_id, password, color, category_tree, *args, **kwargs):
         super(FilterForm, self).__init__(*args, **kwargs)
         self.user_id = user_id
         self.password = password
         self.category_tree = category_tree
-        self.viewer_level = viewer_level
-        #the viewer level controls the scope of the program.
-        #A Level 0 limits the visibility to the current user, and shows the team's quality in comparison.
-        #A level 1 allows choosing the users.
+        self.user_name = MOSES.getEmpName(self.user_id)
+        self.lock_mode = None
         self.createUI()
         self.mapEvents()
         self.all_button.setChecked(True)
@@ -62,7 +61,7 @@ class FilterForm(QtGui.QGroupBox):
         self.filter_legend.setToolTip("Type a meaningful name for this data set here.\nTry avoiding special characters as they could result in errors.")
 
         self.writer_label = QtGui.QLabel("Writer(s):")
-        self.writer_combobox = CheckableComboBox("Writer")
+        self.writer_combobox = CheckableComboBox("Writers")
         self.editor_label = QtGui.QLabel("Editor(s):")
         self.editor_combobox = CheckableComboBox("Editors")
 
@@ -146,6 +145,25 @@ class FilterForm(QtGui.QGroupBox):
         layout.addLayout(self.category_selector, 2)
         self.setLayout(layout)
 
+    def lock(self, lock_mode=None):
+        if lock_mode is not None:
+            self.lock_mode = lock_mode
+        if self.lock_mode is not None:
+            self.editor_combobox.clearSelection()
+            self.editor_combobox.setEnabled(False)
+            self.editor_all_button.setEnabled(False)
+            self.editor_clear_button.setEnabled(False)
+            if self.lock_mode == 1:
+                self.writer_combobox.clearSelection()
+                self.writer_combobox.select(self.user_name)
+                self.writer_combobox.setEnabled(False)
+                self.writer_all_button.setEnabled(False)
+                self.writer_clear_button.setEnabled(False)
+            elif self.lock_mode == 2:
+                self.writer_combobox.clearSelection()
+                self.writer_combobox.selectAll()
+                self.writer_combobox.setEnabled(False)
+
     def mapEvents(self):
         self.all_button.toggled.connect(self.toggleAll)
         self.pd_button.toggled.connect(self.toggleTypes)
@@ -184,10 +202,14 @@ class FilterForm(QtGui.QGroupBox):
 
     def clearWriters(self):
         self.writer_combobox.clearSelection()
+        if self.lock_mode is not None:
+            if self.lock_mode == 2:
+                self.writer_combobox.select(self.user_name)
+
+
     
     def clearEditors(self):
         self.editor_combobox.clearSelection()
-
 
     def changeDateType(self):
         if self.select_all_data.isChecked():
@@ -196,8 +218,6 @@ class FilterForm(QtGui.QGroupBox):
         else:
             self.date_field_start.setEnabled(True)
             self.date_field_end.setEnabled(True)
-
-
 
     def getLabel(self):
         return str(self.filter_legend.text()).strip()
@@ -208,6 +228,7 @@ class FilterForm(QtGui.QGroupBox):
             self.rpd_button.setChecked(True)
             self.seo_button.setChecked(True)
             self.all_button.setEnabled(False)
+
     def toggleTypes(self):
         if self.pd_button.isChecked() and self.rpd_button.isChecked() and self.seo_button.isChecked():
             self.all_button.setChecked(True)
@@ -248,7 +269,6 @@ class FilterForm(QtGui.QGroupBox):
             description_type.append("RPD")
         if get_seo:
             description_type.append("SEO")
-
 
         filter_settings = {
                     "Category Tree":category_tree_filter if category_tree_filter.shape[0]>0 else None,

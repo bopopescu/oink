@@ -18,7 +18,7 @@ from FilterForm import FilterForm
 from CopiableQTableWidget import CopiableQTableWidget
 
 class TNAViewer(QtGui.QWidget):
-    def __init__(self, user_id, password, category_tree, viewer_level=None, *args, **kwargs):
+    def __init__(self, user_id, password, category_tree, lock_users=None, *args, **kwargs):
         super(TNAViewer, self).__init__(*args, **kwargs)
         self.user_id = user_id
         self.password = password
@@ -28,10 +28,11 @@ class TNAViewer(QtGui.QWidget):
         #the viewer level controls the scope of the program.
         #A Level 0 limits the visibility to the current user, and shows the team's quality in comparison.
         #A level 1 allows choosing the users.
-        if (viewer_level is not None) and  viewer_level in [0, 1]:
-            self.viewer_level = viewer_level
+        if lock_users is not None:
+            self.lock_users = lock_users
         else:
-            self.viewer_level = 0
+            self.lock_users = False
+
         self.createUI()
         self.mapEvents()
         self.initiate()
@@ -40,6 +41,10 @@ class TNAViewer(QtGui.QWidget):
         self.populateBaseEditorAndWritersList()
         self.populateComparisonEditorAndWritersList()
         self.populateAuditParameters()
+        if self.lock_users:
+            self.base_data_set_group.lock(1)
+            self.comparison_data_set_group.lock(2)
+            self.alertMessage("PORK Mode!","Welcome to the PORK Mode of the TNA Viewer. This is a simpler mode, which allows you, a writer, to compare yourself with your teammates, or compare your present performance with your past performance.")
 
     def populateBaseEditorAndWritersList(self):
         self.base_data_set_group.populateEditorAndWritersList()
@@ -61,16 +66,13 @@ class TNAViewer(QtGui.QWidget):
                                             self.password,    
                                             (0,0,0),   
                                             self.category_tree,   
-                                            self.viewer_level,    
                                             "Base Data Set")
         self.comparison_data_set_group = FilterForm(
                                             self.user_id, 
                                             self.password, 
                                             (0,0,0), 
                                             self.category_tree, 
-                                            self.viewer_level, 
                                             "Comparison Data Set")
-
 
         self.analysis_parameters_group = QtGui.QGroupBox("Analysis Parameters")
         self.parameters_label = QtGui.QLabel("Compare:")
@@ -105,16 +107,10 @@ class TNAViewer(QtGui.QWidget):
         self.plot_type_label = QtGui.QLabel("Plot:")
         self.plot_type_combobox = CheckableComboBox("Chart Types")
         self.plot_types = [
-                            "Histogram",
-                            "Pareto",
-                            "Daily Trend",
-                            "Weekly Trend",
-                            "Monthly Trend",
-                            "Quarterly Trend",
-                            "Half-Yearly Trend",
-                            "Radar Scatter Chart"
+                            "Pareto"
                         ]
         self.plot_type_combobox.addItems(self.plot_types)
+        self.plot_type_combobox.selectAll()
         self.plot_separate_charts_for_each_parameter = QtGui.QCheckBox("Parameter Charts")
         
         self.use_minimum_acceptable_scores = QtGui.QCheckBox("Consider an acceptable article to be the base")
@@ -348,7 +344,7 @@ class TNAViewer(QtGui.QWidget):
         else:
             maximum_score = "No" #No denotes that there's no fatal.
         return maximum_score
-        
+
     def getMinimumScoreForParameter(self, parameter_name):
         matching_indices = self.audit_parameters_dataframe["Column Descriptions"]==parameter_name
         rating_type = list(self.audit_parameters_dataframe[matching_indices]["Rating Type"])[0]
@@ -361,13 +357,7 @@ class TNAViewer(QtGui.QWidget):
     def getParameterColumnNames(self, audit_parameter_selection):
         audit_parameter_classes = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"].isin(audit_parameter_selection)]["Parameter Class"])
         
-        audit_parameter_class_indices = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"].isin(audit_parameter_selection)]["Parameter Class Index"])
-
-
-        #self.printMessage(audit_parameter_selection)
-        #self.printMessage(audit_parameter_classes)
-        #self.printMessage(audit_parameter_class_indices)
-        
+        audit_parameter_class_indices = list(self.audit_parameters_dataframe[self.audit_parameters_dataframe["Column Descriptions"].isin(audit_parameter_selection)]["Parameter Class Index"])        
         column_names = ["%s%02d"%(x,y) for (x,y) in zip(audit_parameter_classes, audit_parameter_class_indices)]
         #self.printMessage(column_names)
         return column_names
