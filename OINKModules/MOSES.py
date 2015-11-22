@@ -831,8 +831,11 @@ def uploadAuditScoreSheet(user_id, password):
     connectdb.commit()
     connectdb.close()
     
-def getRawDataTableAndAuditParameters(user_id=None, password=None, query_date=None):
-    raw_data_table = 'rawdata'
+def getRawDataTableAndAuditParameters(rejected=None):
+    if rejected is None:
+        raw_data_table = 'rawdata'
+    else:
+        raw_data_table = 'rejected_rawdata'
     CFM = ["CFM01","CFM02","CFM03","CFM04","CFM05","CFM06","CFM07","CFM08"]
     GSEO = ["GSEO01","GSEO02","GSEO03","GSEO04","GSEO05","GSEO06","GSEO07"]
     return raw_data_table, CFM, GSEO
@@ -1792,15 +1795,17 @@ def getRawDataScoringTable(user_id, password, query_date):
     return pd.DataFrame.from_records(data) if len(data)>0 else None
      
 
-def getRawDataWithFilters(user_id, password, data_set_filters):
+def getRawDataWithFilters(user_id, password, data_set_filters, rejected=None):
     """Returns the raw data as a pandas dataframe given a set of filters."""
     import pandas as pd
     def printMessage(msg):
-        if False:
+        allow_print = rejected is not None
+        allow_print = False
+        if allow_print:
             print "MOSES.getRawDataWithFilters: ",msg
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
-    rawdata_table, cfm_keys, gseo_keys = getRawDataTableAndAuditParameters()
+    rawdata_table, cfm_keys, gseo_keys = getRawDataTableAndAuditParameters(rejected)
 
     if data_set_filters.get("Description Types") is not None:
         description_filter_list = []
@@ -1865,7 +1870,7 @@ def getRawDataWithFilters(user_id, password, data_set_filters):
     cursor.execute(sqlcmdstring)
     data = cursor.fetchall()
     conn.close()
-    return pd.DataFrame.from_records(data) if len(data)>0 else None
+    return pd.DataFrame.from_records(data) if len(data)>0 else pd.DataFrame(index=None, columns=getRawDataKeys())
 
 def getWorkCalendarDataBetween(user_id, password, start_date, end_date, query_user=None):
     #What the fuck. I shouldn't be using this ever.
@@ -4059,10 +4064,9 @@ def getWBR(user_id, password, query_date, category_tree):
     piggy_bank = getPiggyBankWithFilters(user_id, password, {"Dates":[start_date, end_date]})
     raw_data = getRawDataWithFilters(user_id, password, {"Dates": [start_date, end_date]})
     dates_list = getWorkingDatesBetween(user_id, password, start_date, end_date, mode="All")
-    
+    rejected_rawdata = getRawDataWithFilters(user_id, password, {"Dates": [start_date, end_date]},rejected=True)
     for each_date in dates_list:
         filtered_piggy_bank = piggy_bank[piggy_bank["Article Date"] == each_date]
-
         usp_image_count = len(list(filtered_piggy_bank[filtered_piggy_bank["Description Type"].str.contains("USP")]["FSN"]))
         
         article_count = len(list(filtered_piggy_bank["FSN"])) - usp_image_count
@@ -4070,9 +4074,12 @@ def getWBR(user_id, password, query_date, category_tree):
         uploaded_article_count = article_count - non_uploaded_article_count
 
         filtered_raw_data = raw_data[raw_data["Audit Date"] == each_date]
-        expected_audit_count = len(list(filtered_raw_data["FSN"]))
-        actual_audit_count = expected_audit_count
-        scored_audit_count = expected_audit_count
+        filtered_rejected_raw_data = rejected_rawdata[rejected_rawdata["Audit Date"] == each_date]
+
+        actual_audit_count = len(list(filtered_raw_data["FSN"]))
+        expected_audit_count = actual_audit_count
+        rejected_audit_count = len(list(filtered_rejected_raw_data["FSN"]))
+        scored_audit_count = actual_audit_count - rejected_audit_count
         quality, fatals = getOverallQualityBetweenDates(user_id, password, each_date, each_date, use_all=True)
         if quality is None:
             quality = "-"
