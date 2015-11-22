@@ -4114,7 +4114,13 @@ def uploadRawDataFromDataFrame(user_id, password, unfiltered_raw_data):
     conn = getOINKConnector(user_id, password)
     cursor = conn.cursor()
     print len(tentatively_accepted_rows), " rows loaded."
+    primary_key_columns = ["Audit Date","Editor ID","WriterID", "FSN"]
     for each_row in raw_data_as_dicts:
+        try:
+            each_row["WS Name"]= str(each_row["WS Name"])
+        except:
+            each_row["WS Name"]= str("Failed Loading WS Name from the Raw Data")
+
         success = False
         columns, values = getDictStrings(each_row)
         sqlcmdstring = "INSERT INTO `rawdata` (%s) VALUES (%s);" % (columns, values)
@@ -4124,9 +4130,13 @@ def uploadRawDataFromDataFrame(user_id, password, unfiltered_raw_data):
             success = True
         except MySQLdb.IntegrityError:
             #print "Integrity Error!"
-            primary_key_columns = ["Audit Date","Editor ID","WriterID", "FSN"]
-            updation_columns = [x for x in each_row.keys() if x not in primary_key_columns]
-            update_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in updation_columns]
+            try:
+                updation_columns = [x for x in each_row.keys() if x not in primary_key_columns]
+                update_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in updation_columns]
+            except:
+                print each_row
+                print sqlcmdstring
+                raise
             update_query = ", ".join(update_field_list)
 
             primary_key_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in primary_key_columns]
@@ -4146,6 +4156,47 @@ def uploadRawDataFromDataFrame(user_id, password, unfiltered_raw_data):
             success = False
         if success:
             accepted_rows += 1
+
+    print "Uploading Rejected Audits."
+    rejected_rows = 0
+    for each_row in rejected_data_frame.to_dict("records"):
+        try:
+            each_row["WS Name"]= str(each_row["WS Name"])
+        except:
+            each_row["WS Name"]= str("Failed Loading WS Name from the Raw Data")
+        success = False
+        columns, values = getDictStrings(each_row)
+        sqlcmdstring = "INSERT INTO `rejected_rawdata` (%s) VALUES (%s);" % (columns, values)
+        try:
+            cursor.execute(sqlcmdstring)
+            conn.commit()
+            success = True
+        except MySQLdb.IntegrityError:
+            #print "Integrity Error!"
+            primary_key_columns = ["Audit Date","Editor ID","WriterID", "FSN"]
+            updation_columns = [x for x in each_row.keys() if x not in primary_key_columns]
+            update_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in updation_columns]
+            update_query = ", ".join(update_field_list)
+
+            primary_key_field_list = ['`%s` = "%s"'%(column, str(each_row[column]).replace('"',"'")) for column in primary_key_columns]
+            primary_key_query = " AND ".join(primary_key_field_list)
+            sqlcmdstring = "UPDATE `rejected_rawdata` SET %s WHERE %s;" % (update_query, primary_key_query)
+            try:
+                cursor.execute(sqlcmdstring)
+                conn.commit()
+                success = True
+            except Exception, err:
+                print repr(err)
+                print sqlcmdstring
+                success = False
+        except Exception, e:
+            print repr(e)
+            print sqlcmdstring
+            success = False
+        if success:
+            rejected_rows += 1
+
+    
     conn.close()
 
     failed_rows = raw_data.shape[0] - accepted_rows - rejected_rows
