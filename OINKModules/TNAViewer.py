@@ -32,7 +32,6 @@ class TNAViewer(QtGui.QWidget):
             self.lock_users = lock_users
         else:
             self.lock_users = False
-
         self.createUI()
         self.mapEvents()
         self.initiate()

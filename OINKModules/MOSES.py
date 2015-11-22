@@ -938,32 +938,31 @@ def updatePiggyBankEntry(entry_dict, user_id, password):
         pass
     return success
 
-def addToPiggyBank(piggyBankDict, user_id, password):
+def addToPiggyBank(user_id, password, piggyBankDict):
     """Method to send a single entry to Piggy Bank from a
     python Dictionary"""
-    #test dictionary
     #merge all keys and values names into one string, separated by commas.
     columnsList, valuesList = getDictStrings(piggyBankDict)
     #rebuildPiggyBank(user_id, password)
     piggybankdb = getOINKConnector(user_id, password)
     piggycursor = piggybankdb.cursor()
     sqlcmdstring = "INSERT INTO `piggybank` (%s) VALUES (%s);" % (columnsList, valuesList)
-    #print sqlcmdstring #debug
+    print sqlcmdstring #debug
     try:
         piggycursor.execute(sqlcmdstring)
-        returnValue = True
+        return_this = True
     except MySQLdb.IntegrityError:
         #error = "Duplicate entry not possible. Request repeat instance approval."
         #print error
         #Raising this in order to increase rewrite ticket 1.
-        returnValue = "Override"
+        return_this = False
     except Exception, e:
         error = repr(e)
         print error
-        returnValue = "Failed" 
+        return_this = False
     piggybankdb.commit()
     piggybankdb.close()
-    return returnValue
+    return return_this
 
 def getDictStrings(inputDict):
     """Takes any dictionary and returns a comma separated string of the 

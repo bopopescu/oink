@@ -39,6 +39,7 @@ class DailyPorker(QtGui.QWidget):
         self.mapEvents()
         self.initiate()
         self.show()
+
     def initiate(self):
         self.center()
         self.populateWritersComboBox()
@@ -54,7 +55,6 @@ class DailyPorker(QtGui.QWidget):
         self.move(70,50)
 
     def createUI(self):
-
         self.start_date_label = QtGui.QLabel("<b>Date:</b>")
         self.start_date_edit = QtGui.QDateTimeEdit()
         self.start_date_edit.setToolTip("Set the date for which you want to generate the report.")
@@ -122,7 +122,6 @@ class DailyPorker(QtGui.QWidget):
 
         self.status = QtGui.QLabel("I'm a Porkitzer Prize Winning Reporter.")
 
-
         options_layout_row_1 = QtGui.QHBoxLayout()
         options_layout_row_1.addWidget(self.start_date_label,0)
         options_layout_row_1.addWidget(self.start_date_edit,1)
@@ -131,7 +130,6 @@ class DailyPorker(QtGui.QWidget):
         options_layout_row_1.addWidget(self.parameters_combobox,1)
         options_layout_row_1.addWidget(self.report_time_frames_combobox,1)
         options_layout_row_1.addStretch(2)
-        
         
         options_layout_row_2 = QtGui.QHBoxLayout()
         options_layout_row_2.addWidget(self.sorting_filter_label,0)

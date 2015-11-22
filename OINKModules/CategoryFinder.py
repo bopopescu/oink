@@ -30,6 +30,10 @@ class CategoryFinder(QtGui.QHBoxLayout):
         self.search_string_line_edit = QtGui.QLineEdit()
         self.search_string_line_edit.setToolTip("Type what you'd like to find. One query at a time.")
         self.search_string_line_edit.setMinimumWidth(150)
+        suggestions = sorted(set(list(self.category_tree["Vertical"]) + list(self.category_tree["BU"]) + list(self.category_tree["Super-Category"])+ list(self.category_tree["Category"]) + list(self.category_tree["Sub-Category"]))
+        completer = QtGui.QCompleter(suggestions)
+        self.search_string_line_edit.setCompleter(completer)
+
 
         self.find_button = QtGui.QPushButton("Find")
         self.find_button.setToolTip("This is the self destruct button. NOT! It's the search button. Watch out Google, I'm coming after you.")
@@ -69,7 +73,7 @@ class CategoryFinder(QtGui.QHBoxLayout):
     def findIdentifier(self):
         """Efficiency Calculator."""
         #functionName = sys._getframe().f_code.co_name
-        search_string = str(self.search_string_line_edit.text()).strip()
+        search_string = str(self.search_string_line_edit.text()).strip().replace(" ","")
         search_criteria = str(self.search_criteria_combo_box.currentText())
         self.result_dataframe = None
         self.use_buttons = []

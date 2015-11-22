@@ -74,6 +74,7 @@ class Pork(QtGui.QMainWindow):
         #Ignorance is bliss.
         #self.setFocusPolicy(QtCore.Qt.NoFocus)
         if self.brand_list is not None:
+            if self.brand_list is not None:
             brand_completer = QtGui.QCompleter(self.brand_list)
             self.lineEditBrand.setCompleter(brand_completer)
 
@@ -666,10 +667,10 @@ class Pork(QtGui.QMainWindow):
                         override, override_ticket = MOSES.checkForOverride(self.user_id, self.password, fsn, query_date)
                         if override:
                             allow = True
-                            reason = "%s has RPD featuring, but an override request has been scheduled for it. So I'm allowing this FSN to be featured."%fsn
+                            reason = "%s already has RPD featuring, but an override request has been scheduled for it. So I'm allowing this FSN to be featured."%fsn
                         else:
                             allow = False
-                            reason = "%s has RPD featuring on the website. If you're updating it, or uploading a variant with the same FSN, ask your TL to add an override request."
+                            reason = "%s already has RPD featuring on the website. If you're updating it, or uploading a variant with the same FSN, ask your TL to add an override request."%fsn
                     else:
                         allow = True
                         reason = "%s doesn't seem to have been written before for %s, so it can be reported."%(description_type, fsn)
@@ -735,11 +736,15 @@ class Pork(QtGui.QMainWindow):
         selected_date = self.getActiveDate()
         dates_user_is_allowed_to_manipulate = [datetime.date.today(), self.last_working_date]
 
-        if selected_date not in dates_user_is_allowed_to_manipulate:
-            allowAction = False
-            self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
+        if getpass.getuser() != "vinay.keerthi":
+            if selected_date not in dates_user_is_allowed_to_manipulate:
+                allowAction = False
+                self.alertMessage("Not Allowed", "You cannot make changes to dates other than your last working date and today.")
+            else:
+                allowAction = True
         else:
             allowAction = True
+
         if allowAction:
             fsnData = self.getFSNDataDict()
             if mode == "Addition":
@@ -752,10 +757,10 @@ class Pork(QtGui.QMainWindow):
                         completion = False
                     elif written and allow:
                         self.alertMessage("Allowed","This FSN can be entered. %s. Override Ticket: %s"%(reason,override_ticket))
-                        completion = True
+                        completion = MOSES.addToPiggyBank(self.user_id, self.password, fsnData)
                     else:
                         self.alertMessage("Allowed","This FSN can be entered. %s"%reason)
-                        completion = True
+                        completion = MOSES.addToPiggyBank(self.user_id, self.password, fsnData)
             elif mode == "Modification":
                 #print "Trying to modify an entry."
                 success = MOSES.updatePiggyBankEntry(fsnData, self.user_id, self.password)

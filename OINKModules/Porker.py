@@ -142,14 +142,14 @@ class Porker(QtCore.QThread):
 
         self.process_dates.extend(list(reversed(sorted(set(self.queue)))))
 
-        if len(self.process_dates)>0: 
-            print self.process_dates
+        #if len(self.process_dates)>0: 
+        #    print self.process_dates
         self.queue = []
 
     def sendStatsAfterUpdatingIfNecessary(self):
         stats = self.stats_data.get(self.stats_date)
         if stats is None:
-            print "Getting stats for %s."%self.stats_date
+            #print "Getting stats for %s."%self.stats_date
             self.updateStats()
             stats = self.stats_data[self.stats_date]
         #else:
@@ -164,11 +164,10 @@ class Porker(QtCore.QThread):
 
     def getStatsFor(self, query_date):
         if self.stats_date != query_date:
-            print "Changing stats date from %s to %s."%(self.stats_date, query_date)
+            #print "Changing stats date from %s to %s."%(self.stats_date, query_date)
             self.stats_date = query_date
-        else:
-            print "No need to change stats date from %s."%self.stats_date
-
+        #else:
+        #    print "No need to change stats date from %s."%self.stats_date
 
     def updateForDate(self, queried_date):
         efficiency = MOSES.getEfficiencyFor(self.user_id, self.password, queried_date, category_tree=self.category_tree)
