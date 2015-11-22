@@ -15,6 +15,7 @@ from FSNTextEdit import FSNTextEdit
 from FilterForm import FilterForm
 from RawDataUploaderThread import RawDataUploaderThread
 from ProgressBar import ProgressBar
+import MOSES
 
 class RawDataManager(QtGui.QWidget):
     def __init__(self, user_id, password, *args, **kwargs):
@@ -37,7 +38,7 @@ class RawDataManager(QtGui.QWidget):
         layout.addWidget(self.progress_log)
         self.setLayout(layout)
         self.setWindowTitle("Raw Data Uploader")
-        #self.setIcon(QtGui.QIcon(os.path.join(MOSES.getPathToImages,"PORK_Icon.png")))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(MOSES.getPathToImages(),"PORK_Icon.png")))
         self.show()
 
     def mapEvents(self):
@@ -49,6 +50,9 @@ class RawDataManager(QtGui.QWidget):
         self.progress_bar.setValue(progress)
         message = "%d Accepted, %d Rejected, %d Failed, %d Pending. ETA: %s"%(accepted, rejected, failed, pending, eta)
         self.displayMessage(message)
+        if progress == 100:
+            self.upload_raw_data_button.setEnabled(True)
+            self.alertMessage("Completed uploading raw data!", "%s"%message)
 
     def displayMessage(self, message):
         self.progress_log.append("%s: <b>%s</b>"%(datetime.datetime.now(),message))

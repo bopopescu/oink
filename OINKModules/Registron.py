@@ -20,9 +20,9 @@ class Registron(QtCore.QThread):
 
     def send(self, message):
         try:
+            import os, getpass, codecs
             if getpass.getuser() != "vinay.keerthi":
                 import smtplib
-                import os, getpass, codecs
                 import codecs
                 thing = ("bvaxezf@tznvy.pbz","oebgurerlr123", "xgixivanlxrreguv@tznvy.pbz", "fzgc.tznvy.pbz:587")
                 way = str(codecs.decode("ebg_13","rot_13"))

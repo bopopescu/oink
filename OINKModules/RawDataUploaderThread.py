@@ -3,13 +3,16 @@ import datetime
 import os
 import sys
 import math
-
+import unidecode
 from PyQt4 import QtGui, QtCore
 import pandas as pd
 import xlrd
+import MOSES
+import MySQLdb
 
 class RawDataUploaderThread(QtCore.QThread):
-    sendActivity = QtCore.pyqtSignal(int, datetime.datetime, int, int, int, int) #progress, eta, accepted, rejected, failed, pending
+    sendActivity = QtCore.pyqtSignal(int, datetime.datetime, int, int, int, int) 
+    #progress, eta, accepted, rejected, failed, pending
     sendMessage = QtCore.pyqtSignal(str)
     def __init__(self, user_id, password):
         super(RawDataUploaderThread, self).__init__()
@@ -29,8 +32,8 @@ class RawDataUploaderThread(QtCore.QThread):
 
     def processDataFrame(self):
         start_time = datetime.datetime.now()
-        total = self.data_frame.shape(0)
-        self.sendMessage("%d rows loaded from the file."%total)
+        total = self.data_frame.shape[0]
+        self.sendMessage.emit("%d rows loaded from the file."%total)
         unfiltered_raw_data = self.data_frame
         unfiltered_raw_data.columns = MOSES.getRawDataKeys()
         raw_data = unfiltered_raw_data[[not(match) for match in list(pd.isnull(unfiltered_raw_data["WriterID"]))]]
@@ -41,12 +44,12 @@ class RawDataUploaderThread(QtCore.QThread):
         rejected_rows = rejected_data_frame.shape[0]
         tentatively_accepted_rows = raw_data[raw_data["Overall Quality"] != "-"]
         raw_data_as_dicts = tentatively_accepted_rows.to_dict("records")
-        conn = getOINKConnector(user_id, password)
+        conn = MOSES.getOINKConnector(self.user_id, self.password)
         cursor = conn.cursor()
         accepted_total = len(tentatively_accepted_rows)
-        self.sendMessage("%d accepted rows loaded."%accepted_total)
+        self.sendMessage.emit("%d accepted rows loaded."%accepted_total)
         progress = 0
-        eta = "-"
+        eta = datetime.datetime.now()
         accepted = 0
         rejected = 0
         failed = 0
@@ -54,13 +57,14 @@ class RawDataUploaderThread(QtCore.QThread):
         self.sendActivity.emit(progress, eta, accepted, rejected, failed, pending)
         primary_key_columns = ["Audit Date","Editor ID","WriterID", "FSN"]
         for each_row in raw_data_as_dicts:
-            try:
-                each_row["WS Name"]= str(each_row["WS Name"])
-            except:
-                each_row["WS Name"]= str("Failed Loading WS Name from the Raw Data")
-
+            for key in each_row.keys():
+                if type(each_row[key]) == unicode:
+                    try:
+                        each_row[key]= str(unidecode.unidecode(each_row[key])).replace('"',"'")
+                    except:
+                        each_row[key]= str("Failed Loading %s from the Raw Data"%key)
             success = False
-            columns, values = getDictStrings(each_row)
+            columns, values = MOSES.getDictStrings(each_row)
             sqlcmdstring = "INSERT INTO `rawdata` (%s) VALUES (%s);" % (columns, values)
             try:
                 cursor.execute(sqlcmdstring)
@@ -97,18 +101,21 @@ class RawDataUploaderThread(QtCore.QThread):
             else:
                 failed += 1
             counter = accepted + rejected + failed
-            progress = (counter/total)
+            progress = int(math.floor(counter/total*100))
             eta = MOSES.getETA(start_time, counter, total)
-            self.sendActivity(progress, eta, accepted, rejected, failed, pending)
+            pending = total-counter
+            self.sendActivity.emit(progress, eta, accepted, rejected, failed, pending)
 
-        self.sendMessage("Uploading %d rejected Audits."%rejected_rows)
+        self.sendMessage.emit("Uploading %d rejected Audits."%rejected_rows)
         for each_row in rejected_data_frame.to_dict("records"):
-            try:
-                each_row["WS Name"]= str(each_row["WS Name"])
-            except:
-                each_row["WS Name"]= str("Failed Loading WS Name from the Raw Data")
+            for key in each_row.keys():
+                if type(each_row[key]) == unicode:
+                    try:
+                        each_row[key]= str(unidecode.unidecode(each_row[key])).replace('"',"'")
+                    except:
+                        each_row[key]= str("Failed Loading %s from the Raw Data"%key)
             success = False
-            columns, values = getDictStrings(each_row)
+            columns, values = MOSES.getDictStrings(each_row)
             sqlcmdstring = "INSERT INTO `rejected_rawdata` (%s) VALUES (%s);" % (columns, values)
             try:
                 cursor.execute(sqlcmdstring)
@@ -141,12 +148,13 @@ class RawDataUploaderThread(QtCore.QThread):
             else:
                 failed += 1
             counter = accepted + rejected + failed
-            progress = (counter/total)
+            progress = int(math.floor(counter/total*100))
             eta = MOSES.getETA(start_time, counter, total)
-            self.sendActivity(progress, eta, accepted, rejected, failed, pending)
+            pending = total - counter
+            self.sendActivity.emit(progress, eta, accepted, rejected, failed, pending)
         conn.close()
-        self.sendMessage("Completed at %s. Accepted: %d, Rejected: %d, Failed: %d."%(datetime.datetime.now(), accepted, rejected, pending))
-        #failed_rows = raw_data.shape[0] - accepted_rows - rejected_rows
+        self.sendMessage.emit("Completed at %s. Accepted: %d, Rejected: %d, Failed: %d. Pending: %d."%(datetime.datetime.now(), accepted, rejected, failed, pending))
         self.data_frame = None
+
     def setDataFrame(self, data_frame):
         self.data_frame = data_frame
