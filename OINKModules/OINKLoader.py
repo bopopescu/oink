@@ -93,6 +93,7 @@ class OINKLoader(QtGui.QWidget):
                 allow = True
                 user_role = list(self.employees_list[self.employees_list["Employee ID"] == self.user_id]["Role"])[0]
                 access_list = list(self.employees_list[self.employees_list["Employee ID"] == self.user_id]["OINK Access Level"])[0].split(",")
+        
         if not allow:
             self.alertMessage("User Error","This User either doesn't exist or he or she has been marked as an ex-employee. Unable to load OINK.")
             self.close()
@@ -107,6 +108,7 @@ class OINKLoader(QtGui.QWidget):
                 "Admin": Pork,
                 "Content Writer": Pork
                 }
+
             if user_role not in userDict.keys():
                 self.alertMessage("Unauthorized User","This version of OINK is not coded for use by a %s. If you encounter this message, you're probably trying to use the compiled version of OINK that doesn't need Python. That version was developed for use by writers because it's easier to set up. If you'd like to use the source version instead, follow the initial setup chapter in the documentation."%user_role)
             else:

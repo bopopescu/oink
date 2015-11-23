@@ -32,7 +32,8 @@ class Porker(QtCore.QThread):
         self.stats_data = {}
         #Prepare a list of dates to process.
         r_span = 15
-        self.process_dates = list(reversed(OINKM.getDatesBetween(datetime.date(2015,1,1), start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=r_span)))
+
+        self.process_dates = list(reversed(OINKM.getDatesBetween(MOSES.getDOJ(self.user_id, self.password), start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=r_span)))
 
         self.queue = []
         self.force_update_dates = []

@@ -48,6 +48,7 @@ class Pork(QtGui.QMainWindow):
             self.category_tree = MOSES.getCategoryTree(self.user_id, self.password)
         else:
             self.category_tree = category_tree
+        
         self.last_working_date = MOSES.getLastWorkingDate(self.user_id, self.password)
         self.clip = QtGui.QApplication.clipboard()
         self.stats_table_headers = ["Timeframe","Efficiency", "CFM", "GSEO"]

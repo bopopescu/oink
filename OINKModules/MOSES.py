@@ -2797,6 +2797,14 @@ def getOverrideTable(user_id, password):
     data_as_list_of_lists = [list(row) for row in data]
     return pd.DataFrame(data_as_list_of_lists, columns=override_column_names)
 
+def getDOJ(user_id, password):
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    cursor.execute("""SELECT * from `employees` WHERE `Employee ID`="%s";"""%user_id)
+    data = cursor.fetchall()
+    conn.close()
+    return data[0]["DOJ"] if len(data)>0 else datetime.date(2015,1,1)
+
 def getLastWorkingDate(user_id, password, queryDate = None, queryUser = None):
     """Returns the last working date for the requested user.
     If a query user isn't specified, it pulls the data for the user_id.
@@ -2809,29 +2817,39 @@ def getLastWorkingDate(user_id, password, queryDate = None, queryUser = None):
         queryDate = datetime.date(queryDate.year, queryDate.month, queryDate.day)
     if queryUser is None:
         queryUser = user_id
-    stopthis = False
-    previousDate = queryDate - datetime.timedelta(1)
     #print queryDate
-    
-    while not stopthis:
-        if queryUser == "All":
-            if not isWorkingDay(user_id, password, previousDate):
-                #print previousDate, " is a holiday or a weekend!"
-                previousDate -= datetime.timedelta(1)
-            else:
-                stopthis = True
-        else:
-            if not isWorkingDay(user_id, password, previousDate):
-                previousDate -= datetime.timedelta(1)
-            else:
-                status, relaxation, approval = checkWorkStatus(user_id, password, previousDate)
-                if status == "Working":
-                    stopthis = True
-                elif status in ["Leave", "Holiday"]:
-                    #print "Not working on ", previousDate
+    doj = getDOJ(user_id, password)
+    if queryDate != doj:
+        stopthis = False
+        previousDate = queryDate - datetime.timedelta(1)
+        while not stopthis:
+            if queryUser == "All":
+                if not isWorkingDay(user_id, password, previousDate):
+                    #print previousDate, " is a holiday or a weekend!"
                     previousDate -= datetime.timedelta(1)
                 else:
                     stopthis = True
+            else:
+                if not isWorkingDay(user_id, password, previousDate):
+                    previousDate -= datetime.timedelta(1)
+                else:
+                    status, relaxation, approval = checkWorkStatus(user_id, password, previousDate)
+                    if status == "Working":
+                        stopthis = True
+                    elif status in ["Leave", "Holiday"]:
+                        #print "Not working on ", previousDate
+                        previousDate -= datetime.timedelta(1)
+                    else:
+                        stopthis = True
+            if previousDate<=doj:
+                previousDate = doj
+                stopthis = True
+            if previousDate <= datetime.date(2015,1,1):
+                previousDate = datetime.date(2015,1,1)
+                stopthis = True
+    else:
+        previousDate = doj
+
     return previousDate
 
 ######################################################################

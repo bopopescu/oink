@@ -47,7 +47,9 @@ class IncredibleBulk(QtCore.QThread):
                     MOSES.checkAndInitWorkCalendar(self.user_id, self.password, each_date)
                     self.sendActivity.emit(counter, "Updated work calendar for %s."%each_date)
                     counter+=1
-                self.sendActivity.emit(95, "Started updating work calendar at %s."%(datetime.datetime.now()))
+                    if counter > 90:
+                        counter = 90
+                self.sendActivity.emit(95, "Started updating names and email ids at %s."%(datetime.datetime.now()))
                 MOSES.updateNamesAndEmailIDs(self.user_id, self.password)
                 self.sendActivity.emit(100, "Finished fetching data at %s."%(datetime.datetime.now()))
                 self.allow_run = False

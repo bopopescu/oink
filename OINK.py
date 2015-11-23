@@ -50,38 +50,6 @@ def main():
             app.installEventFilter(oink_loader)
             oink_loader.setAttribute(QtCore.Qt.WA_QuitOnClose)
             need_waiting = True
-            go_forth = False
-            if go_forth:
-                user_list = MOSES.getEmployeesList(user_id, password, datetime.date.today())
-                access_list = list(user_list[user_list["Employee ID"] == user_id]["OINK Access Level"])[0].split(",")
-                user_role = list(user_list[user_list["Employee ID"] == user_id]["Role"])[0]
-                if len(access_list)>0:
-                    userDict = {
-                        "Copy Editor": Bacon, 
-                        "Team Lead": Vindaloo,
-                        "Big Brother": Vindaloo,
-                        "Product Specialist": Bacon,
-                        "Manager": Vindaloo, 
-                        "Assistant Manager": Vindaloo,
-                        "Admin": Pork,
-                        "Content Writer": Pork
-                        }
-                    if user_role not in userDict.keys():
-                        QtGui.QMessageBox.about(tempWidget,"Unauthorized User","This version of OINK is not coded for use by a %s. If you encounter this message, you're probably trying to use the compiled version of OINK that doesn't need Python. That version was developed for use by writers because it's easier to set up. If you'd like to use the source version instead, follow the initial setup chapter in the documentation."%user_role)
-                    else:
-                        need_waiting = True
-                        splash = showSplashScreen(app, user_role)
-                        if len(access_list)>1:
-                            window = OINKChooser(user_id, password, access_list)
-                        else:
-                            window = userDict[user_role](user_id, password)
-                        window.setAttribute(QtCore.Qt.WA_QuitOnClose)
-                        QtGui.QApplication.processEvents()
-                        splash.finish(window)
-                else:
-                    QtGui.QMessageBox.about(tempWidget,"No Access","You seem to have no access to the OINK Database. Contact your Reporting Manager and ask him or her to grant you access if necessary.")
-                    need_waiting = False
-
         else:
             QtGui.QMessageBox.about(tempWidget,"Bye","Thats all, folks!")
 

@@ -220,7 +220,6 @@ class UserManager(QtGui.QMainWindow):
         if (employee_id in list(self.employees_data["Employee ID"])) and (mode == 1):
             self.alertMessage("Conflicting User ID","The User ID %s already exists in the system. You can't add another user with that Employee ID."%employee_id)
         else:
-            print employee_id, list(self.employees_data["Employee ID"])
             employee_dict = {
                             "Employee ID": employee_id,
                             "Name": employee_name,
