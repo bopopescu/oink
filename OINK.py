@@ -15,6 +15,7 @@ import os
 import six
 import Tkinter
 import FixTk
+import unidecode
 #essentials.
 from OINKModules.Pork import Pork
 from OINKModules.Vindaloo import Vindaloo
