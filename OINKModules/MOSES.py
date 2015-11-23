@@ -1040,7 +1040,7 @@ def createOrModifyEmployeeDetails(user_id, password, employee_dictionary, mode):
         if create:
             #Create a new user, add this user to the employees database.
             print "Creating a new user with Employee ID:%s"%newuser_id
-            sqlcmdstring = """CREATE USER IF NOT EXISTS '%s' IDENTIFIED BY 'password';"""%newuser_id
+            sqlcmdstring = """grant all on *.* to '%s'@'%%' identified by 'password';"""%newuser_id
             cursor.execute(sqlcmdstring)
             conn.commit()
             columns, values = getDictStrings(employee_dictionary)
@@ -1054,26 +1054,26 @@ def createOrModifyEmployeeDetails(user_id, password, employee_dictionary, mode):
             sqlcmdstring = """UPDATE employees SET %s WHERE `Employee ID`="%s";"""%(set_string, newuser_id)
             cursor.execute(sqlcmdstring.replace('"NULL"',"NULL"))
             conn.commit()
-            sqlcmdstring = """REVOKE EXECUTE, PROCESS, SELECT, SHOW DATABASES, SHOW VIEW, ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TABLESPACE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, INDEX, INSERT, REFERENCES, TRIGGER, UPDATE, CREATE USER, FILE, GRANT OPTION, LOCK TABLES, RELOAD, REPLICATION CLIENT, REPLICATION SLAVE, SHUTDOWN, SUPER  ON *.* FROM '%s'@'%%';"""%(newuser_id)
+        sqlcmdstring = """REVOKE EXECUTE, PROCESS, SELECT, SHOW DATABASES, SHOW VIEW, ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TABLESPACE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, INDEX, INSERT, REFERENCES, TRIGGER, UPDATE, CREATE USER, FILE, GRANT OPTION, LOCK TABLES, RELOAD, REPLICATION CLIENT, REPLICATION SLAVE, SHUTDOWN, SUPER  ON *.* FROM '%s'@'%%';"""%(newuser_id)
+        cursor.execute(sqlcmdstring)
+        conn.commit()
+        
+        if (("VINDALOO" in access_level.split(",")) and role in ["Manager","Team Lead","Assistant Manager"]) or role == "Admin":
+            print "Granting all privileges for the %s for accessing %s."%(role, access_level)
+            sqlcmdstring = """GRANT EXECUTE, PROCESS, SELECT, SHOW DATABASES, SHOW VIEW, ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TABLESPACE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, INDEX, INSERT, REFERENCES, TRIGGER, UPDATE, CREATE USER, FILE, LOCK TABLES, RELOAD, REPLICATION CLIENT, REPLICATION SLAVE, SHUTDOWN, SUPER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
             cursor.execute(sqlcmdstring)
             conn.commit()
-            
-            if (("VINDALOO" in access_level.split(",")) and role in ["Manager","Team Lead","Assistant Manager"]) or role == "Admin":
-                print "Granting all privileges for the %s for accessing %s."%(role, access_level)
-                sqlcmdstring = """GRANT EXECUTE, PROCESS, SELECT, SHOW DATABASES, SHOW VIEW, ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TABLESPACE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, INDEX, INSERT, REFERENCES, TRIGGER, UPDATE, CREATE USER, FILE, LOCK TABLES, RELOAD, REPLICATION CLIENT, REPLICATION SLAVE, SHUTDOWN, SUPER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
-                cursor.execute(sqlcmdstring)
-                conn.commit()
-            elif ("VINDALOO" in access_level.split(",")) and role not in ["Manager","Team Lead","Assistant Manager"]:
-                print "Granting limited admin privileges for the %s for accessing %s."%(role, access_level)
-                sqlcmdstring = """GRANT EXECUTE, SELECT, SHOW DATABASES, DELETE, INSERT, UPDATE, CREATE USER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
-                cursor.execute(sqlcmdstring)
-                conn.commit()
-            else:
-                #print access_level.split(","), role
-                print "Granting limited privileges for the %s for accessing %s."%(role, access_level)
-                sqlcmdstring = """GRANT EXECUTE, SELECT, INSERT, UPDATE ON *.* TO '%s'@'%%';"""%newuser_id
-                cursor.execute(sqlcmdstring)
-                conn.commit()
+        elif ("VINDALOO" in access_level.split(",")) and role not in ["Manager","Team Lead","Assistant Manager"]:
+            print "Granting limited admin privileges for the %s for accessing %s."%(role, access_level)
+            sqlcmdstring = """GRANT EXECUTE, SELECT, SHOW DATABASES, DELETE, INSERT, UPDATE, CREATE USER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
+            cursor.execute(sqlcmdstring)
+            conn.commit()
+        else:
+            #print access_level.split(","), role
+            print "Granting limited privileges for the %s for accessing %s."%(role, access_level)
+            sqlcmdstring = """GRANT EXECUTE, SELECT, INSERT, UPDATE ON *.* TO '%s'@'%%';"""%newuser_id
+            cursor.execute(sqlcmdstring)
+            conn.commit()
         success = True
         conn.close()
     except Exception, e:

@@ -125,7 +125,6 @@ class UserManager(QtGui.QMainWindow):
         access_row.addStretch(1)
 
         self.reset_password_button = QtGui.QPushButton("Reset Password")
-        self.init_work_calendar_button = QtGui.QPushButton("Initialize Calendar")
         self.save_button = QtGui.QPushButton("Save")
         self.reset_button = QtGui.QPushButton("Revert")
 
@@ -133,7 +132,6 @@ class UserManager(QtGui.QMainWindow):
         form_buttons_layout.addStretch(2)
         form_buttons_layout.addWidget(self.reset_password_button,0)
         form_buttons_layout.addWidget(self.save_button,0)
-        form_buttons_layout.addWidget(self.init_work_calendar_button,0)
         form_buttons_layout.addWidget(self.reset_button,0)
 
         self.progress_bar = ProgressBar()
@@ -204,7 +202,6 @@ class UserManager(QtGui.QMainWindow):
         #First, build a dictionary with the former values.
         #Then, build a dictionary with the new values.
         #pass these dictionaries to a MOSES function.
-
         employee_id = str(self.employee_id_lineedit.text()).strip()
         employee_name = str(self.employee_name_lineedit.text()).strip()
         employee_email_id = str(self.email_lineedit.text()).strip()
@@ -219,28 +216,30 @@ class UserManager(QtGui.QMainWindow):
             mode = 1
         else:
             mode = 0
-        if (employee_id in MOSES.getUsersList(self.user_id, self.password)) and (mode == 1):
-            self.alertMessage("Conflicting User ID","The User ID %s already exists in the system. You can't add another user with that name.")
 
-        employee_dict = {
-                        "Employee ID": employee_id,
-                        "Name": employee_name,
-                        "Email ID": employee_email_id,
-                        "Role": employee_role,
-                        "DOJ": employee_doj,
-                        "DOL": employee_dol,
-                        "Date of Promotion": employee_dop,
-                        "Former Role": employee_former_role,
-                        "OINK Access Level": ",".join(employee_oink_access) if type(employee_oink_access) == list else employee_oink_access
-                    }
-        success = MOSES.createOrModifyEmployeeDetails(self.user_id, self.password, employee_dict, mode)
-        if success:
-            self.refreshData()
-            self.initialize()
-            self.populateEmployeesList()
-            self.alertMessage("Success","Successfully completed the operation")
+        if (employee_id in list(self.employees_data["Employee ID"])) and (mode == 1):
+            self.alertMessage("Conflicting User ID","The User ID %s already exists in the system. You can't add another user with that Employee ID."%employee_id)
         else:
-            self.alertMessage("Failure","Revenge is just the beginning.")
+            print employee_id, list(self.employees_data["Employee ID"])
+            employee_dict = {
+                            "Employee ID": employee_id,
+                            "Name": employee_name,
+                            "Email ID": employee_email_id,
+                            "Role": employee_role,
+                            "DOJ": employee_doj,
+                            "DOL": employee_dol,
+                            "Date of Promotion": employee_dop,
+                            "Former Role": employee_former_role,
+                            "OINK Access Level": ",".join(employee_oink_access) if type(employee_oink_access) == list else employee_oink_access
+                        }
+            success = MOSES.createOrModifyEmployeeDetails(self.user_id, self.password, employee_dict, mode)
+            if success:
+                self.refreshData()
+                self.initialize()
+                self.populateEmployeesList()
+                self.alertMessage("Success","Successfully completed the operation")
+            else:
+                self.alertMessage("Failure","Revenge is just the beginning.")
 
 
     def changeMode(self):
