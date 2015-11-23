@@ -875,7 +875,6 @@ def isWorkingDay(user_id, password, queryDate):
     #    print "%s is an FK holiday." %queryDate
     return not (is_weekend or is_holiday)
 
-
 def getWorkingDatesLists(query_date, group_size=None, quantity=None):
     user_id, password = getBigbrotherCredentials()
     if group_size is None:
@@ -903,9 +902,9 @@ def getAdminList(user_id, password):
     sqlcmdstring = "SELECT * from admin_list;"
     try:
         cursor.execute(sqlcmdstring)
-        return_list = list(pd.DataFrame.from_records(cursor.fetchall())["user_name"])
+        return_this = list(pd.DataFrame.from_records(cursor.fetchall())["user_name"])
     except:
-        return_list = []
+        return_this = []
     conn.close()
     return return_this
 
