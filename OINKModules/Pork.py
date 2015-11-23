@@ -97,6 +97,7 @@ class Pork(QtGui.QMainWindow):
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
         self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
+        self.flip = 0
         if self.flip == 0:
             self.bigbrother_icon = ImageButton(os.path.join("Images","bigbrother.png"), 64, 64)
         else:

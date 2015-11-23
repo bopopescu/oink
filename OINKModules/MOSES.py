@@ -759,12 +759,6 @@ def checkAndInitWorkCalendar(user_id, password, query_date=None):
         conn.commit()
     except MySQLdb.IntegrityError:
         pass
-    sqlcmdstring = """UPDATE `workcalendar` set `Employee Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);"""
-    cursor.execute(sqlcmdstring)
-    conn.commit()
-    sqlcmdstring = """UPDATE `workcalendar` set `Employee Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);"""
-    cursor.execute(sqlcmdstring)
-    conn.commit()
     conn.close()
 
 def updateNamesAndEmailIDs(user_id, password):

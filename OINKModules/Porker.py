@@ -32,8 +32,14 @@ class Porker(QtCore.QThread):
         self.stats_data = {}
         #Prepare a list of dates to process.
         r_span = 15
+        doj = MOSES.getDOJ(self.user_id, self.password)
+        db_origin = datetime.date(2015,1,1)
+        if db_origin>= doj:
+            db_origin_date = db_origin
+        else:
+            db_origin_date = doj
 
-        self.process_dates = list(reversed(OINKM.getDatesBetween(MOSES.getDOJ(self.user_id, self.password), start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=r_span)))
+        self.process_dates = list(reversed(OINKM.getDatesBetween(db_origin_date, start_date))) + OINKM.getDatesBetween((start_date+datetime.timedelta(days=1)), (start_date+datetime.timedelta(days=r_span)))
 
         self.queue = []
         self.force_update_dates = []
