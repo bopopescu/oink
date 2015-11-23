@@ -211,7 +211,7 @@ class UserManager(QtGui.QMainWindow):
         employee_role = str(self.current_role_combobox.currentText()).strip()
         employee_doj = self.doj_dateedit.date().toPyDate()
         employee_dol = self.dol_dateedit.date().toPyDate() if self.dol_checkbox.isChecked() else "NULL"
-        employee_dop = self.dop_checkbox.date().toPyDate() if self.dop_checkbox.isChecked() else "NULL"
+        employee_dop = self.dop_dateedit.date().toPyDate() if self.dop_checkbox.isChecked() else "NULL"
         employee_former_role = str(self.former_role_combobox.currentText()).strip() if self.dop_checkbox.isChecked() else "NULL"
         employee_oink_access = str(",".join(self.access_combobox.getCheckedItems())) if len(self.access_combobox.getCheckedItems())>0 else "Pork"
 

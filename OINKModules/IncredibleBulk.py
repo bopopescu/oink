@@ -2,11 +2,12 @@ from __future__ import division
 import sys
 import datetime
 import math
+import time
+
+import pandas as pd
 from PyQt4 import QtCore
 import MOSES
-import time
-import pandas as pd
-
+import OINKMethods as OINKM
 class IncredibleBulk(QtCore.QThread):
     sendCategoryTree = QtCore.pyqtSignal(pd.DataFrame)
     sendActivity = QtCore.pyqtSignal(int, str)
@@ -39,10 +40,18 @@ class IncredibleBulk(QtCore.QThread):
                 self.sendEmployeesList.emit(MOSES.getEmployeesList(self.user_id, self.password, datetime.date.today()))
                 self.sendActivity.emit(60, "Started fetching brand' list at %s."%(datetime.datetime.now()))
                 self.sendBrandList.emit(MOSES.getBrandValues(self.user_id, self.password))
-                self.sendActivity.emit(80, "Started updating work calendar at %s."%(datetime.datetime.now()))
-                MOSES.checkAndInitWorkCalendar(self.user_id, self.password, datetime.date.today())
+                self.sendActivity.emit(65, "Started updating work calendar at %s."%(datetime.datetime.now()))
+                dates_buffer = OINKM.getDatesBetween(datetime.date.today(), (datetime.date.today() + datetime.timedelta(days=5)))
+                counter = 65
+                for each_date in dates_buffer:
+                    MOSES.checkAndInitWorkCalendar(self.user_id, self.password, each_date)
+                    self.sendActivity.emit(counter, "Updated work calendar for %s."%each_date)
+                    counter+=1
+                self.sendActivity.emit(95, "Started updating work calendar at %s."%(datetime.datetime.now()))
+                MOSES.updateNamesAndEmailIDs(self.user_id, self.password)
                 self.sendActivity.emit(100, "Finished fetching data at %s."%(datetime.datetime.now()))
                 self.allow_run = False
+
             self.mutex.lock()
 
 

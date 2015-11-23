@@ -751,7 +751,53 @@ def getClarifications(user_id, password):
 def checkAndInitWorkCalendar(user_id, password, query_date=None):
     if query_date is None:
         query_date = datetime.date.today()
-    pass
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdstring = """INSERT INTO `workcalendar` (`Date`, `Employee ID`,  `Status`, `Relaxation`, `Entered By`) VALUES ('%s', '%s', 'Working', '0.00', 'Big Brother')""" % (query_date, user_id)
+    try:
+        cursor.execute(sqlcmdstring)
+        conn.commit()
+    except MySQLdb.IntegrityError:
+        pass
+    sqlcmdstring = """UPDATE `workcalendar` set `Employee Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);"""
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    sqlcmdstring = """UPDATE `workcalendar` set `Employee Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);"""
+    cursor.execute(sqlcmdstring)
+    conn.commit()
+    conn.close()
+
+def updateNamesAndEmailIDs(user_id, password):
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+    sqlcmdlist = [
+        """UPDATE `workcalendar` set `Employee Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);""",
+        """UPDATE `workcalendar` set `Employee Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`workcalendar`.`Employee ID`);""",
+        """UPDATE `piggybank` set `Writer Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`piggybank`.`WriterID`);""",
+        """UPDATE `piggybank` set `Writer Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`piggybank`.`WriterID`);""",
+        """UPDATE `rawdata` set `Writer Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`rawdata`.`WriterID`);""",
+        """UPDATE `rawdata` set `Writer Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`rawdata`.`WriterID`);""",
+        """UPDATE `rejected_rawdata` set `Writer Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`rejected_rawdata`.`WriterID`);""",
+        """UPDATE `rejected_rawdata` set `Writer Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`rejected_rawdata`.`WriterID`);""",
+        """UPDATE `rawdata` set `Editor Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`rawdata`.`Editor ID`);""",
+        """UPDATE `rawdata` set `Editor Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`rawdata`.`Editor ID`);""",
+        """UPDATE `rejected_rawdata` set `Editor Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`rejected_rawdata`.`Editor ID`);""",
+        """UPDATE `rejected_rawdata` set `Editor Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`rejected_rawdata`.`Editor ID`);""",
+        """UPDATE `managermapping` set `Employee Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`managermapping`.`Employee ID`);""",
+        """UPDATE `managermapping` set `Employee Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`managermapping`.`Employee ID`);""",
+        """UPDATE `managermapping` set `Reporting Manager Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`managermapping`.`Reporting Manager ID`);""",
+        """UPDATE `managermapping` set `Reporting Manager Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`managermapping`.`Reporting Manager ID`);""",
+        """UPDATE `loginrecord` set `Employee Name` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`loginrecord`.`Employee Name`);"""
+                ]
+    try:
+        for sqlcmdstring in sqlcmdlist:
+            cursor.execute(sqlcmdstring)
+            conn.commit()
+        conn.close()
+    except:
+        conn.close()
+        print sqlcmdstring
+        raise
 
 def initWorkCalendar(user_id, password, start_date=None, end_date=None):
     """Initializes the work calendar."""
@@ -1012,17 +1058,18 @@ def createOrModifyEmployeeDetails(user_id, password, employee_dictionary, mode):
             cursor.execute(sqlcmdstring)
             conn.commit()
             
-            if (("Vindaloo" in access_level.split(",")) and role in ["Manager","Team Lead","Assistant Manager"]) or role == "Admin":
+            if (("VINDALOO" in access_level.split(",")) and role in ["Manager","Team Lead","Assistant Manager"]) or role == "Admin":
                 print "Granting all privileges for the %s for accessing %s."%(role, access_level)
                 sqlcmdstring = """GRANT EXECUTE, PROCESS, SELECT, SHOW DATABASES, SHOW VIEW, ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TABLESPACE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, INDEX, INSERT, REFERENCES, TRIGGER, UPDATE, CREATE USER, FILE, LOCK TABLES, RELOAD, REPLICATION CLIENT, REPLICATION SLAVE, SHUTDOWN, SUPER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
                 cursor.execute(sqlcmdstring)
                 conn.commit()
-            elif ("Vindaloo" in access_level.split(",")) and role not in ["Manager","Team Lead","Assistant Manager"]:
+            elif ("VINDALOO" in access_level.split(",")) and role not in ["Manager","Team Lead","Assistant Manager"]:
                 print "Granting limited admin privileges for the %s for accessing %s."%(role, access_level)
                 sqlcmdstring = """GRANT EXECUTE, SELECT, SHOW DATABASES, DELETE, INSERT, UPDATE, CREATE USER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
                 cursor.execute(sqlcmdstring)
                 conn.commit()
             else:
+                #print access_level.split(","), role
                 print "Granting limited privileges for the %s for accessing %s."%(role, access_level)
                 sqlcmdstring = """GRANT EXECUTE, SELECT, INSERT, UPDATE ON *.* TO '%s'@'%%';"""%newuser_id
                 cursor.execute(sqlcmdstring)
