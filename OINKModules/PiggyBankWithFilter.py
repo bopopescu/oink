@@ -305,7 +305,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.start_date_edit.setDate(datetime.date.today())
         self.end_date_edit.setDate(datetime.date.today())
 
-
     def changeUtilization(self):
         current_page = str(self.piggybank_summary_editors_list.currentText())
         self.editor_audit_constraints[current_page]["Editor Utilization"] = self.piggybank_summary_editor_utilization.value()
@@ -325,7 +324,6 @@ class PiggyBankWithFilter(QtGui.QWidget):
         self.piggybank_summary_editor_maximum_wc.setMinimum((new_word_count+1000))
         current_page = str(self.piggybank_summary_editors_list.currentText())
         self.editor_audit_constraints[current_page]["Minimum Word Count"] = new_word_count
-
 
     def changePage(self):
         current_page = str(self.piggybank_summary_editors_list.currentText())
@@ -669,7 +667,7 @@ class PiggyBankWithFilter(QtGui.QWidget):
         description_types = self.description_types_selector.getCheckedItems()
         if len(description_types) > 0:
             description_types_filter = description_types
-        else:
+        else:            
             description_types_filter = None
 
         brands = self.brands_filter_box.getCheckedItems()

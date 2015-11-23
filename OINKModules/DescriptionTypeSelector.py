@@ -51,6 +51,11 @@ class DescriptionTypeSelector(QtGui.QHBoxLayout):
         self.filter_box.clearSelection()
 
     def getCheckedItems(self):
-        return self.filter_box.getCheckedItems()    
+        if len(self.filter_box.getCheckedItems()) == 0:
+            self.selectSEO()   
+            self.selectRPD()   
+            self.selectPD()
+        return self.filter_box.getCheckedItems()
+
 
 
