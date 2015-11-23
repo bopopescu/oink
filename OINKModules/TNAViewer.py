@@ -317,7 +317,7 @@ class TNAViewer(QtGui.QWidget):
             comparison_bar_graphs = ax.bar(x_positions+width, comparison_data_list, width, color='g')
             ax.legend((base_bar_graphs[0], comparison_bar_graphs[0]), (base_label, reference_label))
         
-        self.plot_data_table.showDataFrame(dataframe)
+        self.plot_data_table.showDataFrame(summary_data_frame)
         plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.5)
         filename = os.path.join(os.getcwd(),"cache","Pareto_%s_vs_%s_%s.png"%(base_label.replace(" ","_"), reference_label.replace(" ","_"), time_stamp))
 
