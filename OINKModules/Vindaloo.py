@@ -128,12 +128,6 @@ class Vindaloo(QtGui.QMainWindow):
                                                     "Click to open the user management tool.",
                                                     self.openUserManagement
                                                 )
-        self.category_tree_button = self.makeButton(
-                                                "Targets and Category Tree",
-                                                "category_tree",
-                                                "Click to open the category tree manager.",
-                                                self.openCategoryTreeManager
-                                            )
         self.override_button = self.makeButton(
                                             "Approve FSN Override",
                                             "override",
@@ -156,12 +150,10 @@ class Vindaloo(QtGui.QMainWindow):
         layout.addWidget(self.leaves_button, 0, 4, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
         layout.addWidget(self.override_button, 1, 0, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
         layout.addWidget(self.user_management_button,1,1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
-        layout.addWidget(self.category_tree_button,1,2, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
-        layout.addWidget(self.farmhand_button, 1, 3, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
-        #layout.addWidget(self.head_count_button, 2, 0)
-        layout.addWidget(self.seeker_button, 1, 4, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
-        layout.addWidget(self.sty_cleaner_button, 2, 1, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
-        layout.addWidget(self.upload_raw_data_button, 2, 2, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.farmhand_button, 1, 2, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.seeker_button, 1, 3, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.sty_cleaner_button, 1, 4, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft)
+        layout.addWidget(self.upload_raw_data_button, 2, 1, 1, 3, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
         layout.addWidget(Taunter(),3,0,1,5, QtCore.Qt.AlignTop)
 
         self.main_widget.setLayout(layout)
@@ -203,9 +195,6 @@ class Vindaloo(QtGui.QMainWindow):
         centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
-    
-    def openCategoryTreeManager(self):
-        self.alertMessage("Category Manager.","This feature is Unavailable.")
 
     def openRawDataUploader(self):
         self.raw_data_manager = RawDataManager(self.user_id, self.password)

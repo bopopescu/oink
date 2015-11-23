@@ -17,7 +17,7 @@ class Taunter(QtGui.QTextEdit):
         self.setStyleSheet(style)
         
     def showText(self, text):
-        self.setText("<font color='black'><i>%s:</i> </font><font color='#2E64FE'><b>%s</b></font>"%(datetime.datetime.now(), text))
+        self.setText("<font color='#2E64FE'><b>%s</b></font>"%(text))
         self.moveCursor(QtGui.QTextCursor.End)
         self.setToolTip(text)
 

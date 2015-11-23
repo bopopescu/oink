@@ -907,6 +907,138 @@ def getAdminList(user_id, password):
         return_this = []
     conn.close()
     return return_this
+def createUser(newuser_id, userClass, user_id, password):
+    """This method creates a new user with appropriate permissions 
+    according to the userClass."""
+    dbname = getDBName()
+    connecteddb = getOINKConnector(user_id, password)
+    dbcursor = connecteddb.cursor()
+    sqlcmdstring = "CREATE USER '%s' IDENTIFIED BY 'password'" %newuser_id
+    try:
+        dbcursor.execute(sqlcmdstring)
+    except MySQLdb.OperationalError, e:
+        if newuser_id in getUsersList(user_id, password):
+            print "There is already a user defined by %s, please contact bigbrother." %newuser_id
+        else:
+            print "Unknown Error!"
+            error = repr(e)
+            print error
+    if userClass == "Content Writer":
+        sqlcmdstring = "GRANT SELECT on %s.* TO '%s';" % (dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.workcalendar To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.clarifications To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.loginrecord To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT, DELETE ON %s.piggybank To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+    elif userClass == "Copy Editor":
+        sqlcmdstring = "GRANT SELECT on %s.* TO '%s';" % (dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.loginrecord To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.clarifications To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT, DELETE ON %s.rawdata To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+    elif userClass in ["Team Lead", "Assistant Manager", "Manager"]:
+        sqlcmdstring = "GRANT SELECT on %s.* TO '%s';" % (dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.clarifications To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.loginrecord To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)
+        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT, DELETE ON %s.workcalendar To '%s';" %(dbname, newuser_id)
+        #print sqlcmdstring #debug
+        dbcursor.execute(sqlcmdstring)      
+    elif userClass == "Super":
+        #print sqlcmdstring #debug
+        sqlcmdstring = "GRANT ALL PRIVILEGES ON %s.* To '%s' WITH GRANT OPTION;" %(dbname, newuser_id)
+    else:
+        print "Wrong user class. Cannot set privileges for %s." % userClass
+    connecteddb.commit()
+    connecteddb.close()
+
+def createOrModifyEmployeeDetails(user_id, password, employee_dictionary, mode):
+    """
+    dictionary keys: "Employee ID", "Name", "Email ID", "DOJ", "DOL","Role", "Date of Promotion","Former Role", "OINK Access Level"
+    """
+    dbname = getDBName()
+    success = False
+    newuser_id = employee_dictionary["Employee ID"]
+    access_level = employee_dictionary["OINK Access Level"]
+    role = employee_dictionary["Role"]
+
+    if mode == 0:
+        create = False
+    else:
+        create=True
+    
+    conn = getOINKConnector(user_id, password)
+    cursor = conn.cursor()
+
+    try:
+        if create:
+            #Create a new user, add this user to the employees database.
+            print "Creating a new user with Employee ID:%s"%newuser_id
+            sqlcmdstring = """CREATE USER IF NOT EXISTS '%s' IDENTIFIED BY 'password';"""%newuser_id
+            cursor.execute(sqlcmdstring)
+            conn.commit()
+            columns, values = getDictStrings(employee_dictionary)
+            print "Adding the Employee ID:%s and other details to the employees table."%newuser_id
+            sqlcmdstring = """INSERT INTO `oink`.`employees` (%s) VALUES (%s);"""%(columns, values)
+            cursor.execute(sqlcmdstring.replace('"NULL"',"NULL"))
+            conn.commit()
+        else:
+            print "Updating an existing user: %s"%(newuser_id)
+            set_string = ", ".join(['`%s`="%s"'%(key, employee_dictionary[key]) for key in employee_dictionary.keys() if key!="Employee ID"])
+            sqlcmdstring = """UPDATE employees SET %s WHERE `Employee ID`="%s";"""%(set_string, newuser_id)
+            cursor.execute(sqlcmdstring.replace('"NULL"',"NULL"))
+            conn.commit()
+            sqlcmdstring = """REVOKE EXECUTE, PROCESS, SELECT, SHOW DATABASES, SHOW VIEW, ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TABLESPACE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, INDEX, INSERT, REFERENCES, TRIGGER, UPDATE, CREATE USER, FILE, GRANT OPTION, LOCK TABLES, RELOAD, REPLICATION CLIENT, REPLICATION SLAVE, SHUTDOWN, SUPER  ON *.* FROM '%s'@'%%';"""%(newuser_id)
+            cursor.execute(sqlcmdstring)
+            conn.commit()
+            
+            if (("Vindaloo" in access_level.split(",")) and role in ["Manager","Team Lead","Assistant Manager"]) or role == "Admin":
+                print "Granting all privileges for the %s for accessing %s."%(role, access_level)
+                sqlcmdstring = """GRANT EXECUTE, PROCESS, SELECT, SHOW DATABASES, SHOW VIEW, ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TABLESPACE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, INDEX, INSERT, REFERENCES, TRIGGER, UPDATE, CREATE USER, FILE, LOCK TABLES, RELOAD, REPLICATION CLIENT, REPLICATION SLAVE, SHUTDOWN, SUPER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
+                cursor.execute(sqlcmdstring)
+                conn.commit()
+            elif ("Vindaloo" in access_level.split(",")) and role not in ["Manager","Team Lead","Assistant Manager"]:
+                print "Granting limited admin privileges for the %s for accessing %s."%(role, access_level)
+                sqlcmdstring = """GRANT EXECUTE, SELECT, SHOW DATABASES, DELETE, INSERT, UPDATE, CREATE USER ON *.* TO '%s'@'%%' WITH GRANT OPTION;"""%newuser_id
+                cursor.execute(sqlcmdstring)
+                conn.commit()
+            else:
+                print "Granting limited privileges for the %s for accessing %s."%(role, access_level)
+                sqlcmdstring = """GRANT EXECUTE, SELECT, INSERT, UPDATE ON *.* TO '%s'@'%%';"""%newuser_id
+                cursor.execute(sqlcmdstring)
+                conn.commit()
+        success = True
+        conn.close()
+    except Exception, e:
+        success = False
+        print "Error in MOSES.createOrModifyEmployeeDetails"
+        print employee_dictionary, mode
+        print repr(e)
+        print sqlcmdstring
+        conn.close()
+        raise
+
+    return success
 
 def updatePiggyBankEntry(entry_dict, user_id, password):
     """Method to update the values in an entry in the piggybank. This cross-checks the FSN with the date. 
@@ -1212,71 +1344,6 @@ def getPiggyBankMultiQuery(queryDictList, user_id, password):
             print "Unknown query, printing verbatim.\n%s" % query
     #print resultList
     return resultList
-
-def createUser(newuser_id, userClass, user_id, password):
-    """This method creates a new user with appropriate permissions 
-    according to the userClass."""
-    dbname = getDBName()
-    connecteddb = getOINKConnector(user_id, password)
-    dbcursor = connecteddb.cursor()
-    sqlcmdstring = "CREATE USER '%s' IDENTIFIED BY 'password'" %newuser_id
-    try:
-        dbcursor.execute(sqlcmdstring)
-    except MySQLdb.OperationalError, e:
-        if newuser_id in getUsersList(user_id, password):
-            print "There is already a user defined by %s, please contact bigbrother." %newuser_id
-        else:
-            print "Unknown Error!"
-            error = repr(e)
-            print error
-    if userClass == "Content Writer":
-        sqlcmdstring = "GRANT SELECT on %s.* TO '%s';" % (dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.workcalendar To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.clarifications To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.loginrecord To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT, DELETE ON %s.piggybank To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-    elif userClass == "Copy Editor":
-        sqlcmdstring = "GRANT SELECT on %s.* TO '%s';" % (dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.loginrecord To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.clarifications To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT, DELETE ON %s.rawdata To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-    elif userClass in ["Team Lead", "Assistant Manager", "Manager"]:
-        sqlcmdstring = "GRANT SELECT on %s.* TO '%s';" % (dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.clarifications To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT ON %s.loginrecord To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)
-        sqlcmdstring = "GRANT SELECT, UPDATE, INSERT, DELETE ON %s.workcalendar To '%s';" %(dbname, newuser_id)
-        #print sqlcmdstring #debug
-        dbcursor.execute(sqlcmdstring)      
-    elif userClass == "Super":
-        #print sqlcmdstring #debug
-        sqlcmdstring = "GRANT ALL PRIVILEGES ON %s.* To '%s' WITH GRANT OPTION;" %(dbname, newuser_id)
-    else:
-        print "Wrong user class. Cannot set privileges for %s." % userClass
-    connecteddb.commit()
-    connecteddb.close()
 
 def getUsersList(user_id, password, query_date=None):
     #Cannot use getOINKConnector() here, as the db which has the users list is mysql, not oink.

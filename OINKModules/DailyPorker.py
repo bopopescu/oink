@@ -232,7 +232,6 @@ class DailyPorker(QtGui.QWidget):
             self.sorting_filter_combobox.setEnabled(False)
         self.sorting_filter_combobox.setCurrentIndex(-1)
 
-
     def buildReport(self):
         self.build_button.setEnabled(False)
         report_types = self.getRequiredReportTypes()
@@ -369,8 +368,6 @@ class DailyPorker(QtGui.QWidget):
 
     def alertMessage(self, title, message):
         QtGui.QMessageBox.about(self, title, message)
-
-    
 
 if __name__ == "__main__":
     import sys

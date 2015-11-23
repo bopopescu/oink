@@ -93,10 +93,8 @@ def main():
         QtGui.QMessageBox.about(tempWidget,"Error","There has been an error. Please contact BigBrother.\nError:%s" % error)
         raise
     if need_waiting:
-        print "Looks like an app has opened. I'll wait quietly."
         sys.exit(app.exec_())
     else:
-        print "You haven't asked for any app to open, or you've triggered an exit mechanism, so I'm quitting now."
         sys.exit()
     #print "Exiting now."
 

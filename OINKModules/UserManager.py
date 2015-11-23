@@ -21,12 +21,14 @@ class UserManager(QtGui.QMainWindow):
         super(UserManager, self).__init__(*args, **kwargs)
         self.user_id, self.password = user_id, password
         #get the list of users from MOSES.
-        self.employees_data = MOSES.getEmployeesList(self.user_id, self.password)
-        self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password)
+        self.refreshData()
         self.createUI()
         self.mapEvents()
         self.initialize()
 
+    def refreshData(self):
+        self.employees_data = MOSES.getEmployeesList(self.user_id, self.password)
+        self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password)
 
     def createUI(self):
         self.users_list_label = QtGui.QLabel("Users: ")
@@ -38,27 +40,23 @@ class UserManager(QtGui.QMainWindow):
                                             48,
                                             os.path.join("Images","add_mouseover.png")
                                         )
-        self.remove_employee_button = ImageButton(
-                                            os.path.join("Images","remove.png"),
-                                            48,
-                                            48,
-                                            os.path.join("Images","remove_mouseover.png")
-                                        )
         self.edit_employee_button = ImageButton(
                                             os.path.join("Images","modify.png"),
                                             48,
                                             48,
                                             os.path.join("Images","modify_mouseover.png")
                                         )
-        
-        self.add_employee_button.setFlat(True)
-        self.remove_employee_button.setFlat(True)
-        self.edit_employee_button.setFlat(True)
+
+        self.edit_employee_button.setCheckable(True)
+        self.add_employee_button.setCheckable(True)
+        self.button_group = QtGui.QButtonGroup()
+        self.button_group.addButton(self.edit_employee_button)
+        self.button_group.addButton(self.add_employee_button)
+        self.button_group.setExclusive(True)
 
 
         user_list_buttons_layout = QtGui.QHBoxLayout()
         user_list_buttons_layout.addWidget(self.add_employee_button,0)
-        user_list_buttons_layout.addWidget(self.remove_employee_button,0)
         user_list_buttons_layout.addWidget(self.edit_employee_button,0)
 
         users_list_layout = QtGui.QVBoxLayout()
@@ -138,7 +136,6 @@ class UserManager(QtGui.QMainWindow):
         form_buttons_layout.addWidget(self.init_work_calendar_button,0)
         form_buttons_layout.addWidget(self.reset_button,0)
 
-
         self.progress_bar = ProgressBar()
         self.status_label = QtGui.QLabel()
 
@@ -197,6 +194,61 @@ class UserManager(QtGui.QMainWindow):
         self.manager_mapping.currentCellChanged.connect(self.populateManagerMappingForm)
         self.add_new_manager_mapping_row.clicked.connect(self.addUpdateManagerMapping)
         self.remove_manager_mapping_row.clicked.connect(self.removeManagerMapping)
+        self.save_button.clicked.connect(self.saveSelectedEmployee)
+        self.reset_button.clicked.connect(self.changedCurrentEmployee)
+        self.add_employee_button.clicked.connect(self.changeMode)
+        self.edit_employee_button.clicked.connect(self.changeMode)
+
+
+    def saveSelectedEmployee(self):
+        #First, build a dictionary with the former values.
+        #Then, build a dictionary with the new values.
+        #pass these dictionaries to a MOSES function.
+
+        employee_id = str(self.employee_id_lineedit.text()).strip()
+        employee_name = str(self.employee_name_lineedit.text()).strip()
+        employee_email_id = str(self.email_lineedit.text()).strip()
+        employee_role = str(self.current_role_combobox.currentText()).strip()
+        employee_doj = self.doj_dateedit.date().toPyDate()
+        employee_dol = self.dol_dateedit.date().toPyDate() if self.dol_checkbox.isChecked() else "NULL"
+        employee_dop = self.dop_checkbox.date().toPyDate() if self.dop_checkbox.isChecked() else "NULL"
+        employee_former_role = str(self.former_role_combobox.currentText()).strip() if self.dop_checkbox.isChecked() else "NULL"
+        employee_oink_access = str(",".join(self.access_combobox.getCheckedItems())) if len(self.access_combobox.getCheckedItems())>0 else "Pork"
+
+        if self.add_employee_button.isChecked():
+            mode = 1
+        else:
+            mode = 0
+        if (employee_id in MOSES.getUsersList(self.user_id, self.password)) and (mode == 1):
+            self.alertMessage("Conflicting User ID","The User ID %s already exists in the system. You can't add another user with that name.")
+
+        employee_dict = {
+                        "Employee ID": employee_id,
+                        "Name": employee_name,
+                        "Email ID": employee_email_id,
+                        "Role": employee_role,
+                        "DOJ": employee_doj,
+                        "DOL": employee_dol,
+                        "Date of Promotion": employee_dop,
+                        "Former Role": employee_former_role,
+                        "OINK Access Level": ",".join(employee_oink_access) if type(employee_oink_access) == list else employee_oink_access
+                    }
+        success = MOSES.createOrModifyEmployeeDetails(self.user_id, self.password, employee_dict, mode)
+        if success:
+            self.refreshData()
+            self.initialize()
+            self.populateEmployeesList()
+            self.alertMessage("Success","Successfully completed the operation")
+        else:
+            self.alertMessage("Failure","Revenge is just the beginning.")
+
+
+    def changeMode(self):
+        if self.add_employee_button.isChecked():
+            self.employee_id_lineedit.setEnabled(True)
+        elif self.edit_employee_button.isChecked():
+            self.employee_id_lineedit.setEnabled(False)
+
 
     def removeManagerMapping(self):
         failure = True
@@ -276,44 +328,45 @@ class UserManager(QtGui.QMainWindow):
 
     def showPage(self, employee_name):
         employee_data = self.getEmployeeData(employee_name)
-        self.employee_name_lineedit.setText(employee_data["Name"])
-        self.employee_id_lineedit.setText(employee_data["Employee ID"])
-        self.email_lineedit.setText(employee_data["Email ID"])
-        self.doj_dateedit.setDate(employee_data["DOJ"])
-        
-        if employee_data["DOL"] is None:
-            self.dol_checkbox.setChecked(False)
-        else:
-            self.dol_checkbox.setChecked(True)
-            self.dol_dateedit.setDate(employee_data["DOL"])
-        self.current_role_combobox.setCurrentIndex(self.current_role_combobox.findText(employee_data["Role"]))
-        
-        if employee_data["Date of Promotion"] is None:
-            self.dop_checkbox.setChecked(False)
-            self.former_role_combobox.setCurrentIndex(-1)
-        else:
-            self.dop_checkbox.setChecked(True)
-            self.dop_dateedit.setDate(employee_data["Date of Promotion"])
-            self.former_role_combobox.setCurrentIndex(self.former_role_combobox.findText(employee_data["Former Role"]))
-        self.access_combobox.clearSelection()
-        access_level = employee_data["Access Level"] if "," not in employee_data["Access Level"] else employee_data["Access Level"].split(",")
-        self.access_combobox.select(access_level)
+        if employee_data is not None:
+            self.employee_name_lineedit.setText(employee_data["Name"])
+            self.employee_id_lineedit.setText(employee_data["Employee ID"])
+            self.email_lineedit.setText(employee_data["Email ID"])
+            self.doj_dateedit.setDate(employee_data["DOJ"])
+            
+            if employee_data["DOL"] is None:
+                self.dol_checkbox.setChecked(False)
+            else:
+                self.dol_checkbox.setChecked(True)
+                self.dol_dateedit.setDate(employee_data["DOL"])
+            self.current_role_combobox.setCurrentIndex(self.current_role_combobox.findText(employee_data["Role"]))
+            
+            if employee_data["Date of Promotion"] is None:
+                self.dop_checkbox.setChecked(False)
+                self.former_role_combobox.setCurrentIndex(-1)
+            else:
+                self.dop_checkbox.setChecked(True)
+                self.dop_dateedit.setDate(employee_data["Date of Promotion"])
+                self.former_role_combobox.setCurrentIndex(self.former_role_combobox.findText(employee_data["Former Role"]))
+            self.access_combobox.clearSelection()
+            access_level = employee_data["Access Level"] if "," not in employee_data["Access Level"] else employee_data["Access Level"].split(",")
+            self.access_combobox.select(access_level)
 
-        self.toggleDOP()
-        self.toggleDOL()
+            self.toggleDOP()
+            self.toggleDOL()
 
-        self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password, employee_data["Employee ID"])
-        self.manager_mapping.showDataFrame(self.manager_mapping_data)
-        self.manager_mapping.verticalHeader().setStretchLastSection(False)
-        self.manager_mapping.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.manager_mapping.verticalHeader().setVisible(True)
+            self.manager_mapping_data = MOSES.getManagerMappingTable(self.user_id, self.password, employee_data["Employee ID"])
+            self.manager_mapping.showDataFrame(self.manager_mapping_data)
+            self.manager_mapping.verticalHeader().setStretchLastSection(False)
+            self.manager_mapping.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+            self.manager_mapping.verticalHeader().setVisible(True)
 
-        self.manager_mapping.horizontalHeader().setStretchLastSection(True)
-        self.manager_mapping.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.manager_mapping.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
-        self.manager_mapping.horizontalHeader().setVisible(True)
-        self.manager_mapping.horizontalHeader().setStretchLastSection(False)
-        self.manager_name_combobox.setCurrentIndex(-1)
+            self.manager_mapping.horizontalHeader().setStretchLastSection(True)
+            self.manager_mapping.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+            self.manager_mapping.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+            self.manager_mapping.horizontalHeader().setVisible(True)
+            self.manager_mapping.horizontalHeader().setStretchLastSection(False)
+            self.manager_name_combobox.setCurrentIndex(-1)
 
     def getSelectedEmployee(self):
         return str(self.users_list_view.currentItem().text())
@@ -350,7 +403,9 @@ class UserManager(QtGui.QMainWindow):
     def initialize(self):
         employees_list = list(set(self.employees_data["Name"]))
         employees_list.sort()
+        self.users_list_view.clear()
         self.users_list_view.addItems(employees_list)
+        self.manager_name_combobox.clear()
         self.manager_name_combobox.addItems(employees_list)
         roles = list(set(self.employees_data["Role"]))
         roles.sort()
@@ -360,6 +415,9 @@ class UserManager(QtGui.QMainWindow):
         self.toggleDOP()
         self.manager_name_combobox.setCurrentIndex(-1)
         self.manager_effective_dateedit.setDate(datetime.date.today())
+        self.edit_employee_button.setChecked(True)
+        self.employee_id_lineedit.setEnabled(False)
+        self.users_list_view.setCurrentRow(0)
 
 
     def populateEmployeesList(self):
