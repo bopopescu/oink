@@ -5,6 +5,7 @@ import pandas
 from functools import partial
 from PyQt4 import QtGui, QtCore
 import numpy
+from ViktorKrum import ViktorKrum
 
 class CategoryFinder(QtGui.QHBoxLayout):
     pickRow = QtCore.pyqtSignal(dict)
@@ -15,11 +16,13 @@ class CategoryFinder(QtGui.QHBoxLayout):
             self.category_tree_headers = category_tree_headers
         else:
             self.category_tree_headers = ["BU","Super-Category","Category","Sub-Category","Vertical"]
+        self.category_seeker = ViktorKrum(self.category_tree, self.category_tree_headers)
         self.createUI()
         self.mapEvents()
 
     def mapEvents(self):
         self.find_button.clicked.connect(self.findIdentifier)
+        self.category_seeker.sendResult.connect(self.useRetrievedDataFrame)
 
     def createUI(self):
         self.finder_label = QtGui.QLabel("Find in the Category Tree:")
@@ -33,7 +36,6 @@ class CategoryFinder(QtGui.QHBoxLayout):
         suggestions = sorted(set(list(self.category_tree["Vertical"]) + list(self.category_tree["BU"]) + list(self.category_tree["Super-Category"])+ list(self.category_tree["Category"]) + list(self.category_tree["Sub-Category"])))
         completer = QtGui.QCompleter(suggestions)
         self.search_string_line_edit.setCompleter(completer)
-
 
         self.find_button = QtGui.QPushButton("Find")
         self.find_button.setToolTip("This is the self destruct button. NOT! It's the search button. Watch out Google, I'm coming after you.")
@@ -50,80 +52,68 @@ class CategoryFinder(QtGui.QHBoxLayout):
         self.result_table.setVisible(False)
         self.use_buttons = []
 
-        #self.find_widget_layout = QtGui.QHBoxLayout()
-
         self.addWidget(self.finder_label,0, QtCore.Qt.AlignLeft)
         self.addWidget(self.search_criteria_combo_box,0)
         self.addWidget(self.search_string_line_edit,1)
         self.addWidget(self.find_button,0,)
 
-        #self.find_widget_layout.addWidget(self.result_table,1,0,2,7)
-
     def alertMessage(self, title, message):
         """Vindaloo."""
         QtGui.QMessageBox.about(QtGui.QWidget(), title, message)
 
-    def findIdentifierInCategoryTree(self, search_string, search_criteria):        
-        dfs = [self.category_tree[self.category_tree[search_criteria].str.contains(search_string)]]
-        dfs.append(self.category_tree[self.category_tree[search_criteria].str.contains(search_string.lower())])
-        dfs.append(self.category_tree[self.category_tree[search_criteria].str.contains(search_string.capitalize())])
-        dfs.append(self.category_tree[self.category_tree[search_criteria].str.contains(search_string.upper())])
-        return pandas.concat(dfs)
 
     def findIdentifier(self):
         """Efficiency Calculator."""
+        self.find_button.setEnabled(False)
+        self.search_string_line_edit.setEnabled(False)
         #functionName = sys._getframe().f_code.co_name
         search_string = str(self.search_string_line_edit.text()).strip().replace(" ","")
         search_criteria = str(self.search_criteria_combo_box.currentText())
-        self.result_dataframe = None
-        self.use_buttons = []
         if search_string != "":
-            if search_criteria != "Any":
-                self.result_dataframe = self.findIdentifierInCategoryTree(search_string, search_criteria)
-                self.category_tree[self.category_tree[search_criteria].str.contains(search_string)]
-                self.result_dataframe.drop_duplicates(subset=self.category_tree_headers, inplace=True)
-                self.result_dataframe = self.result_dataframe.reset_index()
-                self.alertMessage("Alert", "%d results found when searching for '%s' in the %s column of the category tree."%(len(self.result_dataframe.index),search_string, search_criteria))
-            else:
-                dfs = []     
-                for search_criteria in self.category_tree_headers:
-                    dfs.append(self.findIdentifierInCategoryTree(search_string, search_criteria))
-                self.result_dataframe = pandas.concat(dfs)
-                self.result_dataframe.drop_duplicates(subset=self.category_tree_headers, inplace=True)
-                self.result_dataframe = self.result_dataframe.reset_index()
+            self.category_seeker.startFindingIdentifier(search_string, search_criteria)
 
-                self.alertMessage("Alert", "%d results found when searching for '%s' in all columns of the category tree."%(len(self.result_dataframe.index),search_string))
+    def useRetrievedDataFrame(self, result_dataframe):
+        self.result_dataframe = result_dataframe
+        self.use_buttons = []
+        results = self.result_dataframe.shape[0]
+        if results >0:
+            self.alertMessage("Done","Retrieved %d rows of data."%results)
+            self.use_buttons = []
 
-        if self.result_dataframe is not None:
-            self.result_table.setRowCount(0)
-            row_counter = 0
-            for row in self.result_dataframe.iterrows():
-                #print row[1]
-                self.result_table.insertRow(row_counter)
-                column_counter = 0
-                for column_name in self.category_tree_headers:
-                    string_value = str(row[1][column_name])
-                    self.result_table.setItem(row_counter, column_counter, QtGui.QTableWidgetItem(string_value))
-                    column_counter += 1
-                self.use_buttons.append(QtGui.QPushButton("Use"))
-                self.use_buttons[-1].setToolTip("Click to use this combination.")
-                self.use_buttons[row_counter].clicked.connect(partial(self.clickUse, row_counter))
-                self.result_table.setCellWidget(row_counter, column_counter, self.use_buttons[row_counter])
+            if self.result_dataframe is not None:
+                self.result_table.setRowCount(0)
+                row_counter = 0
+                for row in self.result_dataframe.iterrows():
+                    #print row[1]
+                    self.result_table.insertRow(row_counter)
+                    column_counter = 0
+                    for column_name in self.category_tree_headers:
+                        string_value = str(row[1][column_name])
+                        self.result_table.setItem(row_counter, column_counter, QtGui.QTableWidgetItem(string_value))
+                        column_counter += 1
+                    self.use_buttons.append(QtGui.QPushButton("Use"))
+                    self.use_buttons[-1].setToolTip("Click to use this combination.")
+                    self.use_buttons[row_counter].clicked.connect(partial(self.clickUse, row_counter))
+                    self.result_table.setCellWidget(row_counter, column_counter, self.use_buttons[row_counter])
 
-                row_counter += 1
+                    row_counter += 1
 
-            self.result_table.setHorizontalHeaderLabels(self.category_tree_headers+["Use Button"])
-            self.result_table.resizeColumnsToContents()
-            self.result_table.resizeRowsToContents()
-            self.result_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-            self.result_table.horizontalHeader().setStretchLastSection(True)
-            self.result_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-            self.result_table.verticalHeader().setStretchLastSection(False)
-        if self.result_table.rowCount() >0:
-            self.result_table.setVisible(True)
-            self.result_table.show()
-            self.result_table.setWindowTitle("Search Results")
-            self.result_table.setMinimumWidth(600)
+                self.result_table.setHorizontalHeaderLabels(self.category_tree_headers+["Use Button"])
+                self.result_table.resizeColumnsToContents()
+                self.result_table.resizeRowsToContents()
+                self.result_table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+                self.result_table.horizontalHeader().setStretchLastSection(True)
+                self.result_table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+                self.result_table.verticalHeader().setStretchLastSection(False)
+            if self.result_table.rowCount() >0:
+                self.result_table.setVisible(True)
+                self.result_table.show()
+                self.result_table.setWindowTitle("Search Results")
+                self.result_table.setMinimumWidth(600)
+        else:
+            self.alertMessage("No Search Results","There is no match when searching for %s in the category tree."%search_string)
+        self.search_string_line_edit.setEnabled(True)
+        self.find_button.setEnabled(True)
 
 
     def clickUse(self, count):

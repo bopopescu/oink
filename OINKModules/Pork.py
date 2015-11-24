@@ -856,7 +856,7 @@ class Pork(QtGui.QMainWindow):
     def cellSelected(self, row, column):
         """Triggered when a cell is clicked.
         If the current mode is set to modification, it will copy the fields in the selected row to the form.
-"""
+            """
         self.selected_row = row
         self.selected_column = column
         mode = self.getMode()
