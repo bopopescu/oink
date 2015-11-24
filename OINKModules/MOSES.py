@@ -781,7 +781,7 @@ def updateNamesAndEmailIDs(user_id, password):
         """UPDATE `managermapping` set `Employee Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`managermapping`.`Employee ID`);""",
         """UPDATE `managermapping` set `Reporting Manager Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`managermapping`.`Reporting Manager ID`);""",
         """UPDATE `managermapping` set `Reporting Manager Email ID` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`managermapping`.`Reporting Manager ID`);""",
-        """UPDATE `loginrecord` set `Employee Name` = (SELECT `Email ID` from employees WHERE employees.`Employee ID`=`loginrecord`.`Employee Name`);"""
+        """UPDATE `loginrecord` set `Employee Name` = (SELECT `Name` from employees WHERE employees.`Employee ID`=`loginrecord`.`Employee ID`);"""
                 ]
     try:
         for sqlcmdstring in sqlcmdlist:
