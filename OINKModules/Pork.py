@@ -851,6 +851,7 @@ class Pork(QtGui.QMainWindow):
         self.lineEditRefLink.setText("NA")
         self.lineEditUploadLink.setText("")
         self.buttonAddFSN.setChecked(True)
+        self.lineEditFSN.setEnabled(True)
 
     def cellSelected(self, row, column):
         """Triggered when a cell is clicked.
