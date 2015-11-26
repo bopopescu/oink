@@ -37,7 +37,7 @@ class Pork(QtGui.QMainWindow):
         super(QtGui.QMainWindow, self).__init__()
         self.x_pos, self.right_pos = "center","middle"
         self.flip = random.randint(0, 1)
-        
+        self.setMouseTracking(True)
         #store the variables so they are accessible elsewhere in this class.
         self.user_id = user_id
         self.password = password
@@ -97,7 +97,6 @@ class Pork(QtGui.QMainWindow):
         #creates all the widgets
         #Create the tab widget, adds tabs and creates all the related widgets and layouts.
         self.fk_icon = ImageLabel(os.path.join("Images","fk_logo_mini.png"), 64, 64)
-        self.flip = 0
         if self.flip == 0:
             self.bigbrother_icon = ImageButton(os.path.join("Images","bigbrother.png"), 64, 64)
         else:
@@ -1164,8 +1163,37 @@ the existing data in the form with the data in the cell and modify that cell?"""
         message = "OINK and all related tools were created over a period of a year, starting on the 5th of November 2014, by Vinay Keerthi. The <a href=\"https://www.github.com/vinay87/oink\">github page</a> has more details regarding development."
         QtGui.QMessageBox.about(self, title, message)
 
+    def mouseMoveEvent(self, event):
+        if event.buttons() == QtCore.Qt.NoButton:
+            print "Mouse moved1!"
+            pos = QtGui.QCursor().pos()
+            x, y = pos.x(), pos.y()
+            bigbrother_pos = self.bigbrother_icon.pos()
+            x_diff = (x-bigbrother_pos.x())
+            width, height = 64, 64
+            if x_diff>width:
+                x_pos = "right"
+            elif x_diff<0:
+                x_pos = "left"
+            else:
+                x_pos = "center"
+            y_diff = (y - bigbrother_pos.y())
+            if y_diff <0:
+                y_pos = "above"
+            elif y_diff>height:
+                y_pos = "below"
+            else:
+                y_pos = "middle"
+            if (x_pos != self.x_pos) or (y_pos !=self.y_pos):
+                if self.flip == 0:
+                    print "Flipping!"
+                    image_path = os.path.join("Images","bigbrother","sauron","%s_%s.png"%(x_pos,y_pos))
+                    self.bigbrother_icon.showImage(image_path)
+                self.x_pos, self.y_pos = x_pos, y_pos
+                
     def eventFilter(self, source, event):
-        if event.type() == QtCore.QEvent.MouseMove:
+        if event.type() == QtCore.QEvent.MouseMove:            
+            print "Mouse moved!"
             if event.buttons() == QtCore.Qt.NoButton:
                 pos = QtGui.QCursor().pos()
                 x, y = pos.x(), pos.y()
@@ -1187,6 +1215,7 @@ the existing data in the form with the data in the cell and modify that cell?"""
                     y_pos = "middle"
                 if (x_pos != self.x_pos) or (y_pos !=self.y_pos):
                     if self.flip == 0:
+                        print "Flipping!"
                         image_path = os.path.join("Images","bigbrother","sauron","%s_%s.png"%(x_pos,y_pos))
                         self.bigbrother_icon.showImage(image_path)
                     self.x_pos, self.y_pos = x_pos, y_pos
